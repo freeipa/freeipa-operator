@@ -1,0 +1,7 @@
+apiVersion: idmocp.redhat.com/v1alpha1
+kind: IDM
+metadata:
+  name: example-idm
+spec:
+  # Add fields here
+  size: 3
