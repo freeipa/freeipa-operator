@@ -2,14 +2,15 @@ package idm
 
 import (
 	"context"
+	"reflect"
 
 	idmocpv1alpha1 "idmocp/pkg/apis/idmocp/v1alpha1"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -21,11 +22,6 @@ import (
 )
 
 var log = logf.Log.WithName("controller_idm")
-
-/**
-* USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
-* business logic.  Delete these comments after modifying this file.*
- */
 
 // Add creates a new IDM Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -52,8 +48,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// TODO(user): Modify this to be the types you create that are owned by the primary resource
-	// Watch for changes to secondary resource Pods and requeue the owner IDM
+	// Our secondary resources are the Pods running the freeipa
+	// server container.
 	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &idmocpv1alpha1.IDM{},
@@ -78,11 +74,7 @@ type ReconcileIDM struct {
 
 // Reconcile reads that state of the cluster for a IDM object and makes changes based on the state read
 // and what is in the IDM.Spec
-// TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
-// a Pod as an example
-// Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
-// Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileIDM) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling IDM")
@@ -101,52 +93,83 @@ func (r *ReconcileIDM) Reconcile(request reconcile.Request) (reconcile.Result, e
 		return reconcile.Result{}, err
 	}
 
-	// Define a new Pod object
-	pod := newPodForCR(instance)
-
-	// Set IDM instance as the owner and controller
-	if err := controllerutil.SetControllerReference(instance, pod, r.scheme); err != nil {
+	// List all pods owned by this PodSet instance
+	podList := &corev1.PodList{}
+	lbls := map[string]string{
+		"app":     instance.Name,
+	}
+	listOps := &client.ListOptions{
+		Namespace: instance.Namespace,
+		LabelSelector: labels.SelectorFromSet(lbls),
+	}
+	if err = r.client.List(context.TODO(), podList, listOps); err != nil {
 		return reconcile.Result{}, err
 	}
 
-	// Check if this Pod already exists
-	found := &corev1.Pod{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: pod.Name, Namespace: pod.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating a new Pod", "Pod.Namespace", pod.Namespace, "Pod.Name", pod.Name)
-		err = r.client.Create(context.TODO(), pod)
+	// Count the pods that are pending or running as available
+	var pods []corev1.Pod
+	for _, pod := range podList.Items {
+		if pod.ObjectMeta.DeletionTimestamp != nil {
+			continue
+		}
+		if pod.Status.Phase == corev1.PodRunning || pod.Status.Phase == corev1.PodPending {
+			pods = append(pods, pod)
+		}
+	}
+	numPods := int32(len(pods))
+	podNames := []string{}
+	for _, pod := range pods {
+		podNames = append(podNames, pod.ObjectMeta.Name)
+	}
+
+	// Update the status if necessary
+	status := idmocpv1alpha1.IDMStatus{
+		Servers: podNames,
+	}
+	if !reflect.DeepEqual(instance.Status, status) {
+		instance.Status = status
+		err = r.client.Status().Update(context.TODO(), instance)
 		if err != nil {
+			reqLogger.Error(err, "Failed to update IDM status")
 			return reconcile.Result{}, err
 		}
-
-		// Pod created successfully - don't requeue
-		return reconcile.Result{}, nil
-	} else if err != nil {
-		return reconcile.Result{}, err
 	}
 
-	// Pod already exists - don't requeue
-	reqLogger.Info("Skip reconcile: Pod already exists", "Pod.Namespace", found.Namespace, "Pod.Name", found.Name)
+	if numPods < 1 {
+		reqLogger.Info("Deploying IDM")
+
+		pod := newPodForCR(instance)
+		if err := controllerutil.SetControllerReference(instance, pod, r.scheme); err != nil {
+			return reconcile.Result{}, err
+		}
+		err = r.client.Create(context.TODO(), pod)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create pod", "pod.name", pod.Name)
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{Requeue: true}, nil
+	}
+
 	return reconcile.Result{}, nil
 }
 
-// newPodForCR returns a busybox pod with the same name/namespace as the cr
 func newPodForCR(cr *idmocpv1alpha1.IDM) *corev1.Pod {
 	labels := map[string]string{
 		"app": cr.Name,
 	}
+	// TODO create PersistentVolumeClaim?
 	return &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Name + "-pod",
+			GenerateName: cr.Name + "-pod",  // adds random suffix
 			Namespace: cr.Namespace,
 			Labels:    labels,
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{
-					Name:    "busybox",
-					Image:   "busybox",
-					Command: []string{"sleep", "3600"},
+					Name:    "freeipa",  // dns name?
+					Image:   "freeipa/freeipa-server:fedora-31",
+					Command: []string{"sleep", "3600"}, // FIXME
 				},
 			},
 		},
