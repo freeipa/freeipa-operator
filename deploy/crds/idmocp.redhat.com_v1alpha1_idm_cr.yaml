@@ -3,5 +3,4 @@ kind: IDM
 metadata:
   name: example-idm
 spec:
-  # Add fields here
-  size: 3
+  realm: IPA.TEST
