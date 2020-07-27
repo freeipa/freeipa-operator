@@ -15,8 +15,8 @@ spec:
       serviceAccountName: idmocp
       containers:
         - name: idmocp
-          # Replace this with the built image name
-          image: REPLACE_IMAGE
+          # FIXME
+          image: frasertweedale/freeipa-container
           command:
           - idmocp
           imagePullPolicy: Always
