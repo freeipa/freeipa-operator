@@ -1,0 +1,17 @@
+---
+# action.yml
+name: 'Markdown Linter'
+author: Alejandro Visiedo
+description: 'Linter for Markdown files'
+inputs:
+  file:  # id of input
+    description: 'The Markdown file to scan'
+    required: true
+runs:
+  using: 'docker'
+  image: 'docker://docker.io/markdownlint/markdownlint'
+  args:
+    - ${{ inputs.file }}
+branding:
+  icon: 'disc'
+  color: 'yellow'
