@@ -22,7 +22,7 @@ runs:
   entrypoint: 'bash'
   args:
     - -c
-    - "oc login -u ${{ oc_username }} -p ${{ oc_password }} ${{ oc_api }} && oc apply --dry-run --validate ${{ inputs.file }}"
+    - "oc login -u '${{ oc_username }}' -p '${{ oc_password }}' --insecure-skip-tls-verify=true '${{ oc_api }}' && oc apply --dry-run --validate -f '${{ inputs.file }}'"
 branding:
   icon: 'disc'
   color: 'yellow'
