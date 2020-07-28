@@ -1,0 +1,18 @@
+---
+# action.yml
+name: 'ShellCheck Linter'
+author: Alejandro Visiedo
+description: 'Linter for shell files'
+inputs:
+  file:  # id of input
+    description: 'The shell script file to scan'
+    required: true
+runs:
+  using: 'docker'
+  image: 'docker://docker.io/nlknguyen/alpine-shellcheck:latest'
+  entrypoint: 'shellcheck'
+  args:
+    - ${{ inputs.file }}
+branding:
+  icon: 'disc'
+  color: 'yellow'

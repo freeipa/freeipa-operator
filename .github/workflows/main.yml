@@ -1,0 +1,71 @@
+---
+# https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#name
+name: lint
+
+# https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#on
+# yamllint disable-line rule:truthy
+on: [push, pull_request]
+
+# https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobs
+jobs:
+  lint-files:
+    name: Lint all possible files in the repository
+
+    # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    runs-on: ubuntu-latest
+
+    # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idsteps
+    steps:
+      - uses: actions/checkout@v2
+      # - name: Lint README.md file
+      #   uses: avto-dev/markdown-lint@v1
+      #   with:
+      #     rules: '/lint/rules/changelog.js'
+      #     config: '/lint/config/changelog.yml'
+      #     args: './README.md'
+
+      # Lint Dockerfile files
+      - name: Lint Dockerfile
+        uses: ./.github/actions/hadolint
+        with:
+          file: ./src/idmocp/build/Dockerfile
+
+      # Lint Shell Scripts
+      - name: Lint entrypoint
+        uses: ./.github/actions/shellcheck
+        with:
+          file: src/idmocp/build/bin/entrypoint
+      - name: Lint user_setup
+        uses: ./.github/actions/shellcheck
+        with:
+          file: src/idmocp/build/bin/user_setup
+
+      # Lint YAML files
+      - name: Lint .github/workflows/main.yml Workflow file
+        uses: ./.github/actions/yamllint
+        with:
+          file: .github/workflows/main.yml
+      - name: Lint deploy/operator.yaml
+        uses: ./.github/actions/yamllint
+        with:
+          file: deploy/operator.yaml
+      - name: Lint deploy/role.yaml
+        uses: ./.github/actions/yamllint
+        with:
+          file: deploy/role.yaml
+      - name: Lint deploy/role_binding.yaml
+        uses: ./.github/actions/yamllint
+        with:
+          file: deploy/role_binding.yaml
+      - name: Lint deploy/service_account.yaml
+        uses: ./.github/actions/yamllint
+        with:
+          file: deploy/service_account.yaml
+      - name: Lint deploy/crds/idmocp.redhat.com_idms_crd.yaml
+        uses: ./.github/actions/yamllint
+        with:
+          file: deploy/crds/idmocp.redhat.com_idms_crd.yaml
+      - name: Lint deploy/crds/idmocp.redhat.com_v1alpha1_idm_cr.yaml
+        uses: ./.github/actions/yamllint
+        with:
+          file: deploy/crds/idmocp.redhat.com_v1alpha1_idm_cr.yaml

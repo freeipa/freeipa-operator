@@ -1,0 +1,18 @@
+---
+# action.yml
+name: 'Yaml Linter'
+author: Alejandro Visiedo
+description: 'Linter for YAML files'
+inputs:
+  file:  # id of input
+    description: 'The YAML file to scan'
+    required: true
+runs:
+  using: 'docker'
+  image: 'docker://cytopia/yamllint:latest'
+  entrypoint: 'yamllint'
+  args:
+    - ${{ inputs.file }}
+branding:
+  icon: 'disc'
+  color: 'yellow'

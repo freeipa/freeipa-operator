@@ -1,0 +1,28 @@
+---
+# action.yml
+name: 'OpenShift client'
+author: Alejandro Visiedo
+description: 'Validate'
+inputs:
+  oc_username:
+    description: 'The username for login to the API'
+    required: true
+  oc_password:
+    description: 'The password or token for login to the API'
+    required: true
+  oc_api:
+    description: 'The URL to the OpenShift API'
+    required: true
+  file:
+    description: 'The OpenShift object descriptor to validate'
+    required: true
+runs:
+  using: 'docker'
+  image: 'docker://docker.io/openshift/origin-cli:v4.0'
+  entrypoint: 'bash'
+  args:
+    - -c
+    - "oc login -u ${{ oc_username }} -p ${{ oc_password }} ${{ oc_api }} && oc apply --dry-run --validate ${{ inputs.file }}"
+branding:
+  icon: 'disc'
+  color: 'yellow'

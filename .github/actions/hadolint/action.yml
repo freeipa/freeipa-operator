@@ -1,0 +1,19 @@
+---
+# action.yml
+name: 'Dockerfile Linter'
+author: Alejandro Visiedo
+description: 'Linter for Dockerfile files'
+inputs:
+  file:  # id of input
+    description: 'The Dockerfile file to scan'
+    required: true
+runs:
+  using: 'docker'
+  image: 'docker://hadolint/hadolint:latest'
+  entrypoint: '/bin/hadolint'
+  args:
+    - ${{ inputs.file }}
+branding:
+  icon: 'disc'
+  color: 'yellow'
+
