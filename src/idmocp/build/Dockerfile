@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.2
 
 ENV OPERATOR=/usr/local/bin/idmocp \
     USER_UID=1001 \
