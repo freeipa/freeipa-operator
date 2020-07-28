@@ -69,30 +69,3 @@ jobs:
         uses: ./.github/actions/yamllint
         with:
           file: deploy/crds/idmocp.redhat.com_v1alpha1_idm_cr.yaml
-      
-      # Lint OpenShift Objects
-      # - name: Lint deploy/operator.yaml OpenShift object
-      #   uses: ./.github/actions/lintocobject
-      #   with:
-      #     file: deploy/operator.yaml
-      # - name: Lint deploy/role.yaml OpenShift object
-      #   uses: ./.github/actions/lintocobject
-      #   with:
-      #     file: deploy/role.yaml
-      # - name: Lint deploy/role_binding.yaml OpenShift object
-      #   uses: ./.github/actions/lintocobject
-      #   with:
-      #     file: deploy/role_binding.yaml
-      # - name: Lint deploy/service_account.yaml OpenShift object
-      #   uses: ./.github/actions/lintocobject
-      #   with:
-      #     file: deploy/service_account.yaml
-      # - name: Lint deploy/crds/idmocp.redhat.com_idms_crd.yaml OpenShift object
-      #   uses: ./.github/actions/lintocobject
-      #   with:
-      #     file: deploy/crds/idmocp.redhat.com_idms_crd.yaml
-      # - name: Lint deploy/crds/idmocp.redhat.com_v1alpha1_idm_cr.yaml OpenShift object
-      #   uses: ./.github/actions/lintocobject
-      #   with:
-      #     file: deploy/crds/idmocp.redhat.com_v1alpha1_idm_cr.yaml
-
