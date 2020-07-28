@@ -69,3 +69,9 @@ jobs:
         uses: ./.github/actions/yamllint
         with:
           file: deploy/crds/idmocp.redhat.com_v1alpha1_idm_cr.yaml
+
+      # Lint Markdown files
+      - name: Lint README.md file
+        uses: ./.github/actions/lint-markdown
+        with:
+          file: README.md
