@@ -20,6 +20,9 @@ DOCKERFILE_FILES=()
 declare -a GO_FILES
 GO_FILES=()
 
+declare -a MARKDOWN_FILES
+MARKDOWN_FILES=()
+
 FORCE=""
 
 
@@ -94,6 +97,22 @@ function lint-go
 
 
 ##
+# Lint a Markdown docoument
+##
+function lint-markdown
+{
+    local filepath
+    filepath="$1"
+    shift 1
+    podman run --rm -it \
+               --volume "$PWD:/data:z" \
+               --workdir "/data" \
+               docker.io/markdownlint/markdownlint \
+               "${filepath}"
+}
+
+
+##
 # Lint a Kubernete object.
 ##
 function lint-kubeobject
@@ -127,6 +146,7 @@ Options could be:
                       auto-discovered.
   --force-kubeobject  Force lint a Kubernete object when the type can
                       not be auto-discovered.
+  --force-markdown    Force lint a Markdown document.
 
 * By default lint all the files in the repository.  
 EOF
@@ -167,6 +187,12 @@ function prepare-lists
     while IFS='' read -r line; do files+=("$line"); done < <( find . -name '*.go' )
     GO_FILES=("${files[@]}")
     debug-msg "GO_FILES=${GO_FILES[*]}"
+
+
+    files=()
+    while IFS='' read -r line; do files+=("$line"); done < <( find . -name '*.md' )
+    MARKDOWN_FILES=("${files[@]}")
+    debug-msg "MARKDOWN_FILES=${MARKDOWN_FILES[*]}"
 }
 
 
@@ -174,6 +200,10 @@ function cmd-lint-all
 {
     local reto
     local shellscript_err_count
+    local yaml_err_count
+    local dockerfile_err_count
+    local go_err_count
+    local markdown_err_count
     local err_count
     prepare-lists
 
@@ -214,7 +244,17 @@ function cmd-lint-all
     reto=$?
     [ $reto -ne 0 ] && go_err_count=$(( go_err_count + 1 ))
 
-    err_count=$(( shellscript_err_count + yaml_err_count + dockerfile_err_count + go_err_count ))
+    # Lint Markdown Files
+    echo ">> Linting Markdown files"
+    markdown_err_count=0
+    for file in "${MARKDOWN_FILES[@]}"
+    do
+        lint-markdown "$file"
+        reto=$?
+        [ $reto -ne 0 ] && markdown_err_count=$(( markdown_err_count + 1 ))
+    done
+
+    err_count=$(( shellscript_err_count + yaml_err_count + dockerfile_err_count + go_err_count + markdown_err_count ))
     return $err_count
 }
 
@@ -243,6 +283,9 @@ function lint-forced
             ;;
         "--force-kubeobject" )
             lint-kubeobject "${filepath}"
+            ;;
+        "--force-markdown" )
+            lint-markdown "${filepath}"
             ;;
         * )
             ;;
@@ -302,6 +345,7 @@ function check-args-and-run
             | "--force-dockerfile" \
             | "--force-yaml" \
             | "--force-go" \
+            | "--force-markdown" \
             | "--force-kubeobject" )
                 [ "$FORCE" != "" ] && die "Can not be forced two different linters"
                 FORCE="${argument}"
