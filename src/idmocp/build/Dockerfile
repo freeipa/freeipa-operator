@@ -1,3 +1,4 @@
+# https://catalog.redhat.com/software/containers/ubi8/ubi-minimal/5c359a62bed8bd75a2c3fba8?container-tabs=overview
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.2
 
 ENV OPERATOR=/usr/local/bin/idmocp \
