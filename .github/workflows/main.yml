@@ -17,53 +17,25 @@ jobs:
     # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idsteps
     steps:
       - uses: actions/checkout@v2
-      # - name: Lint README.md file
-      #   uses: avto-dev/markdown-lint@v1
-      #   with:
-      #     rules: '/lint/rules/changelog.js'
-      #     config: '/lint/config/changelog.yml'
-      #     args: './README.md'
 
-      # Lint Dockerfile files
-      - name: Lint Dockerfile
-        uses: ./.github/actions/hadolint
-        with:
-          file: ./build/Dockerfile
-
-      # Lint Shell Scripts
-      - name: Lint entrypoint
-        uses: ./.github/actions/shellcheck
-        with:
-          file: build/bin/entrypoint
-      - name: Lint user_setup
-        uses: ./.github/actions/shellcheck
-        with:
-          file: build/bin/user_setup
-
-      # Lint YAML files
-      - name: Lint .github/workflows/main.yml Workflow file
-        uses: ./.github/actions/yamllint
-        with:
-          file: .github/workflows/main.yml
-      - name: Lint deploy/operator.yaml
-        uses: ./.github/actions/yamllint
-        with:
-          file: deploy/operator.yaml
-      - name: Lint deploy/role.yaml
-        uses: ./.github/actions/yamllint
-        with:
-          file: deploy/role.yaml
-      - name: Lint deploy/role_binding.yaml
-        uses: ./.github/actions/yamllint
-        with:
-          file: deploy/role_binding.yaml
-      - name: Lint deploy/service_account.yaml
-        uses: ./.github/actions/yamllint
-        with:
-          file: deploy/service_account.yaml
-
-      # Lint Markdown files
-      - name: Lint README.md file
-        uses: ./.github/actions/lint-markdown
-        with:
-          file: README.md
+      - name: Lint Shell Script files
+        run: ./devel/lint.sh  $( find . -name '*.sh' )
+      - name: Lint Markdown files
+        run: ./devel/lint.sh  $( find . -name '*.md' )
+      - name: Lint YAML files
+        run: ./devel/lint.sh  $( find . -name '*.yml' -o -name '*.yaml' )
+      - name: Lint Dockerfile files
+        run: |
+          ./devel/lint.sh  $( find . -name 'Dockerfile' \
+          -o -name 'Dockerfile.*' )
+      - name: Lint go files
+        run: |
+          [ -e "$HOME/go" ] || mkdir -p "$HOME/go"
+          GOPATH="$HOME/go" \
+          FLAG_INSTALL_VSCODE=NO \
+          FLAG_RUN_VSCODE_AFTER_INSTALL=NO \
+          FLAG_INSTALL_CRC=NO \
+          ./devel/install-local-tools.sh
+          GOPATH="$HOME/go" \
+          PATH="$GOPATH/bin:$PATH" \
+          ./devel/lint.sh  $( find . -name '*.go' )
