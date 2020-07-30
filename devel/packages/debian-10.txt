@@ -1,0 +1,12 @@
+golang
+git
+gcc
+ansible
+gettext
+less
+openssh-client
+docker
+xdg-utils
+xdg-user-dirs
+curl
+debianutils
