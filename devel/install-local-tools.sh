@@ -63,9 +63,9 @@ function test-fedora
 ##
 function print-distribution
 {
-    if test-fedora; then printf "fedora\n"
-    elif test-centos; then printf "centos\n"
-    elif test-debian; then printf "debian\n"
+    if test-fedora; then printf "fedora\\n"
+    elif test-centos; then printf "centos\\n"
+    elif test-debian; then printf "debian\\n"
     else die "Can not identify the linux distribution"
     fi
 } # print-distribution
@@ -95,13 +95,14 @@ function print-distribution-version
         "debian" )
             version="$( < /etc/debian_version )"
             version="${version%%.*}"
+            version="${version%%/*}"  # Ubuntu 18.04 return "buster/sid"
             ;;
         * )
             die "'${distribution}' linux distribution unsupported"
             ;;
     esac
 
-    printf "%s-%s\n" "${distribution}" "${version}"
+    printf "%s-%s\\n" "${distribution}" "${version}"
 } # print-distribution-version
 
 
@@ -116,7 +117,7 @@ function print-package-list
     package_list_file="./devel/packages/$( print-distribution-version ).txt"
     [ -e "${package_list_file}" ] || die "'${package_list_file}' does not exist"
     package_list="$( < "${package_list_file}" )"
-    printf "%s\n" "${package_list}"
+    printf "%s\\n" "${package_list}"
 } # print-package-list
 
 
@@ -181,13 +182,13 @@ function install-go-tools
     }
 
     # Install godoc
-    verbose go install -v golang.org/x/tools/cmd/godoc
+    verbose go get -u -v golang.org/x/tools/cmd/godoc
 
     # Install debugger
-    verbose go install -v github.com/go-delve/delve/cmd/dlv
+    verbose go get -u -v github.com/go-delve/delve/cmd/dlv
 
     # Install linter
-    verbose go install -v golang.org/x/lint/golint
+    verbose go get -u -v golang.org/x/lint/golint
 
 } # install-go-tools
 
@@ -297,7 +298,7 @@ command -v operator-sdk 2>/dev/null 1>/dev/null || {
       && verbose chmod a+x operator-sdk \
       && verbose get-root mv operator-sdk /usr/local/bin/operator-sdk \
       && operator-sdk completion bash \
-         | get-root tee /usr/share/bash-completion/completions/operator-sdk 1>/dev/null 
+         | get-root tee /usr/share/bash-completion/completions/operator-sdk 1>/dev/null
     ) || die "Installing Operator-SDK ${OPERATOR_SDK_VERSION}"
 }
 
@@ -384,6 +385,13 @@ Run 'crc console --credentials' if you forget them.
 EOF
     fi
 }
+
+
+[ ! -e .git/hooks/pre-commit ] && {
+    echo ">> Installing git-hooks"
+    cp -f ./devel/pre-commit.sh .git/hooks/pre-commit
+}
+
 
 unset GOPATH
 

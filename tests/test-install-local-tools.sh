@@ -249,6 +249,7 @@ function run-test
     fi
     reto="$( $oci container wait "${container_id}" 2>/dev/null )"
     $oci container rm -f "${container_id}" &>/dev/null
+    # shellcheck disable=SC2086
     return $reto
 }
 
@@ -279,7 +280,9 @@ for image in "${CONTAINER_IMAGES[@]}"
 do
     for index in "${!MATRIX_FLAGS[@]}"
     do
+        # shellcheck disable=SC2086
         [ $index -lt $START_INDEX ] && continue
+        # shellcheck disable=SC2086
         [ $index -gt $END_INDEX ] && continue
         # shellcheck disable=SC2206
         CURRENT_FLAGS=(${MATRIX_FLAGS[$index]})
@@ -295,7 +298,9 @@ do
     # Print result report
     for index in "${!MATRIX_FLAGS[@]}"
     do
+        # shellcheck disable=SC2086
         [ $index -lt $START_INDEX ] && continue
+        # shellcheck disable=SC2086
         [ $index -gt $END_INDEX ] && continue
         if [ ${RESULT_MATRIX[$index]} -eq ${MATRIX_EXPECTED[$index]} ]
         then
