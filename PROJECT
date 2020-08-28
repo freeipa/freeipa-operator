@@ -1,0 +1,3 @@
+domain: redhat.com
+repo: github.com/freeipa/freeipa-operator
+version: "2"
