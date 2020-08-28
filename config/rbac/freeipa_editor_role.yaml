@@ -1,0 +1,24 @@
+# permissions for end users to edit freeipas.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: freeipa-editor-role
+rules:
+- apiGroups:
+  - freeipa.redhat.com
+  resources:
+  - freeipas
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - freeipa.redhat.com
+  resources:
+  - freeipas/status
+  verbs:
+  - get

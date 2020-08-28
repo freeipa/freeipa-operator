@@ -1,3 +1,7 @@
 domain: redhat.com
 repo: github.com/freeipa/freeipa-operator
+resources:
+- group: freeipa
+  kind: Freeipa
+  version: v1alpha1
 version: "2"

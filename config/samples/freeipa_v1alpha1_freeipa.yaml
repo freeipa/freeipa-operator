@@ -1,0 +1,7 @@
+apiVersion: freeipa.redhat.com/v1alpha1
+kind: Freeipa
+metadata:
+  name: freeipa-sample
+spec:
+  # Add fields here
+  foo: bar
