@@ -25,15 +25,16 @@ import (
 
 // FreeipaSpec defines the desired state of Freeipa
 type FreeipaSpec struct {
+	Realm string `json:"realm,omitempty"`
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of Freeipa. Edit Freeipa_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
 }
 
 // FreeipaStatus defines the observed state of Freeipa
 type FreeipaStatus struct {
+	Servers []string `json:"servers"`
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
