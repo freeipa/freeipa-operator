@@ -190,6 +190,8 @@ function install-go-tools
     # Install linter
     verbose go get -u -v golang.org/x/lint/golint
 
+    # Install kustomize
+    verbose go get sigs.k8s.io/kustomize/kustomize/v3
 } # install-go-tools
 
 
