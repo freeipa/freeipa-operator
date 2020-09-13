@@ -169,6 +169,35 @@ function install-packages
     esac
 } # install-packages
 
+##
+# Install kustomize tool from source code. The other ways failed in Fedora 32.
+# See: https://kubernetes-sigs.github.io/kustomize/installation/source/#install-the-kustomize-cli-from-local-source-with-cloning-the-repo
+##
+function install-kustomize-from-source
+{
+    local reto=0
+    # Need go 1.13 or higher
+    # unset GOPATH
+    # see https://golang.org/doc/go1.13#modules
+    # unset GO111MODULES
+
+    ( [ ! -e /tmp/kustomize-tmp ] || rm -rf /tmp/kustomize-tmp ) \
+    && mkdir /tmp/kustomize-tmp
+    reto=$?
+    [ $reto -eq 0 ] || die "Failing preparing for building from source"
+    
+    pushd /tmp/kustomize-tmp &>/dev/null
+    git clone git@github.com:kubernetes-sigs/kustomize.git \
+    && cd kustomize \
+    && git checkout kustomize/v3.2.3 \
+    && cd kustomize \
+    && GOPATH= GO111MODULES= go install .
+    reto=$?
+    popd &>/dev/null
+
+    return $reto
+} # install-kustomize-from-source
+
 
 ##
 # Install golang tools
@@ -191,7 +220,7 @@ function install-go-tools
     verbose go get -u -v golang.org/x/lint/golint
 
     # Install kustomize
-    verbose go get sigs.k8s.io/kustomize/kustomize/v3
+    verbose install-kustomize-from-source
 } # install-go-tools
 
 
