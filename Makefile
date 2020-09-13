@@ -1,6 +1,13 @@
+IMG_NAME = freeipa-operator
+ifeq (,$(shell go env CI_COMMIT_SHA))
+IMG_TAG = dev-$(shell git rev-parse HEAD)
+else
+IMG_TAG = dev-$(CI_COMMIT_SHA)
+endif
+IMG_BASE ?= quay.io/freeipa
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= $(IMG_BASE)/$(IMG_NAME):$(IMG_TAG)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
