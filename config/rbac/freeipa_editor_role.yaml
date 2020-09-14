@@ -1,13 +1,13 @@
-# permissions for end users to edit freeipas.
+# permissions for end users to edit idms.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: freeipa-editor-role
+  name: idm-editor-role
 rules:
 - apiGroups:
-  - freeipa.redhat.com
+  - idmocp.redhat.com
   resources:
-  - freeipas
+  - idms
   verbs:
   - create
   - delete
@@ -17,8 +17,8 @@ rules:
   - update
   - watch
 - apiGroups:
-  - freeipa.redhat.com
+  - idmocp.redhat.com
   resources:
-  - freeipas/status
+  - idms/status
   verbs:
   - get

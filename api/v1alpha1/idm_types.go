@@ -23,8 +23,8 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// FreeipaSpec defines the desired state of Freeipa
-type FreeipaSpec struct {
+// IDMSpec defines the desired state of Freeipa
+type IDMSpec struct {
 	Realm string `json:"realm,omitempty"`
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
@@ -32,8 +32,8 @@ type FreeipaSpec struct {
 	// Foo is an example field of Freeipa. Edit Freeipa_types.go to remove/update
 }
 
-// FreeipaStatus defines the observed state of Freeipa
-type FreeipaStatus struct {
+// IDMStatus defines the observed state of Freeipa
+type IDMStatus struct {
 	Servers []string `json:"servers"`
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
@@ -42,24 +42,24 @@ type FreeipaStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// Freeipa is the Schema for the freeipas API
-type Freeipa struct {
+// IDM is the Schema for the idms API
+type IDM struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   FreeipaSpec   `json:"spec,omitempty"`
-	Status FreeipaStatus `json:"status,omitempty"`
+	Spec   IDMSpec   `json:"spec,omitempty"`
+	Status IDMStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-// FreeipaList contains a list of Freeipa
-type FreeipaList struct {
+// IDMList contains a list of Freeipa
+type IDMList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Freeipa `json:"items"`
+	Items           []IDM `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Freeipa{}, &FreeipaList{})
+	SchemeBuilder.Register(&IDM{}, &IDMList{})
 }

@@ -7,9 +7,9 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - freeipa.redhat.com
+  - idmocp.redhat.com
   resources:
-  - freeipas
+  - idms
   verbs:
   - create
   - delete
@@ -19,9 +19,9 @@ rules:
   - update
   - watch
 - apiGroups:
-  - freeipa.redhat.com
+  - idmocp.redhat.com
   resources:
-  - freeipas/status
+  - idms/status
   verbs:
   - get
   - patch

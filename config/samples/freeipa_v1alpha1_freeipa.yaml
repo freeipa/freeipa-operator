@@ -1,7 +1,7 @@
-apiVersion: freeipa.redhat.com/v1alpha1
-kind: Freeipa
+apiVersion: idmocp.redhat.com/v1alpha1
+kind: IDM
 metadata:
-  name: freeipa-sample
+  name: idm-sample
 spec:
   # Add fields here
   foo: bar

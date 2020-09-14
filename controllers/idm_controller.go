@@ -29,48 +29,48 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	freeipav1alpha1 "github.com/freeipa/freeipa-operator/api/v1alpha1"
+	idmv1alpha1 "github.com/freeipa/freeipa-operator/api/v1alpha1"
 )
 
-// FreeipaReconciler reconciles a Freeipa object
-type FreeipaReconciler struct {
+// IDMReconciler reconciles a IDM object
+type IDMReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
-// Reconcile Read the current of the cluster for Freeipa object and makes the
+// Reconcile Read the current of the cluster for IDM object and makes the
 // necessary changes to bring the system to the requested state.
-// +kubebuilder:rbac:groups=freeipa.redhat.com,resources=freeipas,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=freeipa.redhat.com,resources=freeipas/status,verbs=get;update;patch
-func (r *FreeipaReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+// +kubebuilder:rbac:groups=idmocp.redhat.com,resources=idms,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=idmocp.redhat.com,resources=idms/status,verbs=get;update;patch
+func (r *IDMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
-	log := r.Log.WithValues("freeipa", req.NamespacedName)
+	log := r.Log.WithValues("idm", req.NamespacedName)
 
-	// Fetch the Freeipa instance
-	freeipa := &freeipav1alpha1.Freeipa{}
-	err := r.Get(ctx, req.NamespacedName, freeipa)
+	// Fetch the IDM instance
+	idm := &idmv1alpha1.IDM{}
+	err := r.Get(ctx, req.NamespacedName, idm)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
-			log.Info("Freeipa resource not found. Ignoring since object must be deleted")
+			log.Info("IDM resource not found. Ignoring since object must be deleted")
 			return ctrl.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
-		log.Error(err, "Failed to get Freeipa")
+		log.Error(err, "Failed to get IDM")
 		return ctrl.Result{}, err
 	}
 
 	found := &corev1.Pod{}
 	err = r.Get(ctx, types.NamespacedName{
-		Name:      freeipa.Name,
-		Namespace: freeipa.Namespace,
+		Name:      idm.Name,
+		Namespace: idm.Namespace,
 	}, found)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new pod
-		pod := r.podForFreeipa(freeipa)
+		pod := r.podForIDM(idm)
 		log.Info("Creating a new Pod", "Pod.Namespace", pod.Namespace, "Pod.Name", pod.Name)
 		err = r.Create(ctx, pod)
 		if err != nil {
@@ -86,10 +86,10 @@ func (r *FreeipaReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	// Check if the deploymen already exists, if not create a new one
 	// found := &appsv1.Deployment{}
-	// err = r.Get(ctx, types.NamespacedName{Name: freeipa.Name, Namespace: freeipa.Namespace}, found)
+	// err = r.Get(ctx, types.NamespacedName{Name: idm.Name, Namespace: idm.Namespace}, found)
 	// if err != nil && errors.IsNotFound(err) {
 	// 	// Define a new deployment
-	// 	dep := r.deploymentForFreeipa(freeipa)
+	// 	dep := r.deploymentForIDM(idm)
 	// 	log.Info("Creating a new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
 	// 	err = r.Create(ctx, dep)
 	// 	if err != nil {
@@ -106,15 +106,15 @@ func (r *FreeipaReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	// TODO Implement here the changes to bring the spec to the
 	//      requested state
 
-	// Update the Freeipa status with the pod names
-	// List the pods for this freeipa's deployment
+	// Update the IDM status with the pod names
+	// List the pods for this idm's deployment
 	// podList := &corev1.PodList{}
 	// listOpts := []client.ListOption{
-	// 	client.InNamespace(freeipa.Namespace),
-	// 	client.MatchingLabels(labelsForFreeipa(freeipa.Name)),
+	// 	client.InNamespace(idm.Namespace),
+	// 	client.MatchingLabels(IDM(idm.Name)),
 	// }
 	// if err = r.List(ctx, podList, listOpts...); err != nil {
-	// 	log.Error(err, "Failed to list pods", "Freeipa.Namespace", freeipa.Namespace, "Freeipa.Name")
+	// 	log.Error(err, "Failed to list pods", "idm.Namespace", idm.Namespace, "idm.Name", idm.Name)
 	// 	return ctrl.Result{}, err
 	// }
 	// podNames := getPodNames(podList.Items)
@@ -122,9 +122,9 @@ func (r *FreeipaReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	return ctrl.Result{}, nil
 }
 
-// podForFreeipa return a pod for Freeipa
-func (r *FreeipaReconciler) podForFreeipa(m *freeipav1alpha1.Freeipa) *corev1.Pod {
-	ls := labelsForFreeipa(m.Name)
+// podForIDM return a pod for IDM
+func (r *IDMReconciler) podForIDM(m *idmv1alpha1.IDM) *corev1.Pod {
+	ls := labelsForIDM(m.Name)
 
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -147,9 +147,9 @@ func (r *FreeipaReconciler) podForFreeipa(m *freeipav1alpha1.Freeipa) *corev1.Po
 	return pod
 }
 
-// deploymentForFreeipa returns a freeipa Deployment object
-func (r *FreeipaReconciler) deploymentForFreeipa(m *freeipav1alpha1.Freeipa) *appsv1.Deployment {
-	ls := labelsForFreeipa(m.Name)
+// deploymentForIDM returns a idm Deployment object
+func (r *IDMReconciler) deploymentForIDM(m *idmv1alpha1.IDM) *appsv1.Deployment {
+	ls := labelsForIDM(m.Name)
 	// realm := m.Spec.Realm
 
 	dep := &appsv1.Deployment{
@@ -166,21 +166,21 @@ func (r *FreeipaReconciler) deploymentForFreeipa(m *freeipav1alpha1.Freeipa) *ap
 					Containers: []corev1.Container{{
 						Image:   "freeipa-operator:dev-test",
 						Name:    "freeipa",
-						Command: []string{"freeipa"},
+						Command: []string{"sleep 3600"},
 					}},
 				},
 			},
 		},
 	}
-	// Set Freeipa instace as the owner and controller
+	// Set IDM instace as the owner and controller
 	ctrl.SetControllerReference(m, dep, r.Scheme)
 	return dep
 }
 
-// labelsForFreeipa returns the labels for selecting the resources
+// labelsForIDM returns the labels for selecting the resources
 // belonging to the given memcached CR name.
-func labelsForFreeipa(name string) map[string]string {
-	return map[string]string{"app": "freeipa", "freeipa_cr": name}
+func labelsForIDM(name string) map[string]string {
+	return map[string]string{"app": "idm", "idm_cr": name}
 }
 
 // getPodNames returns the pod names of the array of pods passed in
@@ -194,8 +194,8 @@ func getPodNames(pods []corev1.Pod) []string {
 
 // SetupWithManager Specifies how the controller is built to watch a CR and
 // other resources that are owned and managed by that controller.
-func (r *FreeipaReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *IDMReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&freeipav1alpha1.Freeipa{}).
+		For(&idmv1alpha1.IDM{}).
 		Complete(r)
 }

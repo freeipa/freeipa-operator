@@ -1,7 +1,7 @@
 domain: redhat.com
 repo: github.com/freeipa/freeipa-operator
 resources:
-- group: freeipa
-  kind: Freeipa
+- group: idmocp.redhat.com
+  kind: IDM
   version: v1alpha1
 version: "2"

@@ -6,20 +6,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.3.0
   creationTimestamp: null
-  name: freeipas.freeipa.redhat.com
+  name: idms.idmocp.redhat.com
 spec:
-  group: freeipa.redhat.com
+  group: idmocp.redhat.com
   names:
-    kind: Freeipa
-    listKind: FreeipaList
-    plural: freeipas
-    singular: freeipa
+    kind: idmocp.redhat.com
+    listKind: IDMList
+    plural: idms
+    singular: idm
   scope: Namespaced
   subresources:
     status: {}
   validation:
     openAPIV3Schema:
-      description: Freeipa is the Schema for the freeipas API
+      description: IDM is the Schema for the idms API
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -34,13 +34,13 @@ spec:
         metadata:
           type: object
         spec:
-          description: FreeipaSpec defines the desired state of Freeipa
+          description: IDMSpec defines the desired state of IDM
           properties:
             realm:
               type: string
           type: object
         status:
-          description: FreeipaStatus defines the observed state of Freeipa
+          description: IDMStatus defines the observed state of IDM
           properties:
             servers:
               items:
