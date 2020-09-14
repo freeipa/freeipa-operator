@@ -49,6 +49,10 @@ deploy: manifests kustomize
 manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
+# Launch lint
+lint:
+	./devel/lint.sh
+
 # Run go fmt against code
 fmt:
 	go fmt ./...
