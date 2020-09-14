@@ -218,6 +218,7 @@ function prepare-lists
 {
     for filepath in "$@"
     do
+        [ ! -e "$filepath" ] && continue
         filename="$( basename "${filepath}" )"
         case "${filename}" in
             *.sh )
