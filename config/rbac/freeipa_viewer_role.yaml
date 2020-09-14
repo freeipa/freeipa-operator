@@ -1,20 +1,21 @@
+---
 # permissions for end users to view idms.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: idm-viewer-role
 rules:
-- apiGroups:
-  - idmocp.redhat.com
-  resources:
-  - idms
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - idmocp.redhat.com
-  resources:
-  - idms/status
-  verbs:
-  - get
+  - apiGroups:
+      - idmocp.redhat.com
+    resources:
+      - idms
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - idmocp.redhat.com
+    resources:
+      - idms/status
+    verbs:
+      - get

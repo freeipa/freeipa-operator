@@ -186,13 +186,15 @@ function install-kustomize-from-source
     reto=$?
     [ $reto -eq 0 ] || die "Failing preparing for building from source"
     
+    # shellcheck disable=SC2164
     pushd /tmp/kustomize-tmp &>/dev/null
     git clone git@github.com:kubernetes-sigs/kustomize.git \
     && cd kustomize \
     && git checkout kustomize/v3.2.3 \
     && cd kustomize \
-    && GOPATH= GO111MODULES= go install .
+    && GOPATH='' GO111MODULES='' go install .
     reto=$?
+    # shellcheck disable=SC2164
     popd &>/dev/null
 
     return $reto

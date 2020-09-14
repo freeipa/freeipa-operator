@@ -55,4 +55,4 @@ Experimental freeipa-operator for Freeipa.
    kustomize build config/default | kubectl delete -f -
    ```
 
-See also: https://sdk.operatorframework.io/docs/building-operators/golang/quickstart/
+See also: [Operator SDK 1.0.0 - Quick Start](https://sdk.operatorframework.io/docs/building-operators/golang/quickstart/).

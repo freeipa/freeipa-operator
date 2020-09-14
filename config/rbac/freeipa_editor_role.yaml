@@ -1,24 +1,25 @@
+---
 # permissions for end users to edit idms.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: idm-editor-role
 rules:
-- apiGroups:
-  - idmocp.redhat.com
-  resources:
-  - idms
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - idmocp.redhat.com
-  resources:
-  - idms/status
-  verbs:
-  - get
+  - apiGroups:
+      - idmocp.redhat.com
+    resources:
+      - idms
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - idmocp.redhat.com
+    resources:
+      - idms/status
+    verbs:
+      - get

@@ -255,9 +255,9 @@ function cmd-lint-all
         prepare-lists $( find . -name 'Dockerfile' -o -name 'Dockerfile.*' \
                                 -o -name '*.md' \
                                 -o -name '*.go' \
-                                -o -name '*.yaml' -o -name '*.yml' \
-                                -o -name '*.sh'
-                    )
+                                -o -name '*.sh'; \
+                          find ./config -name '*.yaml' \
+                        )
     fi
 
     err_count=0
