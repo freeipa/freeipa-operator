@@ -1,10 +1,15 @@
 ---
+# Predefined variables for github:
+# https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
+
 # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#name
 name: Main
 
 # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#on
 # yamllint disable-line rule:truthy
-on: [push, pull_request]
+on:
+  - push
+  - pull_request
 
 # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobs
 jobs:
@@ -15,23 +20,17 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Gather environment information
+        env:
+          IMG_BASE: "${{ secrets.IMG_BASE }}"
         run: |
           env
           go env
           go version
 
-      # - name: Install tools
-      #   run: |
-      #     export FLAG_INSTALL_VSCODE=NO
-      #     export FLAG_INSTALL_CRC=NO
-      #     export GOPATH="$PWD/go"
-      #     [ -e "$GOPATH" ] || mkdir -p $GOPATH
-      #     ./devel/install-local-tools.sh
-
-      # - uses: actions/upload-artifact@v2
-      #   with:
-      #     name: local-tools
-      #     path: ./go
+      - uses: actions/upload-artifact@v2
+        with:
+          name: image.txt
+          path: image.txt
 
   lint-golang:
     name: Lint golang code
@@ -48,11 +47,10 @@ jobs:
         run: |
           [ "$GOPATH" != "" ] || export GOPATH="$( go env GOPATH )"
           go get -u golang.org/x/lint/golint
-          # go install
           make lint
 
-  lint-files:
-    name: Lint all possible files in the repository but golang
+  lint-extra-files:
+    name: Lint extra files in the repository
     needs: [environment]
 
     # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
@@ -72,3 +70,83 @@ jobs:
         run: |
           ./devel/lint.sh  $( find . -name 'Dockerfile' \
           -o -name 'Dockerfile.*' )
+
+  build:
+    name: Build stage
+    needs: [lint-golang, lint-extra-files]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@master
+        with:
+          go-version: 1.14
+        id: go
+
+      - name: Install dependencies
+        env:
+          # yamllint disable-line rule:line-length
+          INSTALL_KUSTOMIZE_URL: "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
+          # yamllint disable-line rule:line-length
+          OPERATOR_SDK_URL: "https://github.com/operator-framework/operator-sdk/releases/download/v1.0.0/operator-sdk-v1.0.0-x86_64-linux-gnu"
+          GO111MODULE: "on"
+        run: |
+          curl -s "${INSTALL_KUSTOMIZE_URL}" | bash
+          go install -i
+          go get golang.org/x/lint/golint
+          go get github.com/kisielk/errcheck
+          go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.30.0
+
+      # https://docs.github.com/en/free-pro-team@latest/actions/reference/encrypted-secrets#using-encrypted-secrets-in-a-workflow
+      - name: Build
+        env:
+          GO111MODULE: "on"
+          IMG_BASE: "${{ secrets.IMG_BASE }}"
+          DOCKER_AUTH: "${{ secrets.DOCKER_AUTH }}"
+        run: |
+          export PATH=$PATH:$(go env GOPATH)/bin
+          export TAG="${GITHUB_SHA}"
+          if [ "$GITHUB_EVENT_NAME" == "pull_request" ]
+          then
+            export IMG_BASE="local/freeipa-operator"
+          fi
+          export IMG="${IMG_BASE}:${TAG}"
+
+          echo ">>> Building operator binary"
+          make generate
+          go build -o bin/manager main.go
+
+          echo ">>> Building container image"
+          docker build . -t ${IMG}
+          make docker-save
+
+          # The container image will not be pushed when building on a PR,
+          # because the secrets are not accessible from the PR (for
+          # security reasons), which make not possible to login into the
+          # container image registry.
+          if [ "$GITHUB_EVENT_NAME" != "pull_request" ]
+          then
+            echo ">>> Pushing container image"
+            DOCKER_REGISTRY="${IMG_BASE%%/*}"
+            [ -e "${HOME}/.docker" ] || mkdir -p "${HOME}/.docker"
+            cat > "$HOME/.docker/config.json" <<< "${DOCKER_AUTH}"
+            docker login "${DOCKER_REGISTRY}"
+            # rm is not accidental here; it is removed if the push
+            # was successful, to avoid it is stored as an artefact
+            # in github.
+            docker push "${IMG}" \
+            && rm -vf docker-image-freeipa-operator.tar.gz
+          fi
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: docker-image-${{ github.sha }}
+          path: docker-image-freeipa-operator.tar.gz
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: manager-${{ github.sha }}
+          path: bin

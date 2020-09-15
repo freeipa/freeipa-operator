@@ -176,26 +176,27 @@ function install-packages
 function install-kustomize-from-source
 {
     local reto=0
+    local tmp_path="/tmp/kustomize-tmp"
     # Need go 1.13 or higher
     # unset GOPATH
     # see https://golang.org/doc/go1.13#modules
     # unset GO111MODULES
 
-    ( [ ! -e /tmp/kustomize-tmp ] || rm -rf /tmp/kustomize-tmp ) \
-    && mkdir /tmp/kustomize-tmp
+    ( [ ! -e "${tmp_path}" ] || rm -rf "${tmp_path}" ) \
+    && mkdir "${tmp_path}"
     reto=$?
     [ $reto -eq 0 ] || die "Failing preparing for building from source"
     
     # shellcheck disable=SC2164
-    pushd /tmp/kustomize-tmp &>/dev/null
-    git clone git@github.com:kubernetes-sigs/kustomize.git \
+    pushd "${tmp_path}" &>/dev/null
+    git clone --depth 1 --branch kustomize/v3.2.3 git@github.com:kubernetes-sigs/kustomize.git \
     && cd kustomize \
-    && git checkout kustomize/v3.2.3 \
-    && cd kustomize \
-    && GOPATH='' GO111MODULES='' go install .
+    && git checkout -b kustomize/v3.2.3 \
+    && GO111MODULES='' go install .
     reto=$?
     # shellcheck disable=SC2164
     popd &>/dev/null
+    rm -rf "${tmp_path}"
 
     return $reto
 } # install-kustomize-from-source
@@ -213,16 +214,17 @@ function install-go-tools
     }
 
     # Install godoc
-    verbose go get -u -v golang.org/x/tools/cmd/godoc
+    verbose go get -u -v golang.org/x/tools/cmd/godoc || die "Installing godoc"
 
     # Install debugger
-    verbose go get -u -v github.com/go-delve/delve/cmd/dlv
+    verbose go get -u -v github.com/go-delve/delve/cmd/dlv || die "Installing dlv"
 
     # Install linter
-    verbose go get -u -v golang.org/x/lint/golint
+    verbose go get -u -v golang.org/x/lint/golint || die "Installing golint"
 
     # Install kustomize
-    verbose install-kustomize-from-source
+    # install-kustomize-from-source || die "Installing kustomize"
+    GO111MODULE=on verbose go get sigs.k8s.io/kustomize/kustomize/v3@v3.2.3 || die "Installing kustomize"
 } # install-go-tools
 
 
@@ -439,3 +441,4 @@ export PATH="$GOPATH/bin:$PATH"
 EOF
 }
 
+exit 0

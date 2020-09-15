@@ -1,9 +1,25 @@
 IMG_NAME = freeipa-operator
-ifeq (,$(shell go env CI_COMMIT_SHA))
-IMG_TAG = dev-$(shell git rev-parse HEAD)
-else
-IMG_TAG = dev-$(CI_COMMIT_SHA)
+
+# https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
+ifneq (,$(GITHUB_SHA))
+COMMIT_SHA=$(GITHUB_SHA)
 endif
+# https://docs.travis-ci.com/user/environment-variables/#default-environment-variables
+ifneq (,$(TRAVIS_COMMIT))
+COMMIT_SHA=$(TRAVIS_COMMIT)
+endif
+# https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
+ifneq (,$(CI_COMMIT_SHA))
+COMMIT_SHA=$(CI_COMMIT_SHA)
+endif
+
+ifeq (,$(COMMIT_SHA))
+COMMIT_SHA=$(shell git rev-parse HEAD)
+endif
+
+DOCKER_IMAGE_FILE ?= docker-image-freeipa-operator.tar.gz
+
+IMG_TAG = dev-$(COMMIT_SHA)
 IMG_BASE ?= quay.io/freeipa
 
 # Image URL to use all building/pushing image targets
@@ -19,6 +35,11 @@ GOBIN=$(shell go env GOBIN)
 endif
 
 all: manager
+
+# Empty rule to allow force other rules. The name of the rule should not
+# match any file.
+# https://www.gnu.org/software/make/manual/html_node/Force-Targets.html
+FORCE:
 
 # Run tests
 test: generate fmt vet manifests
@@ -68,6 +89,15 @@ generate: controller-gen
 # Build the docker image
 docker-build: test
 	docker build . -t ${IMG}
+
+docker-save: $(DOCKER_IMAGE_FILE)
+$(DOCKER_IMAGE_FILE): FORCE
+	docker save ${IMG} | gzip --best --force --stdout - > $(DOCKER_IMAGE_FILE)
+
+.PHONY: docker-load
+docker-load:
+	@if [ ! -e "$(DOCKER_IMAGE_FILE)" ]; then echo "No image file found. Run 'make docker-build docker-save' to generate a fresh image file before load it"; exit 2; fi
+	gunzip $(DOCKER_IMAGE_FILE) -c | docker load $(IMG)
 
 # Push the docker image
 docker-push:
