@@ -22,3 +22,9 @@ bin
 *.swp
 *.swo
 *~
+
+# Ignore docker-image artifact generated in Makefile
+docker-image-freeipa-operator.tar.gz
+
+# Ignore local go directory
+/go

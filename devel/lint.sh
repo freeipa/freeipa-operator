@@ -216,6 +216,7 @@ EOF
 
 function prepare-lists
 {
+    local DIRNAME
     for filepath in "$@"
     do
         [ ! -e "$filepath" ] && continue
@@ -234,7 +235,12 @@ function prepare-lists
                 GO_FILES+=("${filepath}")
                 ;;
             *.yaml | *.yml )
-                YAML_FILES+=("${filepath}")
+                DIRNAME="$( dirname "$filepath" )"
+                DIRNAME="${DIRNAME#./}"
+                if [ "${DIRNAME#config/crd/}" == "${DIRNAME}" ]
+                then
+                    YAML_FILES+=("${filepath}")
+                fi
                 ;;
             * )
                 UNKNOWN_FILES+=("${filepath}")
@@ -257,7 +263,14 @@ function cmd-lint-all
                                 -o -name '*.md' \
                                 -o -name '*.go' \
                                 -o -name '*.sh'; \
-                          find ./config -name '*.yaml' \
+                          find ./config/certmanager -name '*.yaml'; \
+                          find ./config/crd -maxdepth 1 -name '*.yaml'; \
+                          find ./config/default -name '*.yaml'; \
+                          find ./config/manager -name '*.yaml'; \
+                          find ./config/prometheus -name '*.yaml'; \
+                          find ./config/rbac -name '*.yaml'; \
+                          find ./config/samples -name '*.yaml'; \
+                          find ./config/webhook -name '*.yaml'; \
                         )
     fi
 
