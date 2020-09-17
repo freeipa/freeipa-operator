@@ -1,0 +1,149 @@
+# This Proof of Concept define a Route, Service and Pod that
+# service an http service using nginx and inject a demo page
+# just to double check potential configurations for Freeipa
+# deployment.
+#
+# Here the traffic is redirected to the cluster by using
+# an externalName. This require to register the DNS entry
+# in an external DNS service (/etc/hosts is enough for testing
+# purposes).
+#
+# Quick start:
+#   export APP=poc-05-c
+#   make app-delete app-deploy get-info
+#
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: poc-05-c
+  labels:
+    app: poc-05-c
+spec:
+  type: ExternalName
+  # externalName: poc-05-c.apps.permanent.idmocp.lab.eng.rdu2.redhat.com
+  externalName: poc-05-c.example.com
+  selector:
+    app: poc-05-c
+  # publishNotReadyAddress: true
+  ports:
+    - name: https-tcp
+      port: 443
+      protocol: TCP
+      targetPort: 80
+---
+kind: Route
+apiVersion: v1
+metadata:
+  annotations:
+    # yamllint disable rule:line-length
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+  name: poc-05-c
+  labels:
+    app: poc-05-c
+spec:
+  # host: poc-05-c.apps.permanent.idmocp.lab.eng.rdu2.redhat.com
+  host: poc-05-c.example.com
+  to:
+    kind: Service
+    name: poc-05-c
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Allow
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: poc-05-c
+  labels:
+    app: poc-05-c
+data:
+  index.html: |
+    <html>
+    <head><title>poc-05-c External IP Example</title></head>
+    <body>
+    <h1>poc-05-c External IP Example</h1>
+    <p>
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+    tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+    veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+    commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
+    velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id
+    est laborum.
+    </p>
+    </body>
+    </html>
+
+  # yamllint disable rule:line-length
+  nginx.conf: |
+    user  nginx;
+    worker_processes  1;
+
+    error_log  /var/log/nginx/error.log warn;
+    pid        /var/run/nginx.pid;
+
+
+    events {
+        worker_connections  1024;
+    }
+
+
+    http {
+        include       /etc/nginx/mime.types;
+        default_type  application/octet-stream;
+
+        log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                          '$status $body_bytes_sent "$http_referer" '
+                          '"$http_user_agent" "$http_x_forwarded_for"';
+
+        access_log  /var/log/nginx/access.log  main;
+
+        sendfile        on;
+        #tcp_nopush     on;
+
+        keepalive_timeout  65;
+
+        #gzip  on;
+
+        include /etc/nginx/conf.d/*.conf;
+    }
+---
+kind: Pod
+apiVersion: v1
+metadata:
+  name: poc-05-c
+  labels:
+    app: poc-05-c
+spec:
+  containers:
+    - name: main
+      # https://hub.docker.com/_/nginx?tab=description
+      image: docker.io/nginx:stable
+      volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: web-content
+      ports:
+        - containerPort: 80
+          protocol: TCP
+          name: http-tcp
+  initContainers:
+    - name: prepare
+      image: docker.io/hello-world:latest
+  volumes:
+    - name: web-content
+      configMap:
+        defaultMode: 0444
+        name: poc-05-c
+        optional: false
+        items:
+          - key: index.html
+            path: index.html
+    - name: web-config
+      configMap:
+        defaultMode: 0444
+        name: poc-05-c
+        optional: false
+        items:
+          - key: nginx.conf
+            path: nginx.conf

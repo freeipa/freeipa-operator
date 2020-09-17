@@ -1,0 +1,584 @@
+# Proof of Concept that extend poc-05-a to generate the map
+# for users to be made in the container.
+#
+# Based on the IdM OCP document reviewed by OpenShift mates, the following
+# users are used in the container.
+#  apache
+#  dbus
+#  dirsrv
+#  ipaapi
+#  kdcproxy
+#  pkiuser
+#
+# INFO:
+#   rm -rf data
+#   mkdir data
+#   touch data/machine-id
+#   podman run --rm \
+#              --name freeipa-server-container \
+#              -ti \
+#              --systemd=always \
+#              -h ipa.example.test \
+#              -v $PWD/data:/data:Z \
+#              -v $PWD/data/machine-id:/etc/machine-id:z \
+#              -e container=podman \
+#              -e container_uuid=$(</etc/machine-id) \
+#              --sysctl net.ipv6.conf.all.disable_ipv6=0 \
+#              quay.io/avisied0/freeipa-openshift-container \
+#              -U --realm EXAMPLE.TEST --no-ntp \
+#              --ds-password=Administrator \
+#              --admin-password=Administrator
+# INFO:
+#   # Prepare volume data
+#   podman run --rm --name freeipa-server-container \
+#              --interactive \
+#              --tty \
+#              --systemd=always \
+#              -e PASSWORD=Administrator \
+#              -v "$PWD/data:/data:z" \
+#              -h ipa.example.test \
+#              -e container=podman \
+#              -e container_uuid=$(</etc/machine-id) \
+#              --sysctl net.ipv6.conf.all.disable_ipv6=0 \
+#              quay.io/avisied0/freeipa-openshift-container:dev-1 \
+#              exit-on-finished -U --realm EXAMPLE.TEST --no-ntp
+#   # Run the service
+#   podman run --rm --name freeipa-server-container \
+#              --interactive \
+#              --tty \
+#              --systemd=always \
+#              -e PASSWORD=Administrator \
+#              -v "$PWD/data:/data:z" \
+#              -h ipa.example.test \
+#              -e container=podman \
+#              -e container_uuid=$(</etc/machine-id) \
+#              --sysctl net.ipv6.conf.all.disable_ipv6=0 \
+#              quay.io/avisied0/freeipa-openshift-container:dev-1
+#
+# The option investigated here is assigning the uid/gid sequentially, to each
+# user and group, and copy the final files that are generated in the container
+# side to get the versions to be injected in the pod.
+#
+# Quick Start:
+#   export APP=poc-05-b; make app-delete app-deploy get-info
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: poc-05-b
+  labels:
+    app: poc-05-b
+data:
+  DEBUG_TRACE: "2"
+  IPA_SERVER_HOSTNAME: "poc-05-b.apps.permanent.idmocp.idm.lab.bos.redhat.com"
+  PASSWORD: "Secret123"
+  container: "podman"
+  container_uuid: ""
+  UID_BASE: ""
+  GID_BASE: ""
+  # yamllint disable rule:line-length
+  init-uid-gid-base.sh: |
+    #!/bin/bash
+    function yield {
+      echo "$*" >&2
+    }
+    function verbose {
+      yield "$*"
+      "$@"
+    }
+    echo "Script: $0"
+    TOKEN="$(</var/run/secrets/kubernetes.io/serviceaccount/token)"
+    CA_CERT="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+    APP="poc-05-b"
+    echo "NAMESPACE=${NAMESPACE}"
+    oc login --token "${TOKEN}"  \
+             --certificate-authority="${CA_CERT}" \
+             https://kubernetes.default.svc:443
+    if [ "${UID_BASE}" == "" ]; then
+      UID_BASE="$( oc get namespace/avisiedo-init-container \
+                   -o 'jsonpath={.metadata.annotations.openshift\.io/sa\.scc\.uid-range}' )"
+      UID_BASE="${UID_BASE%/*}"
+      oc patch configmap ${APP} --patch "{\"data\":{\"UID_BASE\": \"${UID_BASE}\"}}"
+    fi
+    if [ "${GID_BASE}" == "" ]; then
+      GID_BASE="$( oc get namespace/avisiedo-init-container \
+                   -o 'jsonpath={.metadata.annotations.openshift\.io/sa\.scc\.supplemental-groups}' )"
+      GID_BASE="${GID_BASE%/*}"
+      oc patch configmap ${APP} \
+         --patch "{\"data\":{\"GID_BASE\":\"${GID_BASE}\"}}"
+    fi
+    UID_BASE="$( oc get cm/${APP} -o 'jsonpath={.data.UID_BASE}' )"
+    GID_BASE="$( oc get cm/${APP} -o 'jsonpath={.data.GID_BASE}' )"
+    echo "configMap.data.UID_BASE=${UID_BASE}"
+    echo "configMap.data.GID_BASE=${GID_BASE}"
+
+  # yamllint disable rule:line-length
+  init-container-uuid.sh: |
+    #!/bin/bash
+    function yield {
+      echo "$*" >&2
+    }
+    function verbose {
+      yield "$*"
+      "$@"
+    }
+    echo "Script: $0"
+    TOKEN="$(</var/run/secrets/kubernetes.io/serviceaccount/token)"
+    CA_CERT="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+    APP="poc-05-a"
+    echo "NAMESPACE=${NAMESPACE}"
+    oc login --token "${TOKEN}" \
+             --certificate-authority="${CA_CERT}" \
+             https://kubernetes.default.svc:443
+    container_uuid="$( oc get configmap ${APP} -o 'jsonpath={.data.container_uuid}' )"
+    if [ "${container_uuid}" == "" ]; then
+      systemd-machine-id-setup
+      container_uuid="$(</etc/machine-id)"
+      oc patch configmap ${APP} \
+         --patch "{\"data\":{\"container_uuid\": \"${container_uuid}\"}}"
+    fi
+    echo "configMap.data.container_uuid='$( oc get configmap ${APP} -o 'jsonpath={.data.container_uuid}' )'"
+
+  main.sh: |
+    #!/bin/sh
+    echo "Script: $0"
+    echo "NAMESPACE=${NAMESPACE}"
+    echo "UID_BASE=${UID_BASE}"
+    echo "GID_BASE=${GID_BASE}"
+    echo ">>> AFTER"
+    echo ">>> /opt/poc-05-a/passwd"
+    cat /opt/poc-05-a/passwd
+    echo ">>> /opt/poc-05-a/group"
+    cat /opt/poc-05-a/group
+    while true; do sleep 1; done
+
+  passwd.example: |
+    root:x:0:0:root:/root:/bin/bash
+    bin:x:1:1:bin:/bin:/sbin/nologin
+    daemon:x:2:2:daemon:/sbin:/sbin/nologin
+    adm:x:3:4:adm:/var/adm:/sbin/nologin
+    lp:x:4:7:lp:/var/spool/lpd:/sbin/nologin
+    sync:x:5:0:sync:/sbin:/bin/sync
+    shutdown:x:6:0:shutdown:/sbin:/sbin/shutdown
+    halt:x:7:0:halt:/sbin:/sbin/halt
+    mail:x:8:12:mail:/var/spool/mail:/sbin/nologin
+    operator:x:11:0:operator:/root:/sbin/nologin
+    games:x:12:100:games:/usr/games:/sbin/nologin
+    ftp:x:14:50:FTP User:/var/ftp:/sbin/nologin
+    nobody:x:65534:65534:Kernel Overflow User:/:/sbin/nologin
+    dbus:x:81:81:System message bus:/:/sbin/nologin
+    systemd-coredump:x:999:997:systemd Core Dumper:/:/sbin/nologin
+    systemd-resolve:x:193:193:systemd Resolver:/:/sbin/nologin
+    kdcproxy:x:288:288:IPA KDC Proxy User:/var/lib/kdcproxy:/sbin/nologin
+    ipaapi:x:289:289:IPA Framework User:/:/sbin/nologin
+    tss:x:59:59:Account used by the trousers package to sandbox the tcsd daemon:/dev/null:/sbin/nologin
+    unbound:x:287:287:Unbound DNS resolver:/etc/unbound:/sbin/nologin
+    named:x:25:25:Named:/var/named:/bin/false
+    apache:x:48:48:Apache:/usr/share/httpd:/sbin/nologin
+    ods:x:286:284:softhsm private keys owner:/var/lib/softhsm:/sbin/nologin
+    custodia:x:285:283:User for custodia:/:/sbin/nologin
+    rpc:x:32:32:Rpcbind Daemon:/var/lib/rpcbind:/sbin/nologin
+    chrony:x:284:282::/var/lib/chrony:/sbin/nologin
+    rpcuser:x:29:29:RPC Service User:/var/lib/nfs:/sbin/nologin
+    sssd:x:283:281:User for sssd:/:/sbin/nologin
+    dirsrv:x:389:389:user for 389-ds-base:/usr/share/dirsrv:/sbin/nologin
+    tomcat:x:91:91:Apache Tomcat:/usr/share/tomcat:/sbin/nologin
+    pkiuser:x:17:17:Certificate System:/usr/share/pki:/sbin/nologin
+
+  group.example: |
+    root:x:0:
+    bin:x:1:
+    daemon:x:2:
+    sys:x:3:
+    adm:x:4:
+    tty:x:5:
+    disk:x:6:
+    lp:x:7:
+    mem:x:8:
+    kmem:x:9:
+    wheel:x:10:
+    cdrom:x:11:
+    mail:x:12:
+    man:x:15:
+    dialout:x:18:
+    floppy:x:19:
+    games:x:20:
+    tape:x:33:
+    video:x:39:
+    ftp:x:50:
+    lock:x:54:
+    audio:x:63:
+    users:x:100:
+    nobody:x:65534:
+    utmp:x:22:
+    utempter:x:35:
+    dbus:x:81:
+    input:x:999:
+    kvm:x:36:
+    render:x:998:
+    systemd-journal:x:190:
+    systemd-coredump:x:997:
+    systemd-resolve:x:193:
+    kdcproxy:x:288:
+    ipaapi:x:289:apache
+    tss:x:59:
+    unbound:x:287:
+    printadmin:x:286:
+    pkcs11:x:285:
+    named:x:25:
+    apache:x:48:
+    wbpriv:x:88:
+    ods:x:284:
+    custodia:x:283:
+    rpc:x:32:
+    chrony:x:282:
+    rpcuser:x:29:
+    sssd:x:281:
+    dirsrv:x:389:
+    tomcat:x:91:
+    pkiuser:x:17:
+
+  init-ipa-server-install.sh: |
+    #!/bin/bash
+
+    echo "Script: $0"
+
+    set -xv
+
+    # UID_BASE and GID_BASE are injected inside the container which execute
+    # this script
+
+    USER_NAMES=( "apache" "dbus" "dirsrv" "ipaapi" "kdcproxy" "pkiuser" )
+    GROUP_NAMES=( "apache" "dbus" "dirsrv" "ipaapi" "kdcproxy" "pkiuser" )
+
+    [ "$UID_BASE" == "" ] && echo "UID_BASE is not set" && exit 1
+    [ "$GID_BASE" == "" ] && echo "GID_BASE is not set" && exit 1
+
+    UID_apache=$(( UID_BASE + 0 ))
+    UID_dbus=$(( UID_BASE + 1 ))
+    UID_dirsrv=$(( UID_BASE + 2 ))
+    UID_ipaapi=$(( UID_BASE + 3 ))
+    UID_kdcproxy=$(( UID_BASE + 4 ))
+    UID_pkiuser=$(( UID_BASE + 5 ))
+
+    GID_apache=$(( GID_BASE + 0 ))
+    GID_dbus=$(( GID_BASE + 1 ))
+    GID_dirsrv=$(( GID_BASE + 2 ))
+    GID_ipaapi=$(( GID_BASE + 3 ))
+    GID_kdcproxy=$(( GID_BASE + 4 ))
+    GID_pkiuser=$(( GID_BASE + 5 ))
+
+    FILE=/data/etc/passwd
+    for item in "${USER_NAMES[@]}"; do
+      _GID_OLD="$( id -g ${item} )"
+      _UID_OLD="$( id -u ${item} )"
+      _UID_NEW="$( eval printf \${UID_${item}} )"
+      _GID_NEW="$( eval printf \${GID_${item}} )"
+      awk -F: "BEGIN{OFS=FS}{if(\$1==\"${item}\"){\$3=\"${_UID_NEW}\";\$4=\"${_GID_NEW}\"}; print \$0}" "${FILE}" > /tmp/temporary
+      cat /tmp/temporary > "${FILE}"
+      for path in /usr /var /opt /data-template /etc; do
+        find $path -u ${_UID_OLD} 2>/dev/null | xargs chown ${_UID_NEW}
+      done
+    done
+    cat "$FILE"
+
+    FILE=/data/etc/group
+    for item in "${GROUP_NAMES[@]}"; do
+      _GID_OLD="$( id -g ${item} )"
+      _GID_NEW="$( eval printf \${GID_${item}} )"
+      awk -F: "BEGIN{OFS=FS}{if(\$1==\"${item}\"){\$3=\"${_GID_NEW}\"}; print \$0}" "${FILE}" > /tmp/temporary
+      cat /tmp/temporary > "${FILE}"
+      for path in /usr /var /opt /data-template /etc; do
+        find $path -g ${_GID_OLD} 2>/dev/null | xargs chgrp ${_GID_NEW}
+      done
+    done
+    cat "$FILE"
+
+    exit 0
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: poc-05-a
+  labels:
+    app: poc-05-a
+automountServiceAccountToken: true
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: poc-05-a
+  labels:
+    app: poc-05-a
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list", "get", "watch"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["list", "get"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["list", "get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: poc-05-a
+  labels:
+    app: poc-05-a
+subjects:
+  - kind: ServiceAccount
+    name: poc-05-a
+roleRef:
+  kind: Role
+  name: poc-05-a
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: poc-05-a
+  labels:
+    app: poc-05-a
+  annotations:
+    openshift.io/scc: anyuid
+spec:
+  serviceAccountName: poc-05-a
+  hostAliases:
+    - ip: "127.0.0.1"
+      hostnames:
+        - "ipa.example.test"
+  containers:
+    - name: main
+      image: docker.io/openshift/origin-cli:v4.0
+      securityContext:
+        privileged: true
+        capabilities:
+          add:
+            - "SYS_ADMIN"
+            - "SYS_RESOURCE"
+            - "MKNOD"
+            - "SYS_RAWIO"
+            - "SETUID"
+            - "SETGID"
+            - "SETPCAP"
+      command: ["/usr/sbin/init"]
+      env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: UID_BASE
+          valueFrom:
+            configMapKeyRef:
+              name: poc-05-a
+              key: UID_BASE
+        - name: GID_BASE
+          valueFrom:
+            configMapKeyRef:
+              name: poc-05-a
+              key: GID_BASE
+      volumeMounts:
+        - name: scripts
+          mountPath: /opt/poc-05-a
+  initContainers:
+    - name: init-container-uuid
+      image: docker.io/openshift/origin-cli:v4.0
+      command: ["/opt/poc-05-a/init-container-uuid.sh"]
+      env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: container_uuid
+          valueFrom:
+            configMapKeyRef:
+              name: poc-05-a
+              key: container_uuid
+      volumeMounts:
+        - name: scripts
+          mountPath: /opt/poc-05-a
+
+    - name: init-uid-gid-base
+      image: docker.io/openshift/origin-cli:v4.0
+      command: ["/opt/poc-05-a/init-uid-gid-base.sh"]
+      env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: UID_BASE
+          valueFrom:
+            configMapKeyRef:
+              name: poc-05-a
+              key: UID_BASE
+        - name: GID_BASE
+          valueFrom:
+            configMapKeyRef:
+              name: poc-05-a
+              key: GID_BASE
+      volumeMounts:
+        - name: scripts
+          mountPath: /opt/poc-05-a
+
+    - name: init-volume
+      image: quay.io/avisied0/freeipa-openshift-container:dev-test
+      imagePullPolicy: Always
+      securityContext:
+        privileged: true
+        capabilities:
+          add:
+            - "SYS_ADMIN"
+            - "SYS_RESOURCE"
+            - "MKNOD"
+            - "SYS_RAWIO"
+            - "SETUID"
+            - "SETGID"
+            - "SETPCAP"
+      command: ["/usr/sbin/init"]
+      args:
+        - exit-on-finished
+        - -U
+        # - --hostname
+        # - ipa.example.test
+        - --realm
+        - EXAMPLE.TEST
+        - --no-ntp
+        - --no-sshd
+        - --no-ssh
+        - --verbose
+      env:
+        # - name: SYSTEMD_OPTS
+        #   value: "--show-status=true --unit=ipa-server-configure-first.service"
+        - name: INIT_WRAPPER
+          value: "1"
+        - name: DEBUG_TRACE
+          valueFrom:
+            configMapKeyRef:
+              name: poc-05-a
+              key: DEBUG_TRACE
+        - name: PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: poc-05-a
+              key: PASSWORD
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: UID_BASE
+          valueFrom:
+            configMapKeyRef:
+              name: poc-05-a
+              key: UID_BASE
+        - name: GID_BASE
+          valueFrom:
+            configMapKeyRef:
+              name: poc-05-a
+              key: GID_BASE
+        - name: IPA_SERVER_HOSTNAME
+          valueFrom:
+            configMapKeyRef:
+              name: poc-05-a
+              key: IPA_SERVER_HOSTNAME
+        - name: container_uuid
+          valueFrom:
+            configMapKeyRef:
+              name: poc-05-a
+              key: container_uuid
+#         - name: IPA_SERVER_IP
+#           valueFrom:
+#             fieldRef:
+#               fieldPath: status.podIP
+
+        - name: container
+          valueFrom:
+            configMapKeyRef:
+              name: poc-05-a
+              key: container
+        - name: SYSTEMD_OFFLINE
+          value: "1"
+        - name: SYSTEMD_NSPAWN_API_VFS_WRITABLE
+          value: "network"
+        # - name: IPA_SERVER_IP
+        #   valueFrom:
+        #     fieldRef:
+        #       fieldPath: status.podIP
+      volumeMounts:
+        - name: data-poc-05
+          mountPath: /data
+
+    - name: init-uid-gid
+      image: quay.io/avisied0/freeipa-openshift-container:dev-1
+      command: ["/opt/poc-05-a/init-ipa-server-install.sh"]
+      env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: UID_BASE
+          valueFrom:
+            configMapKeyRef:
+              name: poc-05-a
+              key: UID_BASE
+        - name: GID_BASE
+          valueFrom:
+            configMapKeyRef:
+              name: poc-05-a
+              key: GID_BASE
+      volumeMounts:
+        - name: scripts
+          mountPath: /opt/poc-05-a
+        - name: data
+          mountPath: /data
+
+    - name: init-ipa-server-install
+      image: quay.io/avisied0/freeipa-openshift-container:dev-1
+      command: ["/opt/poc-05-a/init-ipa-server-install.sh"]
+      env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: UID_BASE
+          valueFrom:
+            configMapKeyRef:
+              name: poc-05-a
+              key: UID_BASE
+        - name: GID_BASE
+          valueFrom:
+            configMapKeyRef:
+              name: poc-05-a
+              key: GID_BASE
+      volumeMounts:
+        - name: scripts
+          mountPath: /opt/poc-05-a
+        - name: data
+          mountPath: /data
+
+  volumes:
+    - name: data
+      emptyDir: {}
+    - name: scripts
+      configMap:
+        name: poc-05-a
+        items:
+          - key: "init-container-uuid.sh"
+            path: "init-container-uuid.sh"
+            mode: 0777
+          - key: "init-uid-gid-base.sh"
+            path: "init-uid-gid-base.sh"
+            mode: 0777
+          - key: "main.sh"
+            path: "main.sh"
+            mode: 0777
+          - key: "init-ipa-server-install.sh"
+            path: "init-ipa-server-install.sh"
+            mode: 0777
+          - key: "passwd.example"
+            path: "passwd"
+            mode: 0660
+          - key: "group.example"
+            path: "group"
+            mode: 0660

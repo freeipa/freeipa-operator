@@ -1,0 +1,16 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: "freeipa"
+  labels:
+    persistentvolumeclaim: "freeipa"
+spec:
+  volumeName: freeipa
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "10Gi"
+  sotrageClassName: standard
+  volumeMode: Filesystem

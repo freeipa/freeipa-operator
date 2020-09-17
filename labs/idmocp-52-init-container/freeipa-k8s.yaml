@@ -1,0 +1,48 @@
+kind: Pod
+metadata:
+  name: freeipa-server
+  labels:
+    app: freeipa-server
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: docker/default
+spec:
+  restartPolicy: Never
+  containers:
+  - name: freeipa-server
+    image: docker.io/freeipa/freeipa-server:latest
+    volumeMounts:
+    - name: freeipa-server-data
+      mountPath: /data
+    ports:
+    - containerPort: 80
+      protocol: TCP
+    - containerPort: 443
+      protocol: TCP
+    - containerPort: 53
+      protocol: UDP
+    - containerPort: 88
+      protocol: TCP
+    - containerPort: 88
+      protocol: UDP
+    env:
+    - name: IPA_SERVER_HOSTNAME
+      value: ipa.example.test
+    - name: PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: freeipa-server-password
+          key: admin.password
+    - name: IPA_SERVER_INSTALL_OPTS
+      value: "-U -r EXAMPLE.TEST --setup-dns --no-forwarders --no-ntp"
+    readinessProbe:
+      exec:
+        command: [ "/usr/bin/systemctl", "status", "ipa" ]
+      initialDelaySeconds: 60
+      timeoutSeconds: 10
+      periodSeconds: 10
+      successThreshold: 1
+      failureThreshold: 3
+  volumes:
+  - name: freeipa-server-data
+    hostPath:
+      path: /opt/freeipa-server
