@@ -88,7 +88,7 @@ main container.
 Play with it:
 
 ```shell
-export APP=poc-03
+export APP=poc-04
 make app-deploy
 make get-info
 make app-delete
@@ -134,7 +134,7 @@ make container-push
 Finally, play with it by:
 
 ```shell
-export APP=poc-03
+export APP=poc-05-a
 make app-deploy
 make get-info
 make app-delete
