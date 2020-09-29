@@ -324,9 +324,23 @@ see: [poc-05-e.yaml](poc-05-e.yaml).
 
 ### IN PROGRESS Redirecting traffic to the Pod using ExternalName
 
-Here the problem is that this works only for HTTP and HTTPS. In our case we
-need to support other protocols such as ldap, kerberos, etc... which won't
-work with this.
+Wrong assumptions about how to use externalName. This feature is important
+when we need to map to an external service, so that we can map the external
+service with a common name internally, but when the service is going to be
+used, it is mapped with a CNAME to the final hostname which will be an
+external service.
+
+So, is this useful for us? well, it is useful when mapping services in
+an hybrid cloud strategy, where private clouds maps external services in
+the public cloud. I imagine the following scenario:
+
+- Private cloud which deploy Freeipa instance.
+- Public cloud which use the Freeipa instance form the Private cloud.
+  This will need to map an external service, and in this situation this
+  could be helpful.
+
+The proof of concept here just map an external gitlab instance to gather
+some information using a common internal service name.
 
 See: [pod-05-c.yaml](pod-05-c.yaml).
 
