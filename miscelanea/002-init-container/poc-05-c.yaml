@@ -58,56 +58,38 @@ metadata:
   labels:
     app: poc-05-c
 data:
-  index.html: |
-    <html>
-    <head><title>poc-05-c External IP Example</title></head>
-    <body>
-    <h1>poc-05-c External IP Example</h1>
-    <p>
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-    tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-    veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-    commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
-    velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id
-    est laborum.
-    </p>
-    </body>
-    </html>
+  gitlab-demo-init.sh: |
+    #!/bin/bash
+    virtualenv .venv
+    source .venv/bin/activate
+    pip install -r requirements.txt
 
-  # yamllint disable rule:line-length
-  nginx.conf: |
-    user  nginx;
-    worker_processes  1;
+  main.sh: |
+    #!/bin/bash
+    source .venv/bin/activate
+    python gitlab-demo.py
 
-    error_log  /var/log/nginx/error.log warn;
-    pid        /var/run/nginx.pid;
+  gitlab-demo.py: |
+    #!/usr/bin/python3
+    from time import sleep
+
+    import gitlab
+
+    gl = gitlab.Gitlab('https://gitlab.cee.redhat.com', private_token='dklsfjksldjfkdsjf', api_version=4)
+    gl.auth()
+
+    project = gl.projects.get('path/to/project')
+    items = project.repository_tree()
+
+    print(items)
+
+    while true:
+      sleep(1)
+
+  requirements.txt: |
+    python-gitlab>=2.5.0,<2.6.0
 
 
-    events {
-        worker_connections  1024;
-    }
-
-
-    http {
-        include       /etc/nginx/mime.types;
-        default_type  application/octet-stream;
-
-        log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
-                          '$status $body_bytes_sent "$http_referer" '
-                          '"$http_user_agent" "$http_x_forwarded_for"';
-
-        access_log  /var/log/nginx/access.log  main;
-
-        sendfile        on;
-        #tcp_nopush     on;
-
-        keepalive_timeout  65;
-
-        #gzip  on;
-
-        include /etc/nginx/conf.d/*.conf;
-    }
 ---
 kind: Pod
 apiVersion: v1
