@@ -16,7 +16,8 @@ RUN rm -f /etc/machine-id \
     && touch /data/etc/machine-id \
     && chown 0444 /data-template/etc/machine-id \
     && ln -svf /data/etc/machine-id /etc/machine-id \
-    && mv /data/etc/machine-id /data-template/etc/machine-id
+    && touch /data-template/etc/machine-id \
+    && rm -vf /data/etc/machine-id
 
 # Workaround for setting PrivateTmp=* to PrivateTmp=no
 # https://blog.iwakd.de/lxc-cap_sys_admin-jessie
