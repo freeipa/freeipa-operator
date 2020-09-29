@@ -292,6 +292,7 @@ if [ -n "$IPA_SERVER_IP" ] ; then
 fi
 
 [ "$DEBUG_TRACE" != "" ] && env
-exec /usr/sbin/init --show-status=false $SYSTEMD_OPTS
+# exec /usr/sbin/init --show-status=false $SYSTEMD_OPTS
+exec /usr/sbin/init --show-status=true $SYSTEMD_OPTS
 
 exit 10
