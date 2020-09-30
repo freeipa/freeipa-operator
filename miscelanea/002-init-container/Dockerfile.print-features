@@ -1,0 +1,4 @@
+FROM docker.io/alpine:3.11
+
+RUN apk add --no-cache -U libcap=2.27-r0 \
+    && rm -rf /var/cache/apk/*
