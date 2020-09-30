@@ -96,55 +96,7 @@ make app-delete
 
 See: [poc-04.yaml](poc-04.yaml).
 
-### Initialize the volume data by freeipa-server-install
-
-This proof of concept provides a pod with a sequence of initContainers
-initializing the data volume. The volume used is ephimeral so it will be
-populated with every delete and redeployment.
-
-This set of objects have been configured to provide the maximum levels of
-traves so that it can be used to detect changes to be made or improvements
-on the initilisation process.
-
-This PoC need container image to be built and published, you can do that
-by:
-
-```shell
-export DOCKER_IMAGE=quay.io/username/freeipa-server:dev-test
-podman login quay.io
-make container-build container-push
-```
-
-for docker, do the below:
-
-```shell
-export DOCKER_IMAGE=docker.io/username/freeipa-server:dev-test
-docker login quay.io
-make container-build
-make container-push
-```
-
-> - You need a docker hub account or a quay.io account before launch the above,
->   and you need to be logged in.
->
-> - You need to change the image: attribute into the Pod definition to point to
->   **DOCKER_IMAGE**. This should be change into **init-volume** and **main**
->   containers.
-
-Finally, play with it by:
-
-```shell
-export APP=poc-05-a
-make app-deploy
-make get-info
-make app-delete
-```
-
-see: [poc-05-a.yaml](poc-05-a.yaml).
-
-> It is needed to shrink the privileges assigned to the container
-
-### IN PROGRESS List features for different scenarios
+### List features for different scenarios
 
 - Filesystem mounted for "privileged: true" and not privileged containers.
 - capabilities for different scc with no privileged attribute, and
@@ -213,16 +165,81 @@ options ndots:5
 
 #### Capabilities
 
-TODO It needs more study.
-
 In short, we need to add to the default capabilities: CAP_SYS_ADMIN and
 CAP_SYS_RESOURCE to run systemd, and by extension the ipa-server-install
 in the init container.
+
+Default set of capabilities for anyuid:
+
+- CAP_CHOWN
+- CAP_DAC_OVERRIDE
+- CAP_FOWNER
+- CAP_FSETID
+- CAP_KILL
+- CAP_SETGID
+- CAP_SETUID
+- CAP_SETPCAP
+- CAP_NET_BIND_SERVICE
+- CAP_NET_RAW
+- CAP_SYS_CHROOT
+
+Additional capabilities for running systemd for launching ipa-server-install:
+
+- CAP_SYS_ADMIN: This is the big one to try to remove.
+- CAP_SYS_RESOURCE: Needed because some pctl system calls are made by systemd.
 
 Some article about CAP_SYS_ADMIN is interesting here, that could help to
 remove CAP_SYS_ADMIN capability:
 
 - [LXC containers without CAP_SYS_ADMIN under Debian Jessie](https://blog.iwakd.de/lxc-cap_sys_admin-jessie).
+
+### Initialize the volume data by freeipa-server-install
+
+This proof of concept provides a pod with a sequence of initContainers
+initializing the data volume. The volume used is ephimeral so it will be
+populated with every delete and redeployment.
+
+This set of objects have been configured to provide the maximum levels of
+traves so that it can be used to detect changes to be made or improvements
+on the initilisation process.
+
+This PoC need container image to be built and published, you can do that
+by:
+
+```shell
+export DOCKER_IMAGE=quay.io/username/freeipa-server:dev-test
+podman login quay.io
+make container-build container-push
+```
+
+for docker, do the below:
+
+```shell
+export DOCKER_IMAGE=docker.io/username/freeipa-server:dev-test
+docker login quay.io
+make container-build
+make container-push
+```
+
+> - You need a docker hub account or a quay.io account before launch the above,
+>   and you need to be logged in.
+>
+> - You need to change the image: attribute into the Pod definition to point to
+>   **DOCKER_IMAGE**. This should be change into **init-volume** and **main**
+>   containers.
+
+Finally, play with it by:
+
+```shell
+export APP=poc-05-a
+make app-deploy
+make get-info
+make app-delete
+```
+
+see: [poc-05-a.yaml](poc-05-a.yaml).
+
+> It is needed to shrink the privileges assigned to the container
 
 #### IN PROGRESS Use the UID/GID base values to create the uid/gid maps
 
@@ -235,7 +252,11 @@ freeipa-server-install process, so all the uid/gid exist in the system.
 
 see: [poc-05-b.yaml](poc-05-b.yaml).
 
-#### IN PROGRESS Study capabilities, env variables, and other resources for systemd
+#### IN PROGRESS Remove CAP_SYS_ADMIN, CAP_SYS_RESOURCE and privileged: true
+
+Study how to shrink the permissions of the init-volume-data, by removing
+CAP_SYS_ADMIN and CAP_SYS_RESOURCE; and remove too privileged: true from
+the pod.
 
 - About environment variables see:
   [systemd - Environment variables](https://systemd.io/ENVIRONMENT/).
@@ -244,6 +265,8 @@ see: [poc-05-b.yaml](poc-05-b.yaml).
   - [LXC containers without CAP_SYS_ADMIN under Debian Jessie](https://blog.iwakd.de/lxc-cap_sys_admin-jessie).
   - [Manipulating process name and arguments by way of argv](https://stackoverflow.com/questions/57749629/manipulating-process-name-and-arguments-by-way-of-argv).
   - [Docker - Runtime privilege and linux capabilities](https://docs.docker.com/engine/reference/run/#runtime-privilege-and-linux-capabilities).
+  - [man - capabilities](https://man7.org/linux/man-pages/man7/capabilities.7.html).
+  - [Linux capabilities, why they exist and how they work](https://blog.container-solutions.com/linux-capabilities-why-they-exist-and-how-they-work).
 
 #### Adding host alias to the Pod
 
