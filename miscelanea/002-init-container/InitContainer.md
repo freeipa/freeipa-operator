@@ -142,6 +142,88 @@ make app-delete
 
 see: [poc-05-a.yaml](poc-05-a.yaml).
 
+> It is needed to shrink the privileges assigned to the container
+
+### IN PROGRESS List features for different scenarios
+
+- Filesystem mounted for "privileged: true" and not privileged containers.
+- capabilities for different scc with no privileged attribute, and
+  privileged: true: anyuid, privileged, restricted.
+- State of /etc/hosts when using and not using `hostAliases`.
+- State of /etc/resolv.conf when using and not using `dnsConfig`.
+
+You need to build the image for this pod by:
+
+```shell
+podman build -t quay.io/avisied0/freeipa-openshift-container:print-features \
+             -f Dockerfile.print-features .
+podman push quay.io/avisied0/freeipa-openshift-container:print-features
+```
+
+And modify the container image used in the pod, by yours, if you change the
+image name.
+
+Finally, play with it by:
+
+```shell
+export APP=poc-05-f
+make app-deploy
+make get-info
+make app-delete
+```
+
+See: [poc-05-f.yaml](poc-05-f.yaml).
+
+#### /etc/resolv.conf
+
+Default content:
+
+```raw
+search avisiedo-init-container.svc.cluster.local svc.cluster.local \
+cluster.local permanent.idmocp.lab.eng.rdu2.redhat.com
+nameserver 172.30.0.10
+options ndots:5
+```
+
+Which match the IP assigned by the service. We can check it by
+`oc get svc --namespace=openshift-dns`:
+
+```raw
+NAME          TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)                  AGE
+dns-default   ClusterIP   172.30.0.10   <none>        53/UDP,53/TCP,9153/TCP   18d
+```
+
+When we use this dnsConfig:
+
+```yaml
+  dnsConfig:
+    nameservers:
+      - 127.0.0.1
+```
+
+We get the following `/etc/resolv.conf`:
+
+```raw
+search avisiedo-init-container.svc.cluster.local svc.cluster.local \
+cluster.local permanent.idmocp.lab.eng.rdu2.redhat.com
+nameserver 172.30.0.10
+nameserver 127.0.0.1
+options ndots:5
+```
+
+#### Capabilities
+
+TODO It needs more study.
+
+In short, we need to add to the default capabilities: CAP_SYS_ADMIN and
+CAP_SYS_RESOURCE to run systemd, and by extension the ipa-server-install
+in the init container.
+
+Some article about CAP_SYS_ADMIN is interesting here, that could help to
+remove CAP_SYS_ADMIN capability:
+
+- [LXC containers without CAP_SYS_ADMIN under Debian Jessie](https://blog.iwakd.de/lxc-cap_sys_admin-jessie).
+
 #### IN PROGRESS Use the UID/GID base values to create the uid/gid maps
 
 Extend the previous PoC to generate /etc/passwd and /etc/group files mapping
@@ -168,6 +250,45 @@ see: [poc-05-b.yaml](poc-05-b.yaml).
 This proof of concept add an alias to the /etc/host in all the pod containers.
 This could be useful when resolving the full qualified name from inside the
 Pod.
+
+The default content we get is this:
+
+```raw
+# Kubernetes-managed hosts file.
+127.0.0.1       localhost
+::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+fe00::0 ip6-mcastprefix
+fe00::1 ip6-allnodes
+fe00::2 ip6-allrouters
+10.143.1.180    poc-05-f-default
+```
+
+When we apply this configuration:
+
+```yaml
+  hostAliases:
+    - ip: "127.0.0.1"
+      hostnames:
+        - poc-05-f.apps.permanent.idmocp.idm.lab.bos.redhat.com
+        - apps.permanent.idmocp.idm.lab.bos.redhat.com
+```
+
+We get:
+
+```raw
+# Kubernetes-managed hosts file.
+127.0.0.1       localhost
+::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+fe00::0 ip6-mcastprefix
+fe00::1 ip6-allnodes
+fe00::2 ip6-allrouters
+10.143.1.182    poc-05-f-default-with-host-aliases
+
+# Entries added by HostAliases.
+127.0.0.1       poc-05-f.apps.permanent.idmocp.idm.lab.bos.redhat.com   apps.permanent.idmocp.idm.lab.bos.redhat.com
+```
 
 ```shell
 export APP=poc-05-e
