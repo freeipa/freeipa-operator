@@ -12,7 +12,8 @@ metadata:
     app: poc-05-a
 data:
   DEBUG_TRACE: "2"
-  IPA_SERVER_HOSTNAME: "poc-05-a.apps.permanent.idmocp.idm.lab.bos.redhat.com"
+  IPA_SERVER_HOSTNAME: "poc-05-a.apps.permanent.idmocp.lab.eng.rdu2.redhat.com"
+  IPA_SERVER_IP: "10.0.135.189"
   # TODO Move PASSWORD into a Secret object
   PASSWORD: "Secret123"
   container: "podman"
@@ -89,6 +90,27 @@ metadata:
   labels:
     app: poc-05-a
 automountServiceAccountToken: true
+# ---
+# # https://kubernetes.io/docs/concepts/security/pod-security-standards/#what-s-the-difference-between-a-security-policy-and-a-security-context
+# # https://kubernetes.io/docs/concepts/policy/pod-security-policy/#create-a-policy-and-a-pod
+# apiVersion: policy/v1beta1
+# kind: PodSecurityPolicy
+# metadata:
+#   name: poc-05-a
+#   labels:
+#     app: poc-05-a
+# spec:
+#   privileged: false  # Don't allow privileged pods!
+#   seLinux:
+#     rule: RunAsAny
+#   supplementalGroups:
+#     rule: RunAsAny
+#   runAsUser:
+#     rule: RunAsAny
+#   fsGroup:
+#     rule: RunAsAny
+#   volumes:
+#   - '*'
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -131,6 +153,14 @@ metadata:
     openshift.io/scc: anyuid
 spec:
   serviceAccountName: poc-05-a
+  # dnsConfig:
+  #   nameservers:
+  #     - 127.0.0.1
+  # hostAliases:
+  #   - ip: "127.0.0.1"
+  #     hostnames:
+  #       - poc-05-a.apps.permanent.idmocp.lab.eng.rdu2.redhat.com
+  #       - apps.permanent.idmocp.lab.eng.rdu2.redhat.com
   containers:
     - name: main
       image: docker.io/openshift/origin-cli:v4.0
@@ -140,11 +170,11 @@ spec:
           add:
             - "SYS_ADMIN"
             - "SYS_RESOURCE"
-            - "MKNOD"
-            - "SYS_RAWIO"
-            - "SETUID"
-            - "SETGID"
-            - "SETPCAP"
+            # - "MKNOD"
+            # - "SYS_RAWIO"
+            # - "SETUID"
+            # - "SETGID"
+            # - "SETPCAP"
       command: ["/usr/sbin/init"]
       env:
         - name: NAMESPACE
@@ -210,22 +240,62 @@ spec:
       securityContext:
         privileged: true
         capabilities:
-          add:
-            - "SYS_ADMIN"
-            - "SYS_RESOURCE"
-            - "MKNOD"
+          drop:
+            # Default capabilities
+
+            # No default capabilities
+            - "AUDIT_CONTROL"
+            - "AUDIT_READ"
+            - "BLOCK_SUSPEND"
+            - "DAC_READ_SEARCH"
+            - "IPC_LOCK"
+            - "IPC_OWNER"
+            - "LEASE"
+            - "LINUX_IMMUTABLE"
+            - "MAC_ADMIN"
+            - "MAC_OVERRIDE"
+            - "NET_ADMIN"
+            - "NET_BROADCAST"
+            - "SYS_BOOT"
+            - "SYS_MODULE"
+            - "SYS_NICE"
+            - "SYS_PACCT"
+            - "SYS_PTRACE"
             - "SYS_RAWIO"
+            - "SYS_TIME"
+            - "SYS_TTY_CONFIG"
+            - "SYSLOG"
+            - "WAKE_ALARM"
+            - "SYS_RAWIO"
+            - "MKNOD"
+          add:
+            # Default capabilities
             - "SETUID"
             - "SETGID"
             - "SETPCAP"
+            - "CHOWN"
+            - "DAC_OVERRIDE"
+            - "FSETID"
+            - "FOWNER"
+            - "NET_RAW"
+            - "SETFCAP"
+            - "NET_BIND_SERVICE"
+            - "SYS_CHROOT"
+            - "KILL"
+            - "AUDIT_WRITE"
+
+            # No default capabilities
+            - "SYS_ADMIN"
+            - "SYS_RESOURCE"
+
       command: ["/usr/sbin/init"]
       args:
         - exit-on-finished
         - -U
         # - --hostname
-        # - ipa.example.test
+        # - poc-05-a.apps.permanent.idmocp.lab.eng.rdu2.redhat.com
         - --realm
-        - EXAMPLE.TEST
+        - apps.permanent.idmocp.lab.eng.rdu2.redhat.com
         - --no-ntp
         - --no-sshd
         - --no-ssh
@@ -233,6 +303,12 @@ spec:
       env:
         # - name: SYSTEMD_OPTS
         #   value: "--show-status=true --unit=ipa-server-configure-first.service"
+        - name: SYSTEMD_LOG_LEVEL
+          value: "debug"
+        - name: SYSTEMD_LOG_TARGET
+          value: "console"
+        - name: SYSTEMD_LOG_COLOR
+          value: "no"
         - name: INIT_WRAPPER
           value: "1"
         - name: DEBUG_TRACE
