@@ -99,6 +99,10 @@ app-validate: check-logged-in-openshift check-app-not-empty FORCE
 # Deploy the application
 .PHONY: app-deploy
 app-deploy: check-logged-in-openshift check-app-not-empty $(APP).yaml app-validate FORCE
+ifeq (poc-05-a,$(APP))
+	oc create -f $(APP)-admin.yaml
+	oc adm policy add-scc-to-user poc-05-a system:serviceaccount:avisiedo-init-container:poc-05-a
+endif
 	oc create -f $(APP).yaml
 
 # poc-05-a.yaml: poc-05-a.yaml.envsubst
@@ -107,7 +111,7 @@ app-deploy: check-logged-in-openshift check-app-not-empty $(APP).yaml app-valida
 # Delete the application from the cluster
 .PHONY: app-delete
 app-delete: check-logged-in-openshift check-app-not-empty FORCE
-	oc delete all,cm,sa,role,rolebinding,psp,scc -l app=$(APP)
+	oc delete all,cm,sa,role,rolebinding,psp,scc,clusterrole,clusterrolebinding -l app=$(APP)
 
 ifeq (poc-05-f,$(APP))
 .PHONY: get-info

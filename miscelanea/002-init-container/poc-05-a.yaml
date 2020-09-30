@@ -84,73 +84,13 @@ data:
     echo "configMap.data.container_uuid='$( oc get configmap ${APP} -o 'jsonpath={.data.container_uuid}' )'"
 ---
 apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: poc-05-a
-  labels:
-    app: poc-05-a
-automountServiceAccountToken: true
-# ---
-# # https://kubernetes.io/docs/concepts/security/pod-security-standards/#what-s-the-difference-between-a-security-policy-and-a-security-context
-# # https://kubernetes.io/docs/concepts/policy/pod-security-policy/#create-a-policy-and-a-pod
-# apiVersion: policy/v1beta1
-# kind: PodSecurityPolicy
-# metadata:
-#   name: poc-05-a
-#   labels:
-#     app: poc-05-a
-# spec:
-#   privileged: false  # Don't allow privileged pods!
-#   seLinux:
-#     rule: RunAsAny
-#   supplementalGroups:
-#     rule: RunAsAny
-#   runAsUser:
-#     rule: RunAsAny
-#   fsGroup:
-#     rule: RunAsAny
-#   volumes:
-#   - '*'
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: poc-05-a
-  labels:
-    app: poc-05-a
-rules:
-  - apiGroups: [""]
-    resources: ["pods"]
-    verbs: ["list", "get", "watch"]
-  - apiGroups: [""]
-    resources: ["namespaces"]
-    verbs: ["list", "get"]
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["list", "get", "patch"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: poc-05-a
-  labels:
-    app: poc-05-a
-subjects:
-  - kind: ServiceAccount
-    name: poc-05-a
-roleRef:
-  kind: Role
-  name: poc-05-a
-  apiGroup: rbac.authorization.k8s.io
----
-apiVersion: v1
 kind: Pod
 metadata:
   name: poc-05-a
   labels:
     app: poc-05-a
   annotations:
-    openshift.io/scc: anyuid
+    openshift.io/scc: poc-05-a
 spec:
   serviceAccountName: poc-05-a
   # dnsConfig:
@@ -165,7 +105,7 @@ spec:
     - name: main
       image: docker.io/openshift/origin-cli:v4.0
       securityContext:
-        privileged: true
+        # privileged: true
         capabilities:
           add:
             - "SYS_ADMIN"
@@ -238,7 +178,7 @@ spec:
       image: quay.io/avisied0/freeipa-openshift-container:dev-test
       imagePullPolicy: Always
       securityContext:
-        privileged: true
+        # privileged: true
         capabilities:
           drop:
             # Default capabilities
@@ -268,6 +208,8 @@ spec:
             - "WAKE_ALARM"
             - "SYS_RAWIO"
             - "MKNOD"
+            - "SYS_ADMIN"
+            - "SYS_RESOURCE"
           add:
             # Default capabilities
             - "SETUID"
@@ -285,8 +227,6 @@ spec:
             - "AUDIT_WRITE"
 
             # No default capabilities
-            - "SYS_ADMIN"
-            - "SYS_RESOURCE"
 
       command: ["/usr/sbin/init"]
       args:
