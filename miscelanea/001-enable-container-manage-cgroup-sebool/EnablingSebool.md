@@ -33,8 +33,10 @@ oc delete -f 10-enable-container-manage-cgroup-sebool.yaml
 - [10-enable-container-manage-cgroup-sebool.yaml](10-enable-container-manage-cgroup-sebool.yaml)
   contains the MachineConfig object that works.
 - [10-wrong-enable-container-manage-cgroup-sebool.yaml](10-wrong-enable-container-manage-cgroup-sebool.yaml)
-  a wrong version from the above, which was a pain in the neck as no traces
-  were found about the mistake in the file. To provide some input to the
-  MCO team if it could be enhanced to print out some log trace about it.
+  a wrong version from the above, which replay the situation where no
+  traces or validation error are got when applying the object making
+  difficult to detect what is wrong in the object definition. Using this
+  to provide some input to the MCO team if it could be enhanced to print out
+  some log traces about it.
 - [tune-sebool.yaml](tune-sebool.yaml) file is an example trying to use
   Tune Operator, which does not support managing sebool.
