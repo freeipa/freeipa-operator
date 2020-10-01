@@ -177,11 +177,13 @@ spec:
     - name: init-volume
       image: quay.io/avisied0/freeipa-openshift-container:dev-test
       imagePullPolicy: Always
+      # We need 'tty: true' to see the systemd traces
+      tty: true
       securityContext:
         privileged: true
         capabilities:
           drop:
-            # Default capabilities
+            # Default capabilities anyuid
 
             # No default capabilities
             - "AUDIT_CONTROL"
@@ -208,25 +210,25 @@ spec:
             - "WAKE_ALARM"
             - "SYS_RAWIO"
             - "MKNOD"
-            - "SYS_ADMIN"
-            - "SYS_RESOURCE"
           add:
-            # Default capabilities
+            # Default capabilities anyuid
             - "SETUID"
             - "SETGID"
-            - "SETPCAP"
             - "CHOWN"
-            - "DAC_OVERRIDE"
+            - "SETFCAP"
             - "FSETID"
             - "FOWNER"
+            - "SETPCAP"
+            - "DAC_OVERRIDE"
             - "NET_RAW"
-            - "SETFCAP"
             - "NET_BIND_SERVICE"
             - "SYS_CHROOT"
             - "KILL"
             - "AUDIT_WRITE"
 
             # No default capabilities
+            - "SYS_ADMIN"
+            - "SYS_RESOURCE"
 
       command: ["/usr/sbin/init"]
       args:
@@ -303,6 +305,8 @@ spec:
       volumeMounts:
         - name: data
           mountPath: /data
+        - name: run
+          mountPath: /run
 
   volumes:
     - name: data
@@ -317,3 +321,5 @@ spec:
           - key: "init-uid-gid-base.sh"
             path: "init-uid-gid-base.sh"
             mode: 0777
+    - name: run
+      emptyDir: {}
