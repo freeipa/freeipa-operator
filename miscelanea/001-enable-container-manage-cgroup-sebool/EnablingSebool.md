@@ -5,9 +5,13 @@ methods:
 
 - **Direct change by using setsebool** in the worker nodes one by one: This
   change the sebool but it only makes sense in a development environement.
-- **Using Tunned Operator by a Tuned object**: This was a wrong path but the
-  operator provide interesting features to keep in mind for the future. Look
-  at [tune-sebool.yaml](tune-sebool.yaml) file for more information.
+- **Using Tuned Operator by a Tuned object**: This is the wrong path to make
+  this changes, as we can see at:
+  - [Is this operator capable of setting sebools?](https://github.com/openshift/cluster-node-tuning-operator/issues/89).
+  - [Manage sebooleans in MachineConfig](https://github.com/openshift/machine-config-operator/issues/852).
+  However, the operator provide interesting features to keep in mind for the
+  future. Look at [tune-sebool.yaml](tune-sebool.yaml) file for more
+  information.
 - **Using Machine Config Operator by a MachineConfig object**: This has been
   the final path which has worked for us. It provides a way to change
   the sebool using the Kubernetes way.
