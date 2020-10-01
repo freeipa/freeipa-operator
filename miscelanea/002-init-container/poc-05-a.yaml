@@ -178,7 +178,7 @@ spec:
       image: quay.io/avisied0/freeipa-openshift-container:dev-test
       imagePullPolicy: Always
       securityContext:
-        # privileged: true
+        privileged: true
         capabilities:
           drop:
             # Default capabilities
