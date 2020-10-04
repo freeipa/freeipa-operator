@@ -62,8 +62,12 @@ do
 	files="${files} ${item}"
 done
 
-echo "Linting:${files}"
-# shellcheck disable=SC2086
-./devel/lint.sh ${files}
-exit $?
+if [ "${files}" != "" ]; then
+    echo "Linting:${files}"
+    # shellcheck disable=SC2086
+    ./devel/lint.sh ${files}
+    exit $?
+else
+    exit 0
+fi
 
