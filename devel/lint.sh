@@ -7,6 +7,11 @@
 # shellcheck disable=SC1091
 source "./devel/include/verbose.inc"
 
+# Global lint filter bypass. It can be passed from the caller to bypass
+# lint.ignore filtering, forcing to lint the specified file, or all the
+# files found in the repository.
+#   LINT_FILTER_BYPASS=1 ./devel/lint.sh ./devel/lint.sh
+[ "${LINT_FILTER_BYPASS}" == "" ] && LINT_FILTER_BYPASS=0
 
 declare -a SHELL_FILES
 SHELL_FILES=()
@@ -214,12 +219,22 @@ EOF
 }
 
 
+function is-in-lintignore
+{
+    local filepath="$1"
+    filepath="${filepath#./}"
+    [ "${LINT_FILTER_BYPASS}" -eq 0 ] && grep -q "^${filepath}\$" devel/lint.ignore && return 0
+    return 1
+}
+
+
 function prepare-lists
 {
     local DIRNAME
     for filepath in "$@"
     do
         [ ! -e "$filepath" ] && continue
+        is-in-lintignore "${filepath}" && continue
         filename="$( basename "${filepath}" )"
         case "${filename}" in
             *.sh )

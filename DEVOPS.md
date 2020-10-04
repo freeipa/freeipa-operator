@@ -17,3 +17,7 @@ You will need to set up the following secrets:
 
 The deliveries will be stored at:
 [quay.io/freeipa/freeipa-operator](https://quay.io/repository/freeipa/freeipa-operator).
+
+- A lint.ignore mechanism is available. Just editing the file
+  `devel/lint.ignore`, and adding the files to be ignored. The mechanism
+  can be bypassed by setting `LINT_FILTER_BYPASS=1`.

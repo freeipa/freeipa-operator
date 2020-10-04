@@ -422,10 +422,8 @@ EOF
 }
 
 
-[ ! -e .git/hooks/pre-commit ] && {
-    echo ">> Installing git-hooks"
-    cp -f ./devel/pre-commit.sh .git/hooks/pre-commit
-}
+echo ">> Installing git-hooks"
+cp -f ./devel/pre-commit.sh .git/hooks/pre-commit
 
 
 unset GOPATH
