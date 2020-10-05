@@ -42,6 +42,19 @@ speed up playing with the different PoCs created as part of this investigation.
 
 ## Proof of Concepts
 
+### Hello world
+
+Minimal example running hello world container in an initContainer.
+
+Play with it:
+
+```shell
+export APP=poc-00
+make app-delete app-deploy get-info
+```
+
+See: [poc-00.yaml](poc-00.yaml)
+
 ### Read the namespace UID/GID ranges and inject in a ConfigMap
 
 Here we can see a PoC which show how to use the API inside an init container to
