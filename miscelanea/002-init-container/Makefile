@@ -15,7 +15,8 @@ endif
 endif
 
 AWAIT_TIMEOUT?=10
-APP_list=poc-01 poc-03 poc-04 poc-05-a poc-05-b poc-05-c poc-05-d poc-05-e poc-05-f freeipa
+APP_list=poc-00 poc-01 poc-03 poc-04 poc-05-a poc-05-b poc-05-c poc-05-d poc-05-e poc-05-f freeipa
+POC_00_containers=init-hello-world main
 POC_01_containers=init-uid-gid-base main
 POC_02_containers=init-uid-gid-base init-uid-gid main
 POC_03_containers=init-my-pod-id main
