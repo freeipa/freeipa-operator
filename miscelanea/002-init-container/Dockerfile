@@ -7,18 +7,6 @@ RUN mkdir /usr/sbin/original \
 COPY init-wrapper.sh /usr/sbin/init
 COPY init-data /usr/loca/sbin/init
 
-# Workaround to don't loose the machine-id between different executions
-# Pass on $container_uuid to set up the machine-id when the file content is
-# empty (first initialization of the volume)
-RUN rm -f /etc/machine-id \
-    && ( [ -e /data-template/etc ] || mkdir -p /data-template/etc ) \
-    && ( [ -e /data/etc ] || mkdir -p /data/etc ) \
-    && touch /data/etc/machine-id \
-    && chown 0444 /data-template/etc/machine-id \
-    && ln -svf /data/etc/machine-id /etc/machine-id \
-    && touch /data-template/etc/machine-id \
-    && rm -vf /data/etc/machine-id
-
 # Workaround for setting PrivateTmp=* to PrivateTmp=no
 # https://blog.iwakd.de/lxc-cap_sys_admin-jessie
 #
