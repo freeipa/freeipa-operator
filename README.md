@@ -40,9 +40,9 @@ Experimental freeipa-operator for Freeipa.
 
    ```shell
    kubectl login https://my-cluster:6443
-   make docker-build IMG=quay.io/freeipa/freeipa-operator:dev-test
+   make container-build IMG=quay.io/freeipa/freeipa-operator:dev-test
    podman login quay.io
-   make docker-push IMG=quay.io/freeipa/freeipa-operator:dev-test
+   make container-push IMG=quay.io/freeipa/freeipa-operator:dev-test
    make deploy IMG=quay.io/freeipa/freeipa-operator:dev-test
    ```
 

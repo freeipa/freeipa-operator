@@ -21,3 +21,17 @@ The deliveries will be stored at:
 - A lint.ignore mechanism is available. Just editing the file
   `devel/lint.ignore`, and adding the files to be ignored. The mechanism
   can be bypassed by setting `LINT_FILTER_BYPASS=1`.
+
+## Checking image size
+
+The pipeline launch dive tool to verify the layer size of the image generated
+for the operator. This tool can be launched from the workstation with just:
+
+```shell
+make container-build container-save dive
+```
+
+The settings for dive tool are located at .dive-ci.yml which are the settings
+used in the pipeline. The helper script `./devel/dive.sh` use the same
+settings; the command `make dive` is calling to the helper script under the
+hood.
