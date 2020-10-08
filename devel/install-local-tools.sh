@@ -225,6 +225,9 @@ function install-go-tools
     # Install kustomize
     # install-kustomize-from-source || die "Installing kustomize"
     GO111MODULE=on verbose go get sigs.k8s.io/kustomize/kustomize/v3@v3.2.3 || die "Installing kustomize"
+
+    # Install dive
+    GO111MODULE=off verbose go get -v github.com/wagoodman/dive || die "Installing dive"
 } # install-go-tools
 
 

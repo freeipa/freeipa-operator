@@ -1,5 +1,15 @@
 IMG_NAME = freeipa-operator
 
+ifneq (,$(shell command -v podman 2>/dev/null))
+DOCKER=podman
+else
+ifneq (,$(shell command -v docker 2>/dev/null))
+DOCKER=docker
+else
+DOCKER=
+endif
+endif
+
 # https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
 ifneq (,$(GITHUB_SHA))
 COMMIT_SHA=$(GITHUB_SHA)
@@ -17,7 +27,7 @@ ifeq (,$(COMMIT_SHA))
 COMMIT_SHA=$(shell git rev-parse HEAD)
 endif
 
-DOCKER_IMAGE_FILE ?= docker-image-freeipa-operator.tar.gz
+CONTAINER_IMAGE_FILE ?= $(IMG_NAME).tar
 
 IMG_TAG = dev-$(COMMIT_SHA)
 IMG_BASE ?= quay.io/freeipa
@@ -71,6 +81,7 @@ manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 # Launch lint
+.PHONY: lint
 lint:
 	./devel/lint.sh
 
@@ -86,22 +97,47 @@ vet:
 generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
+# Check image size. It needs to run firstly container-build
+.PHONY: dive
+dive: $(CONTAINER_IMAGE_FILE)
+	./devel/dive.sh
+
+.PHONY: check-container-runtime
+ifeq (,$(DOCKER))
+check-container-runtime: FORCE
+	@echo "ERROR: No docker nor podman were found"; exit 1
+else
+check-container-runtime:
+endif
+
 # Build the docker image
-docker-build: test
-	docker build . -t ${IMG}
+.PHONY: container-build
+container-build: check-container-runtime
+	$(DOCKER) build . -t ${IMG}
 
-docker-save: $(DOCKER_IMAGE_FILE)
-$(DOCKER_IMAGE_FILE): FORCE
-	docker save ${IMG} | gzip --best --force --stdout - > $(DOCKER_IMAGE_FILE)
+.PHONY: container-save
+container-save: check-container-runtime $(CONTAINER_IMAGE_FILE)
+$(CONTAINER_IMAGE_FILE): FORCE
+	$(DOCKER) save ${IMG} > $(CONTAINER_IMAGE_FILE)
 
-.PHONY: docker-load
-docker-load:
-	@if [ ! -e "$(DOCKER_IMAGE_FILE)" ]; then echo "No image file found. Run 'make docker-build docker-save' to generate a fresh image file before load it"; exit 2; fi
-	gunzip $(DOCKER_IMAGE_FILE) -c | docker load $(IMG)
+.PHONY: container-save-gz
+container-save-gz: check-container-runtime $(CONTAINER_IMAGE_FILE).gz
+$(CONTAINER_IMAGE_FILE).gz: FORCE
+	$(DOCKER) save ${IMG} | gzip --best --force --stdout - > $(CONTAINER_IMAGE_FILE).gz
+
+.PHONY: container-load
+container-load: check-container-runtime
+	@if [ ! -e "$(CONTAINER_IMAGE_FILE)" ]; then echo "No image file found. Run 'make container-build container-save' to generate a fresh image file before load it"; exit 2; fi
+	cat $(CONTAINER_IMAGE_FILE) | $(DOCKER) load $(IMG)
+
+.PHONY: container-load-gz
+container-load-gz: check-container-runtime
+	@if [ ! -e "$(CONTAINER_IMAGE_FILE).gz" ]; then echo "No image file found. Run 'make container-build container-save-gz' to generate a fresh image file before load it"; exit 2; fi
+	gunzip $(CONTAINER_IMAGE_FILE).gz -c | $(DOCKER) load $(IMG)
 
 # Push the docker image
-docker-push:
-	docker push ${IMG}
+container-push: check-container-runtime
+	$(DOCKER) push ${IMG}
 
 # find or download controller-gen
 # download controller-gen if necessary

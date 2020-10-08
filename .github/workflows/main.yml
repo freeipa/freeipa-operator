@@ -20,7 +20,7 @@ on:
 jobs:
   environment:
     name: Gather information about the environment
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
 
@@ -32,17 +32,12 @@ jobs:
           go env
           go version
 
-      - uses: actions/upload-artifact@v2
-        with:
-          name: image.txt
-          path: image.txt
-
   lint-golang:
     name: Lint golang code
     needs: [environment]
 
-    # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
-    runs-on: ubuntu-latest
+    # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    runs-on: ubuntu-20.04
 
     # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#jobsjob_idsteps
     steps:
@@ -58,8 +53,8 @@ jobs:
     name: Lint extra files in the repository
     needs: [environment]
 
-    # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
-    runs-on: ubuntu-latest
+    # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    runs-on: ubuntu-20.04
 
     # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#jobsjob_idsteps
     steps:
@@ -80,7 +75,7 @@ jobs:
     name: Build stage
     needs: [lint-golang, lint-extra-files]
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
@@ -90,6 +85,11 @@ jobs:
         with:
           go-version: 1.14
         id: go
+
+      - name: Clean container objects
+        run: |
+          docker image prune --force
+          docker container prune --force
 
       - name: Install dependencies
         env:
@@ -104,6 +104,7 @@ jobs:
           go get golang.org/x/lint/golint
           go get github.com/kisielk/errcheck
           go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.30.0
+          # GO111MODULE=off go get -v github.com/wagoodman/dive
 
       # https://docs.github.com/en/free-pro-team@latest/actions/reference/encrypted-secrets#using-encrypted-secrets-in-a-workflow
       - name: Build
@@ -114,7 +115,8 @@ jobs:
         run: |
           export PATH=$PATH:$(go env GOPATH)/bin
           export TAG="${GITHUB_SHA}"
-          if [ "${GITHUB_EVENT_NAME}" == "pull_request" ]
+          export CONTAINER_IMAGE_FILE="${IMG_BASE##*/}.tar"
+          if [ "$GITHUB_EVENT_NAME" == "pull_request" ]
           then
             export IMG_BASE="local/freeipa-operator"
           elif [ "${GITHUB_EVENT_NAME}" == "schedule" ]
@@ -128,8 +130,13 @@ jobs:
           go build -o bin/manager main.go
 
           echo ">>> Building container image"
-          docker build . -t ${IMG}
-          make docker-save
+          make container-build
+
+          echo ">>> Saving docker-archive"
+          make container-save
+
+          echo ">>> Checking image layer sizes"
+          make dive
 
           # The container image will not be pushed when building on a PR,
           # because the secrets are not accessible from the PR (for
@@ -145,14 +152,14 @@ jobs:
             # rm is not accidental here; it is removed if the push
             # was successful, to avoid it is stored as an artefact
             # in github.
-            docker push "${IMG}" \
-            && rm -vf docker-image-freeipa-operator.tar.gz
+            make container-push \
+            && rm -vf ${CONTAINER_IMAGE_FILE}.gz
           fi
 
       - uses: actions/upload-artifact@v2
         with:
-          name: docker-image-${{ github.sha }}
-          path: docker-image-freeipa-operator.tar.gz
+          name: freeipa-operator-${{ github.sha }}.tar
+          path: freeipa-operator.tar
 
       - uses: actions/upload-artifact@v2
         with:
