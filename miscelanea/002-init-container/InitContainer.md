@@ -331,6 +331,14 @@ make app-delete
 
 see: [poc-05-f.yaml](poc-05-f.yaml).
 
+## PENDING Application definition
+
+Use a Stateful object to make the deployment of the applications. For more
+informaiton about the reason, please look at "Chapter 11. Stateful Service" at
+"Kubernetes patterns" book.
+
+> This will be created in a new PoC in a different PR
+
 ## References
 
 - Systemd:
