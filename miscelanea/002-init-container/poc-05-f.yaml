@@ -214,7 +214,7 @@ metadata:
   annotations:
     openshift.io/scc: anyuid
 spec:
-  serviceAccountName: poc-05-f
+  # serviceAccountName: poc-05-f
   containers:
     - name: main-anyuid
       image: quay.io/avisied0/freeipa-openshift-container:print-features
@@ -316,16 +316,24 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: poc-05-f-scc
+  name: poc-05-f-default
   labels:
     app: poc-05-f
   annotations:
     openshift.io/scc: poc-05-f
 spec:
-  serviceAccountName: poc-05-f
   containers:
-    - name: main-privileged
+    - name: main-default
       image: quay.io/avisied0/freeipa-openshift-container:print-features
+      command: ["sh", "/opt/poc-05-f/main-print-features.sh"]
+      volumeMounts:
+        - name: scripts
+          mountPath: /opt/poc-05-f
+
+    - name: main-default-privileged
+      image: quay.io/avisied0/freeipa-openshift-container:print-features
+      securityContext:
+        privileged: true
       command: ["sh", "/opt/poc-05-f/main-print-features.sh"]
       volumeMounts:
         - name: scripts
