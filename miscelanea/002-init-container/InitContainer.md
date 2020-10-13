@@ -17,25 +17,39 @@ The content of this file is break down as follow:
 
 - Proof of Concepts: Several different proof of concepts which provide us
   a better understunding about how to play with the different objects.
-  - Initialize the volume data.
-  - Read the Pod IP and inject into the ConfigMap. This will need a
-    ServiceAccount with permissions to write to the ConfigMap.
-  - Read the namespace UID and GID ranges and write them into the ConfigMap.
-    This could be useful to prepare the UID/GID map to be used with all the
-    different services running in FreeIpa.
-- Deployment of the application up to the point to run the main container/s
-  which only have to run systemd in the first stage, or independent containers
-  when we achieve to split all the different services. For achieving this it
-  will be used all the knowledge aquired with the previous point, and it will
-  be combined to create all the OpenShift objects needed to provide a
-  deployment just running "oc apply -f freeipa.yaml".
-- Shrink capabilities, this will need a deeper study and investigation as
-  systemd is involved on this. See the references at the end.
+  - **Hello world**: A minimal structure for using initContainer pattern.
+  - **Read uid/gid ranges**: This read from the namespace and inject them into
+    a configMap object. This will need a ServiceAccount with permissions to
+    write to the ConfigMap.
+  - **Read Pod IP**: In a similar way to the above, the POD IP is read from
+    by using the downward API and stored into the configMap object for
+    being used later.
+  - **Initialize machine-id**: Investigating about systemd container interface
+    it was seen a way to initialize the machine-id for systemd; this
+    proof of concept just inplement the mechanism initialising the value
+    into the configMap so that it can be used later to inject the value as
+    a environment variable.
+  - **Print out environment**: this is helpful to know the about the initial state
+    for /etc/hosts, /etc/resolv.conf, capabilities and the filesystem mounted.
+    - **DNS Config**: Play with the DNS config used to know more about the Pod
+      configuration.
+    - **Capabilities**: Initial study about the capabilities which are needed
+      for initialise the data volume
+  - **Initialize the volume data**: Run ipa-install-server for initialising the
+    data volume.
+    - **PENDING - Map uid/gid ranges**: This could be useful to prepare the UID/GID
+      map to be used with all the different services running in FreeIpa.
+    - **Add host alias**: Intent to remove some unnecesary name resolution
+      externally.
+- **PENDING - Application definition**: Use all the above for creating the
+  application objects. This will be addressed in a different investigation.
+  Just reference for this "Chapter 11: Stateful Service".
+- **Shrink capabilities**: This will need a deeper study and investigation as
+  it could increase the scope of this task more than I want. A different
+  PR will be addressed for this task.
 
-As part of this investigation a final [freeipa.yaml](freeipa.yaml) object has
-been generated which provide a starting point for investigating directly into
-the OpenShift cluster. The logs are printed out in the console, so they can
-be read using the standard `oc logs pod/my-pod -c container-name`.
+The logs are printed out in the console, so they can be read using the
+command below: `oc logs pod/my-pod -c container-name`.
 
 For making life easier, a Makefile is provided to automate some actions and
 speed up playing with the different PoCs created as part of this investigation.
@@ -178,7 +192,7 @@ options ndots:5
 
 #### Capabilities
 
-In short, we need to add to the default capabilities: CAP_SYS_ADMIN and
+In short, we need the below capabilities: CAP_SYS_ADMIN, CAP_MKNOD and
 CAP_SYS_RESOURCE to run systemd, and by extension the ipa-server-install
 in the init container.
 
@@ -200,11 +214,22 @@ Additional capabilities for running systemd for launching ipa-server-install:
 
 - CAP_SYS_ADMIN: This is the big one to try to remove.
 - CAP_SYS_RESOURCE: Needed because some pctl system calls are made by systemd.
+- CAP_MKNOD: Needed because systemd could try to create some nodes, for terminals.
+  Maybe this one could be removed.
 
 Some article about CAP_SYS_ADMIN is interesting here, that could help to
 remove CAP_SYS_ADMIN capability:
 
 - [LXC containers without CAP_SYS_ADMIN under Debian Jessie](https://blog.iwakd.de/lxc-cap_sys_admin-jessie).
+
+At the moment this PR was created, it was not working, and a new proof of
+concept was addressed to focus only into the set of needed capabilities
+and the SCC profile to be assigned to the service account, which could
+allow to run the initContainer without `privileged: true`. So that a new
+PR will be addressed for this.
+
+Another PR will be addressed for trying to remove CAP_SYS_ADMIN based on
+the previous article.
 
 ### Initialize the volume data by freeipa-server-install
 
@@ -213,7 +238,7 @@ initializing the data volume. The volume used is ephimeral so it will be
 populated with every delete and redeployment.
 
 This set of objects have been configured to provide the maximum levels of
-traves so that it can be used to detect changes to be made or improvements
+traces so that it can be used to detect changes to be made or improvements
 on the initilisation process.
 
 This PoC need container image to be built and published, you can do that
@@ -252,53 +277,24 @@ make app-delete
 
 see: [poc-05-a.yaml](poc-05-a.yaml).
 
-> It is needed to shrink the privileges assigned to the container
+> It is needed to shrink the privileges assigned to the container; as said
+> above, it will be addressed in a new PR.
 
-#### IN PROGRESS Use the UID/GID base values to create the uid/gid maps
+#### PENDING Use the UID/GID base values to create the uid/gid maps
 
 Extend the previous PoC to generate /etc/passwd and /etc/group files mapping
 the user ids to match the namespace ranges, and update them in the ConfifMap.
 
 This content is injected later in the main container to map properly the
-different userid and groupid schema. This will be used when running the
+different userid and groupid schema. This could be used when running the
 freeipa-server-install process, so all the uid/gid exist in the system.
 
 see: [poc-05-b.yaml](poc-05-b.yaml).
 
-#### IN PROGRESS Remove CAP_SYS_ADMIN, CAP_SYS_RESOURCE and privileged: true
-
-Study how to shrink the permissions of the init-volume-data, by removing
-CAP_SYS_ADMIN and CAP_SYS_RESOURCE; and remove too privileged: true from
-the pod.
-
-- About environment variables see:
-  [systemd - Environment variables](https://systemd.io/ENVIRONMENT/).
-- About capabilities see:
-  - [systemd - The Container Interface](https://systemd.io/CONTAINER_INTERFACE/).
-  - [LXC containers without CAP_SYS_ADMIN under Debian Jessie](https://blog.iwakd.de/lxc-cap_sys_admin-jessie).
-  - [Manipulating process name and arguments by way of argv](https://stackoverflow.com/questions/57749629/manipulating-process-name-and-arguments-by-way-of-argv).
-  - [Docker - Runtime privilege and linux capabilities](https://docs.docker.com/engine/reference/run/#runtime-privilege-and-linux-capabilities).
-  - [man - capabilities](https://man7.org/linux/man-pages/man7/capabilities.7.html).
-  - [Linux capabilities, why they exist and how they work](https://blog.container-solutions.com/linux-capabilities-why-they-exist-and-how-they-work).
-
 #### Adding host alias to the Pod
 
 This proof of concept add an alias to the /etc/host in all the pod containers.
-This could be useful when resolving the full qualified name from inside the
-Pod.
-
-The default content we get is this:
-
-```raw
-# Kubernetes-managed hosts file.
-127.0.0.1       localhost
-::1     localhost ip6-localhost ip6-loopback
-fe00::0 ip6-localnet
-fe00::0 ip6-mcastprefix
-fe00::1 ip6-allnodes
-fe00::2 ip6-allrouters
-10.143.1.180    poc-05-f-default
-```
+This could be useful when resolving the full qualified name inside the Pod.
 
 When we apply this configuration:
 
@@ -327,49 +323,13 @@ fe00::2 ip6-allrouters
 ```
 
 ```shell
-export APP=poc-05-e
+export APP=poc-05-f
 make app-deploy
 make get-info
 make app-delete
 ```
 
-see: [poc-05-e.yaml](poc-05-e.yaml).
-
-### IN PROGRESS Redirecting traffic to the Pod using ExternalName
-
-Wrong assumptions about how to use externalName. This feature is important
-when we need to map to an external service, so that we can map the external
-service with a common name internally, but when the service is going to be
-used, it is mapped with a CNAME to the final hostname which will be an
-external service.
-
-So, is this useful for us? well, it is useful when mapping services in
-an hybrid cloud strategy, where private clouds maps external services in
-the public cloud. I imagine the following scenario:
-
-- Private cloud which deploy Freeipa instance.
-- Public cloud which use the Freeipa instance form the Private cloud.
-  This will need to map an external service, and in this situation this
-  could be helpful.
-
-The proof of concept here just map an external gitlab instance to gather
-some information using a common internal service name.
-
-See: [pod-05-c.yaml](pod-05-c.yaml).
-
-### PENDING Redirecting traffic to the Pod using External IP
-
-TODO Fix the wrong behavior
-
-See: [poc-05-d.yaml](poc-05-d.yaml).
-
-## PENDING Application definition
-
-Use a StatefullSet object to make the deployment of the applications. For more
-informaiton about the reason, please look at "Chapter 11. Stateful Service" at
-"Kubernetes patterns" book.
-
-See: [freeipa.yaml](freeipa.yaml).
+see: [poc-05-f.yaml](poc-05-f.yaml).
 
 ## References
 
