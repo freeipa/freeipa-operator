@@ -19,7 +19,7 @@ VERBOSE=${VERBOSE:-$VERBOSE_DEFAULT}
 ##
 function yield
 {
-    echo "$*" >&2
+    echo "$@" >&2
 } # yield
 
 
@@ -100,3 +100,12 @@ function assert
     "$@" || die "Assertion failed at ${FUNCNAME[1]}: $*"
 } # assert
 
+
+##
+# Print the command to be launched, and afterward execute it.
+##
+function verbose
+{
+    yield "$@"
+    "$@"
+}
