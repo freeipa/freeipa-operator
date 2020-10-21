@@ -15,7 +15,7 @@ die()
 	err=$?
 	[ $err -eq 0 ] && err=127
 	error_msg "$@"
-	return $err
+	exit $err
 }
 
 if git rev-parse --verify HEAD >/dev/null 2>&1

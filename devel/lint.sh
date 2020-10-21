@@ -265,6 +265,15 @@ function prepare-lists
 }
 
 
+function can-run-check-k8s
+{
+    command -v oc &>/dev/null || return 1
+    oc whoami &>/dev/null && return 0
+    [ "${OC_USERNAME}" != "" ] && [ "${OC_PASSWORD}" != "" ] && [ "${OC_API_URL}" != "" ] && return 0
+    return 1
+}
+
+
 function cmd-lint-all
 {
     local reto
@@ -324,6 +333,13 @@ function cmd-lint-all
             lint-forced "${FORCE}" "${UNKNOWN_FILES[@]}"
         fi
     }
+
+    # Validate kubernetes objects if possible
+    if can-run-check-k8s; then
+        ./devel/check-k8s.sh || err_count=$(( err_count + 1 ))
+    else
+        warning-msg "It can not run validation on k8s kustomize objects"
+    fi
 
     return $err_count
 }

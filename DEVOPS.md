@@ -22,6 +22,11 @@ The deliveries will be stored at:
   `devel/lint.ignore`, and adding the files to be ignored. The mechanism
   can be bypassed by setting `LINT_FILTER_BYPASS=1`.
 
+- For validating K8S objects created by kustomize when launching `make lint`,
+  or `./devel/lint.sh` script, we need to be logged in the
+  cluster or set the variables **OC_USERNAME**, **OC_PASSWORD** and
+  **OC_API_URL**.
+
 ## Checking image size
 
 The pipeline launch dive tool to verify the layer size of the image generated
