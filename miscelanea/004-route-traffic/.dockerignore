@@ -1,0 +1,7 @@
+.vscode
+Makefile
+Dockerfile
+tmp
+poc-004-*.yaml
+poc-004-admin.yaml
+README.md

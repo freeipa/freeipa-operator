@@ -1,0 +1,212 @@
+# Using loadbalancer solution
+#
+# https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: poc-004-4b
+  labels:
+    app: poc-004-4b
+spec:
+  serviceAccountName: poc-004
+  containers:
+    # https://github.com/nicolaka/netshoot7
+    - name: client
+      image: docker.io/nicolaka/netshoot
+      command: ["cat"]
+      stdin: true
+
+    - name: http
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+      env:
+        - name: "ECHO_PORT"
+          value: "80"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+      ports:
+        - name: http-tcp
+          containerPort: 80
+          protocol: TCP
+
+    - name: https
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+      env:
+        - name: "ECHO_PORT"
+          value: "443"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+      ports:
+        - containerPort: 443
+          protocol: TCP
+
+    - name: ldap
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+      env:
+        - name: "ECHO_PORT"
+          value: "389"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+      ports:
+        - containerPort: 389
+          hostPort: 389
+          protocol: TCP
+
+    - name: ldaps
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+      env:
+        - name: "ECHO_PORT"
+          value: "636"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+      ports:
+        - containerPort: 636
+          protocol: TCP
+
+    - name: kerberos-tcp
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+      env:
+        - name: "ECHO_PORT"
+          value: "88"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+      ports:
+        - containerPort: 88
+          protocol: TCP
+
+    - name: kerberos-admin-tcp
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+      env:
+        - name: "ECHO_PORT"
+          value: "464"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+      ports:
+        - containerPort: 464
+          protocol: TCP
+
+    - name: kerberos-udp
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+      env:
+        - name: "ECHO_PORT"
+          value: "88"
+        - name: "ECHO_PROTOCOL"
+          value: "udp"
+      ports:
+        - containerPort: 88
+          protocol: UDP
+
+    - name: kerberos-admin-udp
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+      env:
+        - name: "ECHO_PORT"
+          value: "464"
+        - name: "ECHO_PROTOCOL"
+          value: "udp"
+      ports:
+        - containerPort: 464
+          protocol: UDP
+---
+# https://kubernetes.io/docs/concepts/services-networking/service/#internal-load-balancer
+# https://kubernetes.io/docs/concepts/services-networking/service/#externalname
+# https://kubernetes.io/docs/concepts/services-networking/service/#external-ips
+# https://docs.openshift.com/container-platform/4.6/networking/configuring_ingress_cluster_traffic/configuring-externalip.html#nw-externalip-about_configuring-externalip
+# https://docs.openshift.com/container-platform/4.6/installing/installing_openstack/installing-openstack-installer-custom.html#installing-openstack-installer-custom
+# https://docs.openshift.com/container-platform/3.4/dev_guide/expose_service/expose_internal_ip_service.html
+# Egress is for traffic from cluster to outside
+# https://www.openshift.com/blog/how-to-enable-static-egress-ip-in-ocp
+# https://docs.openshift.com/container-platform/4.4/networking/configuring_ingress_cluster_traffic/configuring-externalip.html
+# https://docs.openstack.org/magnum/ocata/dev/kubernetes-load-balancer.html
+# Allocated floating IP 10.0.133.188
+# The initial floating IP for apps: 10.0.135.189
+apiVersion: v1
+kind: Service
+metadata:
+  name: poc-004-4b-tcp
+  labels:
+    app: poc-004-4b
+  # yamllint disable rule:comments-indentation
+  # annotations:
+  #   service.beta.kubernetes.io/openstack-internal-load-balancer: "true"
+  # yamllint enable rule:comments-indentation
+spec:
+  type: "LoadBalancer"
+  # loadBalancerIP: "10.0.133.188"
+  selector:
+    app: poc-004-4b
+  ports:
+    # - name: http-tcp
+    #   protocol: TCP
+    #   port: 80
+    #   targetPort: 80
+    # - name: https-tcp
+    #   protocol: TCP
+    #   port: 443
+    #   targetPort: 443
+    # - name: ldap-tcp
+    #   protocol: TCP
+    #   port: 389
+    # - name: ldaps-tcp
+    #   protocol: TCP
+    #   port: 636
+    - name: kerberos-tcp
+      protocol: TCP
+      port: 88
+    # yamllint disable rule:comments-indentation
+    # - name: kerberos-admin-tcp
+    #   protocol: TCP
+    #   port: 464
+    # yamllint enable rule:comments-indentation
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: poc-004-4b-udp
+  labels:
+    app: poc-004-4b
+spec:
+  type: "LoadBalancer"
+  # loadBalancerIP: "10.0.133.188"
+  selector:
+    app: poc-004-4b
+  ports:
+    - name: kerberos-udp
+      protocol: UDP
+      port: 88
+    # yamllint disable rule:comments-indentation
+    # - name: kerberos-admin-udp
+    #   protocol: UDP
+    #   port: 464
+    # yamllint enable rule:comments-indentation

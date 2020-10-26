@@ -31,6 +31,7 @@ metadata:
   annotations:
     # yamllint disable rule:line-length
     haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    # yamllint enable rule:line-length
   name: poc-05-e
   labels:
     app: poc-05-e
@@ -40,6 +41,7 @@ spec:
   to:
     kind: Service
     name: poc-05-e
+  # yamllint disable rule:comments-indentation
   # tls:
   #   termination: edge
   #   insecureEdgeTerminationPolicy: Allow

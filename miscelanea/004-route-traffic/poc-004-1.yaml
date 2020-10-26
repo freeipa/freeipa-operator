@@ -1,0 +1,138 @@
+# https://kubernetes.io/docs/concepts/services-networking/service/
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: poc-004-1
+  labels:
+    app: poc-004-1
+spec:
+  serviceAccountName: poc-004
+  containers:
+    # https://github.com/nicolaka/netshoot
+    - name: client
+      image: docker.io/nicolaka/netshoot
+      command: ["cat"]
+      stdin: true
+
+    - name: http
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          add:
+            - "NET_BIND_SERVICE"
+      env:
+        - name: "ECHO_PORT"
+          value: "80"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+    - name: https
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - "NET_BIND_SERVICE"
+      env:
+        - name: "ECHO_PORT"
+          value: "443"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+      ports:
+        # According to:
+        # https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core,
+        # specifying ports in a container spec is primarily information. Not
+        # specifying a port does not prevent it from being connected to from
+        # outside the container.
+        #
+        # See also the description of the ContainerPort object:
+        # https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#containerport-v1-core.
+        - containerPort: 443
+          hostPort: 443
+          protocol: TCP
+    - name: ldap
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - "NET_BIND_SERVICE"
+      env:
+        - name: "ECHO_PORT"
+          value: "389"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+      ports:
+        - containerPort: 389
+          hostPort: 389
+          protocol: TCP
+    - name: ldaps
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - "NET_BIND_SERVICE"
+      env:
+        - name: "ECHO_PORT"
+          value: "636"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+      ports:
+        - containerPort: 636
+          hostPort: 636
+          protocol: TCP
+    - name: kerberos-tcp
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - "NET_BIND_SERVICE"
+      env:
+        - name: "ECHO_PORT"
+          value: "88"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+      ports:
+        - containerPort: 88
+          hostPort: 88
+          protocol: TCP
+    - name: kerberos-admin-tcp
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - "NET_BIND_SERVICE"
+      env:
+        - name: "ECHO_PORT"
+          value: "464"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+      ports:
+        - containerPort: 464
+          hostPort: 464
+          protocol: TCP
+    - name: kerberos-udp
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - "NET_BIND_SERVICE"
+      env:
+        - name: "ECHO_PORT"
+          value: "88"
+        - name: "ECHO_PROTOCOL"
+          value: "udp"
+      ports:
+        - containerPort: 88
+          hostPort: 88
+          protocol: UDP
+    - name: kerberos-admin-udp
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - "NET_BIND_SERVICE"
+      env:
+        - name: "ECHO_PORT"
+          value: "464"
+        - name: "ECHO_PROTOCOL"
+          value: "udp"
