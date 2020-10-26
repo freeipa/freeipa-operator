@@ -112,7 +112,6 @@ data:
     echo "configMap.data.UID_BASE=${UID_BASE}"
     echo "configMap.data.GID_BASE=${GID_BASE}"
 
-  # yamllint disable rule:line-length
   init-container-uuid.sh: |
     #!/bin/bash
     function yield {
@@ -295,6 +294,7 @@ data:
     cat "$FILE"
 
     exit 0
+  # yamllint enable rule:line-length
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -449,8 +449,10 @@ spec:
         - --no-ssh
         - --verbose
       env:
+        # yamllint disable rule:line-length
         # - name: SYSTEMD_OPTS
         #   value: "--show-status=true --unit=ipa-server-configure-first.service"
+        # yamllint enable rule:line-length
         - name: INIT_WRAPPER
           value: "1"
         - name: DEBUG_TRACE
@@ -487,10 +489,12 @@ spec:
             configMapKeyRef:
               name: poc-05-a
               key: container_uuid
+# yamllint disable rule:comments-indentation
 #         - name: IPA_SERVER_IP
 #           valueFrom:
 #             fieldRef:
 #               fieldPath: status.podIP
+# yamllint enable rule:comments-indentation
 
         - name: container
           valueFrom:
@@ -501,10 +505,12 @@ spec:
           value: "1"
         - name: SYSTEMD_NSPAWN_API_VFS_WRITABLE
           value: "network"
+        # yamllint disable rule:comments-indentation
         # - name: IPA_SERVER_IP
         #   valueFrom:
         #     fieldRef:
         #       fieldPath: status.podIP
+        # yamllint enable rule:comments-indentation
       volumeMounts:
         - name: data-poc-05
           mountPath: /data

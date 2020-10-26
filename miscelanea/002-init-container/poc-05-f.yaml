@@ -25,6 +25,7 @@ data:
     cat /etc/resolv.conf
 
     while true; do sleep 1; done
+  # yamllint enable rule:line-length
 ---
 # https://docs.openshift.com/container-platform/4.5/authentication/managing-security-context-constraints.html
 apiVersion: security.openshift.io/v1
@@ -34,8 +35,8 @@ metadata:
   labels:
     app: poc-05-f
   annotations:
-    kubernetes.io/description: poc-05-f provides all features of the restricted SCC
-      but allows users to run with any UID and any GID.
+    kubernetes.io/description: poc-05-f provides all features of the
+      restricted SCC but allows users to run with any UID and any GID.
     release.openshift.io/create-only: "true"
 allowHostDirVolumePlugin: false
 allowHostIPC: false

@@ -54,6 +54,7 @@ data:
     echo "UID_BASE=${UID_BASE}"
     echo "GID_BASE=${GID_BASE}"
     while true; do sleep 1; done
+  # yamllint enable rule:line-length
 ---
 apiVersion: v1
 kind: ServiceAccount

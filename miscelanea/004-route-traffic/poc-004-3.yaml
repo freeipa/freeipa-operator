@@ -1,0 +1,198 @@
+# https://kubernetes.io/docs/concepts/services-networking/service/
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: poc-004-3-client
+  labels:
+    app: poc-004-3
+    role: client
+spec:
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - topologyKey: "kubernetes.io/hostname"
+          labelSelector:
+            matchLabels:
+              app: poc-004-3
+              role: services
+  serviceAccountName: poc-004
+  containers:
+    # https://github.com/nicolaka/netshoot
+    - name: client
+      image: docker.io/nicolaka/netshoot
+      imagePullPolicy: IfNotPresent
+      command: ["cat"]
+      stdin: true
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: poc-004-3-services
+  labels:
+    app: poc-004-3
+    role: services
+spec:
+  serviceAccountName: poc-004
+  containers:
+    # https://github.com/nicolaka/netshoot
+    - name: client
+      image: docker.io/nicolaka/netshoot
+      imagePullPolicy: IfNotPresent
+      command: ["cat"]
+      stdin: true
+
+    - name: http
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+      env:
+        - name: "ECHO_PORT"
+          value: "80"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+      ports:
+        - containerPort: 80
+          protocol: TCP
+    - name: https
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+      env:
+        - name: "ECHO_PORT"
+          value: "443"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+      ports:
+        - containerPort: 443
+          protocol: TCP
+    - name: ldap
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+      env:
+        - name: "ECHO_PORT"
+          value: "389"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+      ports:
+        - containerPort: 389
+          protocol: TCP
+    - name: ldaps
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+      env:
+        - name: "ECHO_PORT"
+          value: "636"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+      ports:
+        - containerPort: 636
+          protocol: TCP
+    - name: kerberos-tcp
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+      env:
+        - name: "ECHO_PORT"
+          value: "88"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+      ports:
+        - containerPort: 88
+          protocol: TCP
+    - name: kerberos-admin-tcp
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+      env:
+        - name: "ECHO_PORT"
+          value: "464"
+        - name: "ECHO_PROTOCOL"
+          value: "tcp"
+      ports:
+        - containerPort: 464
+          protocol: TCP
+    - name: kerberos-udp
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+      env:
+        - name: "ECHO_PORT"
+          value: "88"
+        - name: "ECHO_PROTOCOL"
+          value: "udp"
+      ports:
+        - containerPort: 88
+          protocol: UDP
+    - name: kerberos-admin-udp
+      image: quay.io/freeipa/freeipa-operator:poc-004
+      securityContext:
+        capabilities:
+          add:
+            - NET_BIND_SERVICE
+      env:
+        - name: "ECHO_PORT"
+          value: "464"
+        - name: "ECHO_PROTOCOL"
+          value: "udp"
+      ports:
+        - containerPort: 464
+          protocol: UDP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: poc-004-3
+  labels:
+    app: poc-004-3
+spec:
+  type: NodePort
+  selector:
+    app: poc-004-3
+  sessionAffinity: None
+  # clusterIP: 0.0.0.0
+  # externalIPs:
+  #   - 0.0.0.0
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 443
+    - name: ldap
+      protocol: TCP
+      port: 389
+    - name: ldaps
+      protocol: TCP
+      port: 636
+    - name: kerberos-tcp
+      protocol: TCP
+      port: 88
+    - name: kerberos-admin-tcp
+      protocol: TCP
+      port: 464
+    - name: kerberos-udp
+      protocol: UDP
+      port: 88
+    - name: kerberos-admin-udp
+      protocol: UDP
+      port: 464
