@@ -228,12 +228,22 @@ function is-in-lintignore
 }
 
 
+function is-in-vendor
+{
+    local filepath="$1"
+    filepath="${filepath#./}"
+    [ "${LINT_FILTER_BYPASS}" -eq 0 ] && grep -q "^vendor" <<< "${filepath}" && return 0
+    return 1
+}
+
+
 function prepare-lists
 {
     local DIRNAME
     for filepath in "$@"
     do
         [ ! -e "$filepath" ] && continue
+        is-in-vendor "${filepath}" && continue
         is-in-lintignore "${filepath}" && continue
         filename="$( basename "${filepath}" )"
         case "${filename}" in
