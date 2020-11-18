@@ -28,3 +28,6 @@ docker-image-freeipa-operator.tar.gz
 
 # Ignore local go directory
 /go
+
+# Ignore directory containing envtest binaries
+testbin/*
