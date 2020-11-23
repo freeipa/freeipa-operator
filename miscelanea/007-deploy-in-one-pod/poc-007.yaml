@@ -1,0 +1,435 @@
+# Proof of Concept that launch ipa-server-install in an initContainer,
+# preparing the whole data volume.
+#
+# Quick Start:
+#   make app-delete app-deploy get-info
+#
+# References:
+#   https://systemd.io/CONTAINER_INTERFACE/
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: poc-007
+  labels:
+    app: poc-007
+data:
+  DEBUG_TRACE: "2"
+  IPA_SERVER_HOSTNAME: "poc-007.apps.permanent.idmocp.lab.eng.rdu2.redhat.com"
+  IPA_SERVER_IP: "10.0.135.189"
+  # TODO Move PASSWORD into a Secret object
+  PASSWORD: "Secret123"
+  container: "podman"
+  container_uuid: ""
+  UID_BASE: ""
+  GID_BASE: ""
+  # yamllint disable rule:line-length
+  init-uid-gid-base.sh: |
+    #!/bin/bash
+    function yield {
+      echo "$*" >&2
+    }
+    function verbose {
+      yield "$*"
+      "$@"
+    }
+    echo "Script: $0"
+    TOKEN="$(</var/run/secrets/kubernetes.io/serviceaccount/token)"
+    CA_CERT="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+    APP="poc-007"
+    echo "NAMESPACE=${NAMESPACE}"
+    oc login --token ""  \
+             --certificate-authority="" \
+             https://kubernetes.default.svc:443
+    if [ "${UID_BASE}" == "" ]; then
+      UID_BASE="$( oc get namespace/${NAMESPACE} \
+                   -o 'jsonpath={.metadata.annotations.openshift\.io/sa\.scc\.uid-range}' )"
+      UID_BASE="${UID_BASE%/*}"
+      oc patch configmap ${APP} --patch "{\"data\":{\"UID_BASE\": \"${UID_BASE}\"}}"
+    fi
+    if [ "${GID_BASE}" == "" ]; then
+      GID_BASE="$( oc get namespace/${NAMESPACE} \
+                   -o 'jsonpath={.metadata.annotations.openshift\.io/sa\.scc\.supplemental-groups}' )"
+      GID_BASE="${GID_BASE%/*}"
+      oc patch configmap ${APP} \
+         --patch "{\"data\":{\"GID_BASE\":\"${GID_BASE}\"}}"
+    fi
+    UID_BASE="$( oc get cm/${APP} -o 'jsonpath={.data.UID_BASE}' )"
+    GID_BASE="$( oc get cm/${APP} -o 'jsonpath={.data.GID_BASE}' )"
+    echo "configMap.data.UID_BASE=${UID_BASE}"
+    echo "configMap.data.GID_BASE=${GID_BASE}"
+
+  # yamllint disable rule:line-length
+  init-container-uuid.sh: |
+    #!/bin/bash
+    function yield {
+      echo "$*" >&2
+    }
+    function verbose {
+      yield "$*"
+      "$@"
+    }
+    echo "Script: $0"
+    TOKEN="$(</var/run/secrets/kubernetes.io/serviceaccount/token)"
+    CA_CERT="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+    APP="poc-007"
+    echo "NAMESPACE=${NAMESPACE}"
+    oc login --token "${TOKEN}" \
+             --certificate-authority="${CA_CERT}" \
+             https://kubernetes.default.svc:443
+    container_uuid="$( oc get configmap ${APP} -o 'jsonpath={.data.container_uuid}' )"
+    if [ "${container_uuid}" == "" ]; then
+      systemd-machine-id-setup
+      container_uuid="$(</etc/machine-id)"
+      oc patch configmap ${APP} \
+         --patch "{\"data\":{\"container_uuid\": \"${container_uuid}\"}}"
+    fi
+    echo "configMap.data.container_uuid='$( oc get configmap ${APP} -o 'jsonpath={.data.container_uuid}' )'"
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: poc-007
+  labels:
+    app: poc-007
+  annotations:
+    openshift.io/scc: poc-007
+spec:
+  serviceAccountName: poc-007
+  # dnsConfig:
+  #   nameservers:
+  #     - 127.0.0.1
+  # hostAliases:
+  #   - ip: "127.0.0.1"
+  #     hostnames:
+  #       - poc-007.apps.permanent.idmocp.lab.eng.rdu2.redhat.com
+  #       - apps.permanent.idmocp.lab.eng.rdu2.redhat.com
+  containers:
+    - name: main
+      # Change this to the image pushed to your container registry
+      # which is stored in your DOCKER_IMAGE env variable when building
+      # with 'make container-build container-push'
+      image: quay.io/freeipa/freeipa-openshift-container:poc-007
+      imagePullPolicy: Always
+      # We need 'tty: true' to see the systemd traces
+      tty: true
+      securityContext:
+        privileged: false
+        capabilities:
+          drop:
+            # Default capabilities
+            - "NET_RAW"
+            - "SYS_CHROOT"
+            - "FSETID"
+
+            # No default capabilities
+            - "AUDIT_CONTROL"
+            - "AUDIT_READ"
+            - "BLOCK_SUSPEND"
+            - "DAC_READ_SEARCH"
+            - "IPC_LOCK"
+            - "IPC_OWNER"
+            - "LEASE"
+            - "LINUX_IMMUTABLE"
+            - "MAC_ADMIN"
+            - "MAC_OVERRIDE"
+            - "NET_ADMIN"
+            - "NET_BROADCAST"
+            - "SYS_BOOT"
+            - "SYS_MODULE"
+            - "SYS_NICE"
+            - "SYS_PACCT"
+            - "SYS_PTRACE"
+            - "SYS_RAWIO"
+            - "SYS_TIME"
+            - "SYS_TTY_CONFIG"
+            - "SYSLOG"
+            - "WAKE_ALARM"
+            - "SYS_RAWIO"
+
+            - "MKNOD"
+
+          add:
+            # Default capabilities
+            - "CHOWN"
+            - "FOWNER"
+            - "DAC_OVERRIDE"
+            - "SETUID"
+            - "SETGID"
+            - "KILL"
+            - "NET_BIND_SERVICE"
+
+            - "SETPCAP"
+            - "SETFCAP"
+
+            # No default capabilities
+            - "SYS_ADMIN"
+            - "SYS_RESOURCE"
+
+      command: ["/usr/sbin/init"]
+      args:
+        # - exit-on-finished
+        - no-exit
+        - ipa-server-install
+        - -U
+        # - --hostname
+        # - poc-007.apps.permanent.idmocp.lab.eng.rdu2.redhat.com
+        - --realm
+        - apps.permanent.idmocp.lab.eng.rdu2.redhat.com
+        - --no-ntp
+        - --no-sshd
+        - --no-ssh
+        - --verbose
+      env:
+        # - name: SYSTEMD_OPTS
+        #   value: "--show-status=true --unit=ipa-server-configure-first.service"
+        - name: KRB5_TRACE
+          value: /dev/console
+        - name: SYSTEMD_LOG_LEVEL
+          value: "debug"
+        - name: SYSTEMD_LOG_TARGET
+          value: "console"
+        - name: SYSTEMD_LOG_COLOR
+          value: "no"
+        - name: INIT_WRAPPER
+          value: "1"
+        - name: DEBUG_TRACE
+          valueFrom:
+            configMapKeyRef:
+              name: poc-007
+              key: DEBUG_TRACE
+        - name: PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: poc-007
+              key: PASSWORD
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: UID_BASE
+          valueFrom:
+            configMapKeyRef:
+              name: poc-007
+              key: UID_BASE
+        - name: GID_BASE
+          valueFrom:
+            configMapKeyRef:
+              name: poc-007
+              key: GID_BASE
+        - name: IPA_SERVER_HOSTNAME
+          valueFrom:
+            configMapKeyRef:
+              name: poc-007
+              key: IPA_SERVER_HOSTNAME
+        - name: container_uuid
+          valueFrom:
+            configMapKeyRef:
+              name: poc-007
+              key: container_uuid
+        # - name: IPA_SERVER_IP
+        #   valueFrom:
+        #     fieldRef:
+        #       fieldPath: status.podIP
+
+        - name: container
+          valueFrom:
+            configMapKeyRef:
+              name: poc-007
+              key: container
+        - name: SYSTEMD_OFFLINE
+          value: "1"
+        - name: SYSTEMD_NSPAWN_API_VFS_WRITABLE
+          value: "network"
+
+      volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: systemd-tmp
+          mountPath: /tmp
+        - name: systemd-sys
+          mountPath: /sys
+          readOnly: true
+        - name: systemd-sys-fs-selinux
+          mountPath: /sys/fs/selinux
+          readOnly: true
+        - name: systemd-sys-firmware
+          mountPath: /sys/firmware
+          readOnly: true
+        - name: systemd-sys-kernel
+          mountPath: /sys/kernel
+          readOnly: true
+        - name: systemd-var-run
+          mountPath: /var/run
+        - name: systemd-var-dirsrv
+          mountPath: /var/run/dirsrv
+
+  initContainers:
+    - name: init-container-uuid
+      image: docker.io/openshift/origin-cli:v4.0
+      command: ["/opt/poc-007/init-container-uuid.sh"]
+      env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: container_uuid
+          valueFrom:
+            configMapKeyRef:
+              name: poc-007
+              key: container_uuid
+      volumeMounts:
+        - name: scripts
+          mountPath: /opt/poc-007
+
+    - name: init-uid-gid-base
+      image: docker.io/openshift/origin-cli:v4.0
+      command: ["/opt/poc-007/init-uid-gid-base.sh"]
+      env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: UID_BASE
+          valueFrom:
+            configMapKeyRef:
+              name: poc-007
+              key: UID_BASE
+        - name: GID_BASE
+          valueFrom:
+            configMapKeyRef:
+              name: poc-007
+              key: GID_BASE
+      volumeMounts:
+        - name: scripts
+          mountPath: /opt/poc-007
+
+  volumes:
+    - name: data
+      emptyDir: {}
+    - name: scripts
+      configMap:
+        name: poc-007
+        items:
+          - key: "init-container-uuid.sh"
+            path: "init-container-uuid.sh"
+            mode: 0777
+          - key: "init-uid-gid-base.sh"
+            path: "init-uid-gid-base.sh"
+            mode: 0777
+    # https://github.com/containers/podman/issues/2996
+    #
+    # And from: https://systemd.io/CONTAINER_INTERFACE/
+    # Make sure to pre-mount /proc/, /sys/, and /sys/fs/selinux/ before
+    # invoking systemd, and mount /proc/sys/, /sys/, and /sys/fs/selinux/
+    # read-only in order to prevent the container from altering the host
+    # kernel’s configuration settings. (As a special exception, if your
+    # container has network namespaces enabled, feel free to make
+    # /proc/sys/net/ writable). systemd and various other subsystems (such
+    # as the SELinux userspace) have been modified to behave accordingly
+    # when these file systems are read-only. (It’s OK to mount /sys/ as
+    # tmpfs btw, and only mount a subset of its sub-trees from the real
+    # sysfs to hide /sys/firmware/, /sys/kernel/ and so on. If you do that,
+    # make sure to mark /sys/ read-only, as that condition is what systemd
+    # looks for, and is what is considered to be the API in this context.)
+    - name: systemd-sys
+      hostPath:
+        path: /sys
+        type: DirectoryOrCreate
+    - name: systemd-sys-fs-selinux
+      hostPath:
+        path: /sys/fs/selinux
+        type: Directory
+    - name: systemd-sys-firmware
+      hostPath:
+        path: /sys/firmware
+        type: Directory
+    - name: systemd-sys-kernel
+      hostPath:
+        path: /sys/kernel
+        type: Directory
+    - name: systemd-var-run
+      emptyDir:
+        medium: "Memory"
+    - name: systemd-var-dirsrv
+      emptyDir:
+        medium: "Memory"
+
+    # ----------------------------
+
+    - name: systemd-run-rpcbind
+      emptyDir:
+        medium: "Memory"
+
+    - name: systemd-tmp
+      emptyDir:
+        medium: "Memory"
+    - name: systemd-var-lib-journal
+      emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: poc-007
+  labels:
+    app: poc-007
+spec:
+  selector:
+    app: poc-007
+  ports:
+    - name: kerberos-tcp
+      port: 88
+      targetPort: 88
+      protocol: TCP
+    - name: kerberos-udp
+      port: 88
+      targetPort: 88
+      protocol: UDP
+
+    - name: kerberos-adm-tcp
+      port: 749
+      targetPort: 749
+      protocol: TCP
+    - name: kerberos-adm-udp
+      port: 749
+      targetPort: 749
+      protocol: UDP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: poc-007-web
+  labels:
+    app: poc-007
+spec:
+  selector:
+    app: poc-007
+  ports:
+    - name: http-tcp
+      port: 80
+      targetPort: 80
+      protocol: TCP
+    - name: https-tcp
+      port: 443
+      targetPort: 443
+      protocol: TCP
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    openshift.io/host.generated: "true"
+  labels:
+    app: poc-007
+  name: poc-007-web
+spec:
+  host: poc-007.apps.permanent.idmocp.lab.eng.rdu2.redhat.com
+  port:
+    targetPort: https-tcp
+  to:
+    kind: Service
+    name: poc-007-web
+    weight: 100
+  tls:
+    termination: passthrough
+  wildcardPolicy: None
