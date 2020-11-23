@@ -8,3 +8,6 @@ Contents:
 - **[001-enable-container-manage-cgroup-sebool](001-enable-container-manage-cgroup-sebool/EnablingSebool.md)**:
   Provide the MachineConfig object which enable the container_manage_cgroup
   sebool.
+- **[005-deploy-in-one-pod](005-deploy-in-one-pod/README.md)**:
+  Proof of concept which deploy a Pod with Freeipa and expose the web interface.
+
