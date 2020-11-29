@@ -11,3 +11,13 @@ resources:
   - auth_proxy_role.yaml
   - auth_proxy_role_binding.yaml
   - auth_proxy_client_clusterrole.yaml
+  # Freeipa roles
+  - idm_viewer_role.yaml
+  - idm_editor_role.yaml
+  # Needed objects for deploying Freeipa
+  - idm_cluster_role.yaml
+  - idm_cluster_role_binding.yaml
+  - idm_role.yaml
+  - idm_role_binding.yaml
+  - idm_scc.yaml
+  - idm_service_account.yaml
