@@ -1,0 +1,17 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: idm-role
+  labels:
+    app: idm
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list", "get", "watch"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["list", "get"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["list", "get", "patch"]

@@ -1,0 +1,15 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: idm-cluster-role-binding
+  labels:
+    app: idm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: idm
+subjects:
+  - kind: ServiceAccount
+    name: idm
+    namespace: avisiedo-init-container
