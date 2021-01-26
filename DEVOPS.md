@@ -40,3 +40,19 @@ The settings for dive tool are located at .dive-ci.yml which are the settings
 used in the pipeline. The helper script `./devel/dive.sh` use the same
 settings; the command `make dive` is calling to the helper script under the
 hood.
+
+## Checking kustomize manifests
+
+A helper script has been provided for running checkov tool for the kustomize
+manifests generated, so that the security can be analyzed.
+
+For using it, we only have to run from the repository root the below:
+
+```shell
+./devel/generate-checkov-report.sh
+```
+
+The script return 0 if nothing failed scanning the manifest security, else
+a number greater than 0 indicating how many kustomize directories failed.
+
+The report is printed out in the standard output and error.

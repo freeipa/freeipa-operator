@@ -71,9 +71,30 @@ jobs:
           ./devel/lint.sh  $( find . -name 'Dockerfile' \
           -o -name 'Dockerfile.*' )
 
+  lint-manifests:
+    name: Lint Kubernetes objects
+    needs: [environment]
+
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Lint Kustomize files
+        continue-on-error: true
+        run: |-
+          ./devel/generate-checkov-report.sh \
+          | sed 's/\x1b[[0-9;]*[a-zA-Z]//g' \
+          | tee checkov-report.txt
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: checkov-report.txt
+          path: checkov-report.txt
+
   build:
     name: Build stage
-    needs: [lint-golang, lint-extra-files]
+    needs: [lint-golang, lint-extra-files, lint-manifests]
 
     runs-on: ubuntu-20.04
 
@@ -112,7 +133,7 @@ jobs:
           GO111MODULE: "on"
           IMG_BASE: "${{ secrets.IMG_BASE }}"
           DOCKER_AUTH: "${{ secrets.DOCKER_AUTH }}"
-        run: |
+        run: |-
           export PATH=$PATH:$(go env GOPATH)/bin
           export TAG="${GITHUB_SHA}"
           export CONTAINER_IMAGE_FILE="${IMG_BASE##*/}.tar"
