@@ -32,8 +32,7 @@ Experimental freeipa-operator for Freeipa.
 1. Run locally outside the cluster by:
 
    ```shell
-   make install
-   make run ENABLE_WEBHOOKS=false
+   make run
    ```
 
 1. Or run inside the cluster by (first build and push the image):
@@ -43,15 +42,25 @@ Experimental freeipa-operator for Freeipa.
    make container-build IMG=quay.io/freeipa/freeipa-operator:dev-test
    podman login quay.io
    make container-push IMG=quay.io/freeipa/freeipa-operator:dev-test
-   make deploy IMG=quay.io/freeipa/freeipa-operator:dev-test
+   make deploy-cluster IMG=quay.io/freeipa/freeipa-operator:dev-test
    ```
+
+   Now it support deploy in kind bu just typing:
+
+   ```shell
+   make deploy-kind IMG=quay.io/freeipa/freeipa-operator:dev-test
+   ```
+
+1. Now create a new namespace by: `kubectl create namespace my-freeipa`
+
+1. And create a new idm resource by: `make recreate-sample-idm`
+
+1. Look at your objects by: `kubectl get all,idm`
 
 1. And clean-up the cluster by:
 
    ```shell
    kubectl delete -f config/samples/freeipa_v1alpha1_freeipa.yaml
-   kubectl delete deployments,service -l control-plane=controller-manager
-   kubectl delete role,rolebinding --all
    kustomize build config/default | kubectl delete -f -
    ```
 

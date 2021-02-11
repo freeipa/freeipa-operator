@@ -54,7 +54,9 @@ EOF
 fi
 
 # If there are whitespace errors, print the offending file names and fail.
-git diff-index --check --cached "${against}" -- || die "Remove the whitespaces and commit again"
+if [ "${LINT_FILTER_BYPASS}" != "1" ]; then
+	git diff-index --check --cached "${against}" -- || die "Remove the whitespaces and commit again"
+fi
 
 files=""
 for item in $( git diff-index --cached --name-only "${against}" 2>/dev/null )

@@ -1,0 +1,34 @@
+Subcommands:
+  help                 Print out all this help description.
+  test                 Execute the unit tests locally.
+  manager              Build locally the controller binary.
+  run                  Execute the controller locally watching the current cluster.
+                       It needs to be logged in a cluster.
+  lint                 Lint project files.
+  dive                 Check the image layer sizes.
+
+  container-build      Build the container image.
+                       It uses IMG variable.
+  container-push       Push the container image to the repository.
+                       This is REQUIRED before do 'deploy-cluster'.
+                       It uses IMG variable.
+
+  install-crds         Install the CRD manifest into the cluster.
+  uninstall-crds       Uninstall the CRD manifest.
+  deploy-cluster       Deploy controller into the cluster.
+                       It uses IMG to define the container image that contain the controller.
+  deploy-kind          Deploy controller into a kind cluster.
+                       It uses IMG to define the container image that contain the controller.
+                       In this case if the image exists locally, that image will be used.
+                       It creates a kind cluster if it does not exist.
+                       It loads the local container image (and regenerate it).
+  kind-tests           Launch the unit tests against the controller running into the kind cluster.
+  kind-long-tests      Launch the unit tests which are marked as longtests.
+
+  manifests            Regenerate config/rbac/base and config/crd/base
+
+  recreate-sample-idm  Regenerate the sample idm inside the current cluster.
+
+Variables:
+  IMG       The container image reference such as quay.io/freeipa/freeipa-operator:latest
+            If IMG_TAG variable is not overrided, the local tag used is 'dev-GIT_SHA'.

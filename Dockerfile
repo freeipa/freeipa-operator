@@ -1,5 +1,7 @@
 # Build the manager binary
-FROM golang:1.13 as builder
+FROM golang:1.15 as builder
+
+# ENV TEMPLATE_PATH=/templates
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -10,6 +12,7 @@ COPY go.sum go.sum
 COPY main.go main.go
 COPY api/ api/
 COPY controllers/ controllers/
+COPY manifests/ manifests/
 
 # Build
 RUN go mod download \
@@ -21,6 +24,8 @@ RUN go mod download \
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
 COPY --from=builder /workspace/manager .
+# COPY config/templates/deployment.yaml ${TEMPLATE_PATH}/deployment.yaml
+# COPY config/templates/configmap.yaml ${TEMPLATE_PATH}/configmap.yaml
 USER nonroot:nonroot
 
 ENTRYPOINT ["/manager"]

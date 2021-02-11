@@ -20,36 +20,44 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
-	appsv1 "k8s.io/api/apps/v1"
+	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+
+	// k8Yaml "k8s.io/apimachinery/pkg/util/yaml"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	idmv1alpha1 "github.com/freeipa/freeipa-operator/api/v1alpha1"
+	v1alpha1 "github.com/freeipa/freeipa-operator/api/v1alpha1"
+	manifests "github.com/freeipa/freeipa-operator/manifests"
+	// go get k8s.io/client-go@v0.20.0
 )
 
 // IDMReconciler reconciles a IDM object
 type IDMReconciler struct {
 	client.Client
+
 	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
+
+var (
+	metricsAddr string
+)
 
 // Reconcile Read the current of the cluster for IDM object and makes the
 // necessary changes to bring the system to the requested state.
 // +kubebuilder:rbac:groups=idmocp.redhat.com,resources=idms,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=idmocp.redhat.com,resources=idms/status,verbs=get;update;patch
-func (r *IDMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *IDMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	var err error
+	var idm v1alpha1.IDM = v1alpha1.IDM{}
 	log := r.Log.WithValues("idm", req.NamespacedName)
 
 	// Fetch the IDM instance
-	idm := &idmv1alpha1.IDM{}
-	err := r.Get(ctx, req.NamespacedName, idm)
+	err = r.Get(ctx, req.NamespacedName, &idm)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -63,124 +71,47 @@ func (r *IDMReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 
-	found := &corev1.Pod{}
-	err = r.Get(ctx, types.NamespacedName{
-		Name:      idm.Name,
-		Namespace: idm.Namespace,
-	}, found)
-	if err != nil && errors.IsNotFound(err) {
-		// Define a new pod
-		pod := r.podForIDM(idm)
-		log.Info("Creating a new Pod", "Pod.Namespace", pod.Namespace, "Pod.Name", pod.Name)
-		err = r.Create(ctx, pod)
-		if err != nil {
-			log.Error(err, "Failed to create new Pod", "Pod.Namespace", pod.Namespace, "Pod.Name", pod.Name)
-			return ctrl.Result{}, err
-		}
-		// Pod created successfully - return and requeue
-		return ctrl.Result{Requeue: true}, nil
-	} else if err != nil {
-		log.Error(err, "Failed to get Pod")
+	if err := r.CreateMasterPod(ctx, &idm); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	// Check if the deploymen already exists, if not create a new one
-	// found := &appsv1.Deployment{}
-	// err = r.Get(ctx, types.NamespacedName{Name: idm.Name, Namespace: idm.Namespace}, found)
-	// if err != nil && errors.IsNotFound(err) {
-	// 	// Define a new deployment
-	// 	dep := r.deploymentForIDM(idm)
-	// 	log.Info("Creating a new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
-	// 	err = r.Create(ctx, dep)
-	// 	if err != nil {
-	// 		log.Error(err, "Failed to create new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
-	// 		return ctrl.Result{}, err
-	// 	}
-	// 	// Deployment created successfully - return and requeue
-	// 	return ctrl.Result{Requeue: true}, nil
-	// } else if err != nil {
-	// 	log.Error(err, "Failed to get Deployment")
-	// 	return ctrl.Result{}, err
-	// }
+	if err := r.CreateWebService(ctx, &idm); err != nil {
+		return ctrl.Result{}, err
+	}
 
-	// TODO Implement here the changes to bring the spec to the
-	//      requested state
-
-	// Update the IDM status with the pod names
-	// List the pods for this idm's deployment
-	// podList := &corev1.PodList{}
-	// listOpts := []client.ListOption{
-	// 	client.InNamespace(idm.Namespace),
-	// 	client.MatchingLabels(IDM(idm.Name)),
-	// }
-	// if err = r.List(ctx, podList, listOpts...); err != nil {
-	// 	log.Error(err, "Failed to list pods", "idm.Namespace", idm.Namespace, "idm.Name", idm.Name)
-	// 	return ctrl.Result{}, err
-	// }
-	// podNames := getPodNames(podList.Items)
+	if err := r.CreateRoute(ctx, &idm); err != nil {
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }
 
-// podForIDM return a pod for IDM
-func (r *IDMReconciler) podForIDM(m *idmv1alpha1.IDM) *corev1.Pod {
-	ls := labelsForIDM(m.Name)
+// CreateMasterPod Create the master freeipa pod
+func (r *IDMReconciler) CreateMasterPod(ctx context.Context, item *v1alpha1.IDM) error {
+	namespacedName := types.NamespacedName{
+		Namespace: item.Namespace,
+		Name:      manifests.GetMasterPodName(item),
+	}
+	log := r.Log.WithValues("idm", namespacedName)
+	found := &corev1.Pod{}
+	err := r.Get(ctx, namespacedName, found)
 
-	pod := &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      m.Name,
-			Namespace: m.Namespace,
-			Labels:    ls,
-		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:    "freeipa-master",
-					Image:   "busybox",
-					Command: []string{"sleep", "3600"},
-				},
-			},
-		},
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating Master Pod")
+			manifest := manifests.MasterPodForIDM(item)
+			ctrl.SetControllerReference(item, manifest, r.Scheme)
+			if err := r.Create(ctx, manifest); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		// TODO Update changes if any that affect to the Pod
 	}
 
-	ctrl.SetControllerReference(m, pod, r.Scheme)
-	return pod
-}
-
-// deploymentForIDM returns a idm Deployment object
-func (r *IDMReconciler) deploymentForIDM(m *idmv1alpha1.IDM) *appsv1.Deployment {
-	ls := labelsForIDM(m.Name)
-	// realm := m.Spec.Realm
-
-	dep := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      m.Name,
-			Namespace: m.Namespace,
-		},
-		Spec: appsv1.DeploymentSpec{
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: ls,
-				},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{{
-						Image:   "freeipa-operator:dev-test",
-						Name:    "freeipa",
-						Command: []string{"sleep 3600"},
-					}},
-				},
-			},
-		},
-	}
-	// Set IDM instace as the owner and controller
-	ctrl.SetControllerReference(m, dep, r.Scheme)
-	return dep
-}
-
-// labelsForIDM returns the labels for selecting the resources
-// belonging to the given memcached CR name.
-func labelsForIDM(name string) map[string]string {
-	return map[string]string{"app": "idm", "idm_cr": name}
+	return nil
 }
 
 // getPodNames returns the pod names of the array of pods passed in
@@ -192,10 +123,66 @@ func getPodNames(pods []corev1.Pod) []string {
 	return podNames
 }
 
+// CreateWebService Create the service to access the web frontend running on Apache
+func (r *IDMReconciler) CreateWebService(ctx context.Context, item *v1alpha1.IDM) error {
+	namespacedName := types.NamespacedName{
+		Namespace: item.Namespace,
+		Name:      manifests.GetWebServiceName(item),
+	}
+	log := r.Log.WithValues("idm", namespacedName)
+	found := &corev1.Service{}
+	err := r.Get(ctx, namespacedName, found)
+
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating Service for Web access")
+			manifest := manifests.ServiceWebForIDM(item)
+			ctrl.SetControllerReference(item, manifest, r.Scheme)
+			if err := r.Create(ctx, manifest); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		// TODO Update changes if any that affect to the Pod
+	}
+
+	return nil
+}
+
+// CreateRoute Create the service to access the web frontend running on Apache
+func (r *IDMReconciler) CreateRoute(ctx context.Context, item *v1alpha1.IDM) error {
+	namespacedName := types.NamespacedName{
+		Namespace: item.Namespace,
+		Name:      item.Name,
+	}
+	log := r.Log.WithValues("idm", namespacedName)
+	found := &routev1.Route{}
+	err := r.Get(ctx, namespacedName, found)
+
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating Route to web service")
+			manifest := manifests.RouteForIDM(item)
+			ctrl.SetControllerReference(item, manifest, r.Scheme)
+			if err := r.Create(ctx, manifest); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		// TODO Update changes if any that affect to the Pod
+	}
+
+	return nil
+}
+
 // SetupWithManager Specifies how the controller is built to watch a CR and
 // other resources that are owned and managed by that controller.
 func (r *IDMReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&idmv1alpha1.IDM{}).
+		For(&v1alpha1.IDM{}).
 		Complete(r)
 }

@@ -32,9 +32,10 @@ type IDMSpec struct {
 	// Foo is an example field of Freeipa. Edit Freeipa_types.go to remove/update
 }
 
-// IDMStatus defines the observed state of Freeipa
+// IDMStatus defines the observed state of IDM
 type IDMStatus struct {
-	Servers []string `json:"servers"`
+	MasterPod  string   `json:"master"`
+	ReplicaPod []string `json:"replicas,omitempty"`
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
