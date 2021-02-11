@@ -1,0 +1,83 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: freeipa
+  labels:
+    app: freeipa
+data:
+  DEBUG_TRACE: "2"
+  IPA_SERVER_HOSTNAME: "${APP}.apps.${CLUSTER_DOMAIN}"
+  # IPA_SERVER_IP: "10.0.135.189"
+  # TODO Move PASSWORD into a Secret object
+  PASSWORD: "Secret123"
+  # TODO Maybe container can be removed
+  container: "crio"
+  # TODO Maybe container_uuid can be removed
+  container_uuid: ""
+  # TODO UID_BASE is not used so far and user namespaces will fix the need of
+  #      using this.
+  UID_BASE: ""
+  # TODO GID_BASE is not used so far and user namespaces will fix the need of
+  #      using this.
+  GID_BASE: ""
+  # yamllint disable rule:line-length
+  init-uid-gid-base.sh: |-
+    #!/bin/bash
+    function yield {
+      echo "$*" >&2
+    }
+    function verbose {
+      yield "$*"
+      "$@"
+    }
+    echo "Script: $0"
+    TOKEN="$(</var/run/secrets/kubernetes.io/serviceaccount/token)"
+    CA_CERT="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+    echo "NAMESPACE=$DOLLAR{NAMESPACE}"
+    oc login --token ""  \
+             --certificate-authority="" \
+             https://kubernetes.default.svc:443
+    if [ "$DOLLAR{UID_BASE}" == "" ]; then
+      UID_BASE="$( oc get namespace/$DOLLAR{NAMESPACE} \
+                   -o 'jsonpath={.metadata.annotations.openshift\.io/sa\.scc\.uid-range}' )"
+      UID_BASE="$DOLLAR{UID_BASE%/*}"
+      oc patch configmap freeipa --patch "{\"data\":{\"UID_BASE\": \"$DOLLAR{UID_BASE}\"}}"
+    fi
+    if [ "$DOLLAR{GID_BASE}" == "" ]; then
+      GID_BASE="$( oc get namespace/$DOLLAR{NAMESPACE} \
+                   -o 'jsonpath={.metadata.annotations.openshift\.io/sa\.scc\.supplemental-groups}' )"
+      GID_BASE="$DOLLAR{GID_BASE%/*}"
+      oc patch configmap freeipa \
+         --patch "{\"data\":{\"GID_BASE\":\"$DOLLAR{GID_BASE}\"}}"
+    fi
+    UID_BASE="$( oc get cm/freeipa -o 'jsonpath={.data.UID_BASE}' )"
+    GID_BASE="$( oc get cm/freeipa -o 'jsonpath={.data.GID_BASE}' )"
+    echo "configMap.data.UID_BASE=$DOLLAR{UID_BASE}"
+    echo "configMap.data.GID_BASE=$DOLLAR{GID_BASE}"
+
+  # yamllint disable rule:line-length
+  init-container-uuid.sh: |-
+    #!/bin/bash
+    function yield {
+      echo "$*" >&2
+    }
+    function verbose {
+      yield "$*"
+      "$@"
+    }
+    echo "Script: $0"
+    TOKEN="$(</var/run/secrets/kubernetes.io/serviceaccount/token)"
+    CA_CERT="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+    echo "NAMESPACE=$DOLLAR{NAMESPACE}"
+    oc login --token "$DOLLAR{TOKEN}" \
+             --certificate-authority="$DOLLAR{CA_CERT}" \
+             https://kubernetes.default.svc:443
+    container_uuid="$( oc get configmap freeipa -o 'jsonpath={.data.container_uuid}' )"
+    if [ "$DOLLAR{container_uuid}" == "" ]; then
+      systemd-machine-id-setup
+      container_uuid="$(</etc/machine-id)"
+      oc patch configmap freeipa \
+         --patch "{\"data\":{\"container_uuid\": \"$DOLLAR{container_uuid}\"}}"
+    fi
+    echo "configMap.data.container_uuid='$( oc get configmap freeipa -o 'jsonpath={.data.container_uuid}' )'"

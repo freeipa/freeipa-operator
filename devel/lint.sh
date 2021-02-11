@@ -11,7 +11,7 @@ source "./devel/include/verbose.inc"
 # lint.ignore filtering, forcing to lint the specified file, or all the
 # files found in the repository.
 #   LINT_FILTER_BYPASS=1 ./devel/lint.sh ./devel/lint.sh
-[ "${LINT_FILTER_BYPASS}" == "" ] && LINT_FILTER_BYPASS=0
+LINT_FILTER_BYPASS="${LINT_FILTER_BYPASS:-0}"
 
 declare -a SHELL_FILES
 SHELL_FILES=()
@@ -223,7 +223,7 @@ function is-in-lintignore
 {
     local filepath="$1"
     filepath="${filepath#./}"
-    [ "${LINT_FILTER_BYPASS}" -eq 0 ] && grep -q "^${filepath}\$" devel/lint.ignore && return 0
+    grep -q "^${filepath}\$" devel/lint.ignore && return 0
     return 1
 }
 
@@ -232,7 +232,7 @@ function is-in-vendor
 {
     local filepath="$1"
     filepath="${filepath#./}"
-    [ "${LINT_FILTER_BYPASS}" -eq 0 ] && grep -q "^vendor" <<< "${filepath}" && return 0
+    grep -q "^vendor/" <<< "${filepath}" && return 0
     return 1
 }
 
@@ -389,6 +389,8 @@ function check-args-and-run
 
     cmd-run "$@"
 }
+
+[ "${LINT_FILTER_BYPASS}" == "1" ] && exit 0
 
 
 # Check repository root path

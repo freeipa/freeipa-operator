@@ -31,3 +31,6 @@ docker-image-freeipa-operator.tar.gz
 
 # Ignore directory containing envtest binaries
 testbin/*
+
+# Ignore generated junit files
+TEST-ginkgo-junit_*.xml

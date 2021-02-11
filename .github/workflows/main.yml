@@ -19,7 +19,7 @@ on:
 # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#jobs
 jobs:
   environment:
-    name: Gather information about the environment
+    name: Gather information and prepare
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -107,10 +107,10 @@ jobs:
           go-version: 1.14
         id: go
 
-      - name: Clean container objects
+      - name: Clean docker infrastructure
         run: |
           docker image prune --force
-          docker container prune --force
+          docker system prune --force
 
       - name: Install dependencies
         env:
@@ -121,11 +121,11 @@ jobs:
           GO111MODULE: "on"
         run: |
           curl -s "${INSTALL_KUSTOMIZE_URL}" | bash
+          FLAG_INSTALL_CRC=NO \
+            FLAG_INSTALL_VSCODE=NO \
+            FLAG_RUN_VSCODE_AFTER_INSTALL=NO \
+            ./devel/install-local-tools.sh
           go install -i
-          go get golang.org/x/lint/golint
-          go get github.com/kisielk/errcheck
-          go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.30.0
-          # GO111MODULE=off go get -v github.com/wagoodman/dive
 
       # https://docs.github.com/en/free-pro-team@latest/actions/reference/encrypted-secrets#using-encrypted-secrets-in-a-workflow
       - name: Build

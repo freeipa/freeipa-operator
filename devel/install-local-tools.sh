@@ -22,7 +22,7 @@ FLAG_INSTALL_CRC="${FLAG_INSTALL_CRC:-ASK}"
 
 
 OPERATOR_SDK_VERSION="v1.0.0"
-OPENSHIFT_CLIENT_ARCHIVE_URL="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest-4.4/openshift-client-linux.tar.gz"
+OPENSHIFT_CLIENT_ARCHIVE_URL="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest-4.6/openshift-client-linux.tar.gz"
 
 
 ##
@@ -203,6 +203,29 @@ function install-kustomize-from-source
 
 
 ##
+# Install dive tool
+##
+function install-dive-tool
+{
+    local system
+    local dive_version="0.10.0"
+    system="$( uname -s )"
+    case "${system}" in
+        "Linux" )
+            curl --silent -L "https://github.com/wagoodman/dive/releases/download/v${dive_version}/dive_${dive_version}_linux_amd64.tar.gz" \
+            | tar xz -C "${GOPATH}/bin/"
+            ;;
+        "Darwin" )
+            curl --silent -L "https://github.com/wagoodman/dive/releases/download/v${dive_version}/dive_${dive_version}_darwin_amd64.tar.gz" \
+            | tar xz -C "${GOPATH}/bin/"
+            ;;
+        * )
+            die "'${system}' is not supported"
+    esac
+} # install-dive-tool
+
+
+##
 # Install golang tools
 ##
 function install-go-tools
@@ -214,20 +237,20 @@ function install-go-tools
     }
 
     # Install godoc
-    verbose go get -u -v golang.org/x/tools/cmd/godoc || die "Installing godoc"
+    (cd && GO11MODULE=on verbose go get -u -v golang.org/x/tools/cmd/godoc) || die "Installing godoc"
 
     # Install debugger
-    verbose go get -u -v github.com/go-delve/delve/cmd/dlv || die "Installing dlv"
+    (cd && GO11MODULE=on verbose go get -u -v github.com/go-delve/delve/cmd/dlv) || die "Installing dlv"
 
     # Install linter
-    verbose go get -u -v golang.org/x/lint/golint || die "Installing golint"
+    (cd && GO11MODULE=on verbose go get -u -v golang.org/x/lint/golint) || die "Installing golint"
 
     # Install kustomize
     # install-kustomize-from-source || die "Installing kustomize"
-    GO111MODULE=on verbose go get sigs.k8s.io/kustomize/kustomize/v3@v3.2.3 || die "Installing kustomize"
+    (cd && GO111MODULE=on verbose go get -v sigs.k8s.io/kustomize/kustomize/v3@v3.2.3) || die "Installing kustomize"
 
     # Install dive
-    GO111MODULE=off verbose go get -v github.com/wagoodman/dive || die "Installing dive"
+    install-dive-tool
 } # install-go-tools
 
 
@@ -426,20 +449,21 @@ EOF
 
 
 echo ">> Installing git-hooks"
-cp -f ./devel/pre-commit.sh .git/hooks/pre-commit
+if [ "${GITHUB_WORKSPACE}" == "" ]; then
+    echo ">> Installing git-hooks"
+    cp -f ./devel/pre-commit.sh .git/hooks/pre-commit
+    unset GOPATH
 
-
-unset GOPATH
-
-# shellcheck disable=SC1090
-source "$HOME/.bashrc"
-[ "$GOPATH" == "" ] && {
-    cat <<EOF
+    # shellcheck disable=SC1090
+    source "$HOME/.bashrc"
+    [ "$GOPATH" == "" ] && {
+        cat <<EOF
 Append the below at the end of your .bashrc file:
 # Golang support
 export GOPATH="$HOME/go"
 export PATH="$GOPATH/bin:$PATH"
 EOF
-}
+    }
+fi
 
 exit 0
