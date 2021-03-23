@@ -28,8 +28,12 @@ spec:
             - /manager
           args:
             - --enable-leader-election
+            # FIXME Remove -debug for releases
+            - -debug
           image: controller:latest
           name: manager
+          # FIXME Remove imagaPullPolicy for releases
+          imagePullPolicy: Always
           resources:
             limits:
               cpu: 100m

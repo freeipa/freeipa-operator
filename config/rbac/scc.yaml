@@ -1,15 +1,13 @@
----
 # https://docs.openshift.com/container-platform/4.5/authentication/managing-security-context-constraints.html
 # https://kubernetes-security.info/
+---
 apiVersion: security.openshift.io/v1
 kind: SecurityContextConstraints
 metadata:
-  name: idm-scc
-  labels:
-    app: idm
+  name: idm
   annotations:
-    kubernetes.io/description: Add the needed constraints for
-      running the application.
+    kubernetes.io/description: Provides a Freeipa Pod deployed all in one
+      just for investigation prupose.
     release.openshift.io/create-only: "true"
 allowHostDirVolumePlugin: true
 allowHostIPC: false
@@ -68,8 +66,7 @@ seLinuxContext:
   type: MustRunAs
 supplementalGroups:
   type: RunAsAny
-users:
-  - system:serviceaccount:idm-operator-system:idm
+users: []
 volumes:
   - configMap
   - downwardAPI

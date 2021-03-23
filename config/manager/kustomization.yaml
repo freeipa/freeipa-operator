@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: quay.io/freeipa/freeipa-operator
-  newTag: dev-05db0dce8c84ee6dd8908fd980501a0bb54db7f4
+  newTag: dev-969de0127df6c7839d172466c6a0a3bd2fcc1109

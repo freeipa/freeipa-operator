@@ -22,6 +22,7 @@ import (
 	"github.com/go-logr/logr"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -51,6 +52,7 @@ var (
 // necessary changes to bring the system to the requested state.
 // +kubebuilder:rbac:groups=idmocp.redhat.com,resources=idms,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=idmocp.redhat.com,resources=idms/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=coordination.k8s.io,resources=leases,verbs=get;list;create;update
 func (r *IDMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var err error
 	var idm v1alpha1.IDM = v1alpha1.IDM{}
@@ -71,7 +73,19 @@ func (r *IDMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, err
 	}
 
-	if err := r.CreateMasterPod(ctx, &idm); err != nil {
+	if err := r.CreateServiceAccount(ctx, &idm); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	if err := r.CreateRole(ctx, &idm); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	if err := r.CreateRoleBinding(ctx, &idm); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	if err := r.CreateMainPod(ctx, &idm); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -86,11 +100,92 @@ func (r *IDMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	return ctrl.Result{}, nil
 }
 
-// CreateMasterPod Create the master freeipa pod
-func (r *IDMReconciler) CreateMasterPod(ctx context.Context, item *v1alpha1.IDM) error {
+// CreateRoleBinding Create the role
+func (r *IDMReconciler) CreateRoleBinding(ctx context.Context, item *v1alpha1.IDM) error {
 	namespacedName := types.NamespacedName{
 		Namespace: item.Namespace,
-		Name:      manifests.GetMasterPodName(item),
+		Name:      manifests.GetRoleBindingName(item),
+	}
+	log := r.Log.WithValues("idm", namespacedName)
+	found := &rbacv1.RoleBinding{}
+	err := r.Get(ctx, namespacedName, found)
+
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating RoleBinding")
+			manifest := manifests.RoleBindingForIDM(item)
+			if err := r.Create(ctx, manifest); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		log.Info("Currently the RoleBinding exists")
+	}
+
+	return nil
+}
+
+// CreateRole Create the role
+func (r *IDMReconciler) CreateRole(ctx context.Context, item *v1alpha1.IDM) error {
+	namespacedName := types.NamespacedName{
+		Namespace: item.Namespace,
+		Name:      manifests.GetRoleName(item),
+	}
+	log := r.Log.WithValues("idm", namespacedName)
+	found := &rbacv1.Role{}
+	err := r.Get(ctx, namespacedName, found)
+
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating Role")
+			manifest := manifests.RoleForIDM(item)
+			if err := r.Create(ctx, manifest); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		log.Info("Currently the Role exists")
+	}
+
+	return nil
+}
+
+// CreateServiceAccount Create the service account
+func (r *IDMReconciler) CreateServiceAccount(ctx context.Context, item *v1alpha1.IDM) error {
+	namespacedName := types.NamespacedName{
+		Namespace: item.Namespace,
+		Name:      manifests.GetServiceAccountName(item),
+	}
+	log := r.Log.WithValues("idm", namespacedName)
+	found := &corev1.ServiceAccount{}
+	err := r.Get(ctx, namespacedName, found)
+
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating Service Account")
+			manifest := manifests.ServiceAccountForIDM(item)
+			if err := r.Create(ctx, manifest); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		log.Info("Currently the ServiceAccount exists")
+	}
+
+	return nil
+}
+
+// CreateMainPod Create the master freeipa pod
+func (r *IDMReconciler) CreateMainPod(ctx context.Context, item *v1alpha1.IDM) error {
+	namespacedName := types.NamespacedName{
+		Namespace: item.Namespace,
+		Name:      manifests.GetMainPodName(item),
 	}
 	log := r.Log.WithValues("idm", namespacedName)
 	found := &corev1.Pod{}
@@ -99,7 +194,7 @@ func (r *IDMReconciler) CreateMasterPod(ctx context.Context, item *v1alpha1.IDM)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating Master Pod")
-			manifest := manifests.MasterPodForIDM(item)
+			manifest := manifests.MainPodForIDM(item)
 			ctrl.SetControllerReference(item, manifest, r.Scheme)
 			if err := r.Create(ctx, manifest); err != nil {
 				return err
@@ -109,6 +204,7 @@ func (r *IDMReconciler) CreateMasterPod(ctx context.Context, item *v1alpha1.IDM)
 		}
 	} else {
 		// TODO Update changes if any that affect to the Pod
+		log.Info("Currently the Main Pod exists")
 	}
 
 	return nil
@@ -146,6 +242,7 @@ func (r *IDMReconciler) CreateWebService(ctx context.Context, item *v1alpha1.IDM
 		}
 	} else {
 		// TODO Update changes if any that affect to the Pod
+		log.Info("Currently the Service for Web Interface exists")
 	}
 
 	return nil
@@ -174,6 +271,7 @@ func (r *IDMReconciler) CreateRoute(ctx context.Context, item *v1alpha1.IDM) err
 		}
 	} else {
 		// TODO Update changes if any that affect to the Pod
+		log.Info("Currently the Route exists")
 	}
 
 	return nil
