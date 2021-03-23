@@ -7,32 +7,31 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// MasterPodForIDM return a master pod for an IDM CRD
-func MasterPodForIDM(m *v1alpha1.IDM) *corev1.Pod {
+// MainPodForIDM return a master pod for an IDM CRD
+func MainPodForIDM(m *v1alpha1.IDM) *corev1.Pod {
 	sDirectoryOrCreate := corev1.HostPathDirectoryOrCreate
 	sDirectory := corev1.HostPathDirectory
 
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetMasterPodName(m),
+			Name:      GetMainPodName(m),
 			Namespace: m.Namespace,
 			Labels: map[string]string{
 				"app":  "idm",
-				"role": "master",
+				"role": "main",
 				"idm":  m.Name,
 			},
 			Annotations: map[string]string{
-				"openshift.io/scc": "freeipa",
+				"openshift.io/scc": "idm",
 			},
 		},
 		Spec: corev1.PodSpec{
-			ServiceAccountName: m.Name,
+			ServiceAccountName: GetServiceAccountName(m),
 			Containers: []corev1.Container{
 				{
-					Name:            "main",
-					Image:           "quay.io/freeipa/freeipa-openshift-container:freeipa-server",
-					ImagePullPolicy: corev1.PullAlways,
-					TTY:             true,
+					Name:  "main",
+					Image: "quay.io/freeipa/freeipa-openshift-container:freeipa-server",
+					TTY:   true,
 					SecurityContext: &corev1.SecurityContext{
 						Privileged: pointy.Bool(false),
 						Capabilities: &corev1.Capabilities{

@@ -24,9 +24,9 @@ func GenerateSystemdUUIDString() string {
 	return value
 }
 
-// GetMasterPodName Return the MasterPodName for the requested IDM resource
-func GetMasterPodName(m *v1alpha1.IDM) string {
-	return m.Name + "-master"
+// GetMainPodName Return the MasterPodName for the requested IDM resource
+func GetMainPodName(m *v1alpha1.IDM) string {
+	return m.Name + "-main"
 }
 
 // RandStringBytes Read a string of n random chars
@@ -47,4 +47,20 @@ func GetCaSubject(m *v1alpha1.IDM) string {
 // GetWebServiceName Return the MasterPodName for the requested IDM resource
 func GetWebServiceName(m *v1alpha1.IDM) string {
 	return m.Name + "-web"
+}
+
+// GetServiceAccountName Return the ServiceAccount name for the
+// requested IDM resource.
+func GetServiceAccountName(m *v1alpha1.IDM) string {
+	return "idm"
+}
+
+// GetRoleName Return the Role name for the requested IDM resource.
+func GetRoleName(m *v1alpha1.IDM) string {
+	return "idm"
+}
+
+// GetRoleBindingName Return the Role name for the requested IDM resource.
+func GetRoleBindingName(m *v1alpha1.IDM) string {
+	return "idm"
 }

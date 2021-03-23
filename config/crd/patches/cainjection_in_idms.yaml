@@ -7,4 +7,4 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     cert-manager.io/inject-ca-from: $(CERTIFICATE_NAMESPACE)/$(CERTIFICATE_NAME)
-  name: idms.idmocp.redhat.com
+  name: freeipas.idmocp.redhat.com

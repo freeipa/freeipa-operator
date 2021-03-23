@@ -92,7 +92,7 @@ var _ = Describe("LOCAL:IDMReconciller", func() {
 				},
 			}
 			Expect(idm).ShouldNot(BeNil())
-			pod := manifests.MasterPodForIDM(idm)
+			pod := manifests.MainPodForIDM(idm)
 			It("return nil error and valid Pod Object", func() {
 				Expect(pod).ShouldNot(BeNil())
 			})
