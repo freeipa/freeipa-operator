@@ -11,7 +11,4 @@ else
     || die "You should be logged in the cluster before run this script"
 fi
 
-yield -n ">> " && verbose kustomize build config/default/ | kubectl create --dry-run --validate -f - \
-&& yield -n ">> " && verbose kustomize build config/crd/ | kubectl create --dry-run --validate -f - \
-&& yield -n ">> " && verbose kustomize build config/manager/ | kubectl create --dry-run --validate -f - \
-&& yield -n ">> " && verbose kustomize build config/prometheus/ | kubectl create --dry-run --validate -f - 
+yield -n ">> " && verbose kustomize build config/default/ | kubectl create --dry-run=client --validate -f -
