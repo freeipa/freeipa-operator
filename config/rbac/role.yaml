@@ -53,11 +53,23 @@ rules:
   - apiGroups:
       - ""
     resources:
-      - pods
+      - "pods"
     verbs:
+      - "get"
+      - "create"
+      - "update"
+      - "watch"
+      - "list"
+
+  # Allow to retrieve the baseDomain
+  - apiGroups:
+      - "config.openshift.io"
+    resources:
+      - "dnses"
+    verbs:
+      - list
       - get
-      - create
-      - update
+
   - apiGroups:
       - ""
     resources:
@@ -69,7 +81,6 @@ rules:
       - "use"
   - apiGroups: [""]
     resources:
-      - "pods"
       - "nodes"
     verbs:
       - "get"

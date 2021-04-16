@@ -9,7 +9,9 @@ import (
 )
 
 // RouteForIDM Create the Route manifest for this IDM resource
-func RouteForIDM(m *v1alpha1.IDM) *routev1.Route {
+// clusterDomain It is the subdomain associated to the cluster
+//
+func RouteForIDM(m *v1alpha1.IDM, clusterDomain string) *routev1.Route {
 	route := &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      m.Name,
@@ -23,8 +25,7 @@ func RouteForIDM(m *v1alpha1.IDM) *routev1.Route {
 			Labels: LabelsForIDM(m),
 		},
 		Spec: routev1.RouteSpec{
-			// TODO Retrieve cluster domain name
-			Host: m.Namespace + ".apps.permanent.idmocp.lab.eng.rdu2.redhat.com",
+			Host: m.Namespace + ".apps." + clusterDomain,
 			Port: &routev1.RoutePort{
 				TargetPort: intstr.IntOrString{
 					Type:   intstr.String,

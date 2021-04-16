@@ -27,21 +27,20 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 
-	// k8Yaml "k8s.io/apimachinery/pkg/util/yaml"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	v1alpha1 "github.com/freeipa/freeipa-operator/api/v1alpha1"
 	manifests "github.com/freeipa/freeipa-operator/manifests"
-	// go get k8s.io/client-go@v0.20.0
 )
 
 // IDMReconciler reconciles a IDM object
 type IDMReconciler struct {
 	client.Client
 
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log        logr.Logger
+	Scheme     *runtime.Scheme
+	BaseDomain string
 }
 
 var (
@@ -183,20 +182,21 @@ func (r *IDMReconciler) CreateServiceAccount(ctx context.Context, item *v1alpha1
 
 // CreateMainPod Create the master freeipa pod
 func (r *IDMReconciler) CreateMainPod(ctx context.Context, item *v1alpha1.IDM) error {
+	var err error
 	namespacedName := types.NamespacedName{
 		Namespace: item.Namespace,
 		Name:      manifests.GetMainPodName(item),
 	}
 	log := r.Log.WithValues("idm", namespacedName)
 	found := &corev1.Pod{}
-	err := r.Get(ctx, namespacedName, found)
+	err = r.Get(ctx, namespacedName, found)
 
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating Master Pod")
-			manifest := manifests.MainPodForIDM(item)
+			manifest := manifests.MainPodForIDM(item, r.BaseDomain)
 			ctrl.SetControllerReference(item, manifest, r.Scheme)
-			if err := r.Create(ctx, manifest); err != nil {
+			if err = r.Create(ctx, manifest); err != nil {
 				return err
 			}
 		} else {
@@ -250,20 +250,21 @@ func (r *IDMReconciler) CreateWebService(ctx context.Context, item *v1alpha1.IDM
 
 // CreateRoute Create the service to access the web frontend running on Apache
 func (r *IDMReconciler) CreateRoute(ctx context.Context, item *v1alpha1.IDM) error {
+	var err error
 	namespacedName := types.NamespacedName{
 		Namespace: item.Namespace,
 		Name:      item.Name,
 	}
 	log := r.Log.WithValues("idm", namespacedName)
 	found := &routev1.Route{}
-	err := r.Get(ctx, namespacedName, found)
+	err = r.Get(ctx, namespacedName, found)
 
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating Route to web service")
-			manifest := manifests.RouteForIDM(item)
+			manifest := manifests.RouteForIDM(item, r.BaseDomain)
 			ctrl.SetControllerReference(item, manifest, r.Scheme)
-			if err := r.Create(ctx, manifest); err != nil {
+			if err = r.Create(ctx, manifest); err != nil {
 				return err
 			}
 		} else {
@@ -280,6 +281,9 @@ func (r *IDMReconciler) CreateRoute(ctx context.Context, item *v1alpha1.IDM) err
 // SetupWithManager Specifies how the controller is built to watch a CR and
 // other resources that are owned and managed by that controller.
 func (r *IDMReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	// A build pattern is used here, so that the controller
+	// is not 100% initialized until the Complete method has
+	// finished.
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.IDM{}).
 		Complete(r)
