@@ -12,6 +12,7 @@ COPY api/ api/
 COPY controllers/ controllers/
 COPY manifests/ manifests/
 COPY vendor/ vendor/
+COPY internal/ internal/
 
 # Build
 # https://www.reddit.com/r/golang/comments/9ai79z/correct_usage_of_go_modules_vendor_still_connects/

@@ -1,4 +1,4 @@
-package helper
+package manifests
 
 import (
 	"math/rand"
@@ -76,4 +76,10 @@ func GetRoleName(m *v1alpha1.IDM) string {
 // GetRoleBindingName Return the Role name for the requested IDM resource.
 func GetRoleBindingName(m *v1alpha1.IDM) string {
 	return "idm"
+}
+
+// GetMainPersistentVolumeClaim Return the name for the PersistentVolumClaim
+// used by the main pod.
+func GetMainPersistentVolumeClaimName(m *v1alpha1.IDM) string {
+	return m.Name + "-main"
 }

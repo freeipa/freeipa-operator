@@ -32,3 +32,30 @@ Subcommands:
 Variables:
   IMG       The container image reference such as quay.io/freeipa/freeipa-operator:latest
             If IMG_TAG variable is not overrided, the local tag used is 'dev-GIT_SHA'.
+  SAMPLE    The configuration to be used using config/samples as base directory.
+            # make SAMPLE=ephimeral-storage recreate-idm-sample
+            Default is 'ephimeral-storage'
+  DEFAULT_STORAGE  It is used for enabling hostpath and ephimeral storages when no
+                   PersistentVolumeClaim Template is specified. It is used when
+                   doing 'make run'
+                   ** EXAMPLE
+                   ** DEFAULT_STORAGE=hostpath make run
+  CONTROLLER_ARGS  It allows to specify the arguments to be passed to the controller when
+                   it is executed. Ir is used when doing 'make run'
+                   ** EXAMPLE
+                   ** CONTROLLER_ARGS="--default-storage hostpath" make run
+  PASSWORD         It allows to specify the password for administrator and directory
+                   service admin. It is used the same so far.
+                   It must be specified when running ' make recreate-sample-idm'.
+                   ** EXAMPLE
+                   ** PASSWORD=Secret123 SAMPLE=ephimeral-storage make recreate-sample-idm
+  CONFIG           The configuration to be used; by default 'default' is used, but
+                   you can override setting it to 'default-hostpath'.
+
+                   ** ONLY FOR SINGLE NODE CLUSTERS AND FOR DEVELOPING **
+                   ** ACTUALLY IT NEEDS TO SET SELINUX IN PERMISSIVE MODE **
+                   ** oc debug nodes/....
+                   ** chroot /host
+                   ** setenforce Permissive
+                   **
+                   ** FINALLY: CONFIG=default-hostpath make deploy-cluster

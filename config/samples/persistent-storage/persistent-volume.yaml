@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  labels:
+    failure-domain.beta.kubernetes.io/region: regionOne
+    failure-domain.beta.kubernetes.io/zone: nova
+  name: idm-sample
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 10Gi
+  cinder:
+    fsType: ext4
+    volumeID: 186ee472-6fc0-4c7d-9186-944571975860
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: failure-domain.beta.kubernetes.io/zone
+              operator: In
+              values:
+                - nova
+            - key: failure-domain.beta.kubernetes.io/region
+              operator: In
+              values:
+                - regionOne
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: standard
+  volumeMode: Filesystem

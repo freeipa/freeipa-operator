@@ -47,7 +47,9 @@ IMG ?= $(IMG_BASE)/$(IMG_NAME):$(IMG_TAG)
 CRD_OPTIONS ?= "crd:trivialVersions=true, crdVersions=v1"
 TEMPLATES_PATH ?= $(PWD)/config/templates
 SAMPLES_PATH ?= $(PWD)/config/samples
-SAMPLE ?= with-secret
+SAMPLE ?= ephimeral-storage
+DEFAULT_STORAGE ?= ephimeral
+CONFIG ?= default
 
 
 # Install kind by:
@@ -100,7 +102,12 @@ manager: generate fmt vet
 # Run against the configured Kubernetes cluster in ~/.kube/config
 .PHONY: run
 run: generate fmt vet manifests
-	go run ./main.go
+ifneq (,$(DEFAULT_STORAGE))
+	DEFAULT_STORAGE=$(DEFAULT_STORAGE) \
+	go run ./main.go $(CONTROLLER_ARGS)
+else
+	go run ./main.go $(CONTROLLER_ARGS)
+endif
 
 .PHONY: kustomize
 kustomize:
@@ -136,13 +143,13 @@ redeploy-cluster: undeploy-cluster container-build container-push deploy-cluster
 .PHONY: deploy-cluster
 deploy-cluster: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/default | kubectl apply -f -
+	$(KUSTOMIZE) build config/$(CONFIG) | kubectl apply -f -
 
 # Undeploy controller in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: deploy-cluster
 undeploy-cluster: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	-$(KUSTOMIZE) build config/default | kubectl delete -f -
+	-$(KUSTOMIZE) build config/$(CONFIG) | kubectl delete -f -
 
 # Generate manifests e.g. CRD, RBAC etc.
 .PHONY: manifests
@@ -321,12 +328,20 @@ kind-long-tests:
 	ginkgo --focus="LONG TEST:" -nodes 6 --randomizeAllSpecs --trace --progress ./controllers
 	-kubectl delete IDM --all -n idm-system
 
+.PHONY: check-password-is-provided
+check-password-is-provided:
+ifeq (,$(PASSWORD))
+	@echo "PASSWORD must be provided; PASSWORD=MySecretPassword make ..."; exit 1
+endif
+
 .PHONY: sample-delete
 sample-delete:
+	-@kubectl delete secrets/idm-sample
 	-kustomize build $(SAMPLES_PATH)/$(SAMPLE)/ | kubectl delete -f -
 
-.PHONY: sample-create
+.PHONY: check-password-is-provided sample-create
 sample-create:
+	@kubectl create secret generic idm-sample --from-literal=PASSWORD=$(PASSWORD)
 	kustomize build $(SAMPLES_PATH)/$(SAMPLE)/ | kubectl create -f -
 
 .PHONY: sample-recreate

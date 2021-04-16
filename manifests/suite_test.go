@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package helper_test
+package manifests_test
 
 import (
 	"fmt"
@@ -24,6 +24,11 @@ import (
 	"github.com/onsi/ginkgo/config"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
+
+	// "k8s.io/client-go/rest"
+
+	// "sigs.k8s.io/controller-runtime/pkg/client"
+
 	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -33,9 +38,23 @@ import (
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
 // http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
+// var cfg *rest.Config
+// var k8sClient client.Client
+// var k8sManager ctrl.Manager
+// var testEnv *envtest.Environment
+// var reconciler *IDMReconciler
+
+// func GetK8sManager() ctrl.Manager {
+// 	return k8sManager
+// }
+
+// func GetReconciler() *IDMReconciler {
+// 	return reconciler
+// }
+
 func TestManifests(t *testing.T) {
 	RegisterFailHandler(Fail)
-	junitReporter := reporters.NewJUnitReporter(fmt.Sprintf("../TEST-manifests-junit_%d.xml", config.GinkgoConfig.ParallelNode))
+	junitReporter := reporters.NewJUnitReporter(fmt.Sprintf("../junit/TEST-ginkgo-junit_manifests_%d.xml", config.GinkgoConfig.ParallelNode))
 	RunSpecsWithDefaultAndCustomReporters(t,
 		"Manifests Suite",
 		[]Reporter{printer.NewlineReporter{}, junitReporter})
@@ -43,8 +62,12 @@ func TestManifests(t *testing.T) {
 
 var _ = BeforeSuite(func(done Done) {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter)))
+	// SetUpK8s()
 	close(done)
 }, 60)
 
 var _ = AfterSuite(func() {
+	By("tearing down the test environment")
+	// err := testEnv.Stop()
+	// Expect(err).ToNot(HaveOccurred())
 })

@@ -1,0 +1,7 @@
+---
+# Labels to add to all resources and selectors.
+commonLabels:
+  sample: pv-storage
+
+resources:
+  - idm_v1alpha1_freeipa.yaml

@@ -1,0 +1,21 @@
+---
+# Adds namespace to all resources.
+namespace: idm-operator-system
+
+# Value of this field is prepended to the
+# names of all resources, e.g. a deployment named
+# "wordpress" becomes "alices-wordpress".
+# Note that it should also match with the prefix (text before '-') of the
+# namespace field above.
+namePrefix: idm-operator-
+
+# Labels to add to all resources and selectors.
+# commonLabels:
+#   someName: someValue
+
+bases:
+  - ../default
+
+patchesStrategicMerge:
+  # Add --default-storage hostpath to the arguments
+  - default_storage_hostpath_patch.yaml

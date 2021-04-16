@@ -1,0 +1,23 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Labels to add to all resources and selectors.
+commonLabels:
+  sample: ephimeral-storage
+
+resources:
+  - idm_v1alpha1_freeipa.yaml
+
+vars:
+  - name: SECRET_PASSWORD
+    objref:
+      kind: Secret
+      name: idm-sample
+      apiVersion: v1
+
+secretGenerator:
+  - name: idm-sample
+    type: Opaque
+    envs:
+      - env.txt

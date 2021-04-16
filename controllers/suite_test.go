@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	. "github.com/freeipa/freeipa-operator/controllers"
+	"github.com/freeipa/freeipa-operator/internal/arguments"
 
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
@@ -61,7 +62,7 @@ func GetReconciler() *IDMReconciler {
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
-	junitReporter := reporters.NewJUnitReporter(fmt.Sprintf("../TEST-ginkgo-junit_%d.xml", config.GinkgoConfig.ParallelNode))
+	junitReporter := reporters.NewJUnitReporter(fmt.Sprintf("../junit/TEST-ginkgo-junit_controllers_%d.xml", config.GinkgoConfig.ParallelNode))
 	RunSpecsWithDefaultAndCustomReporters(t,
 		"Controller Suite",
 		[]Reporter{printer.NewlineReporter{}, junitReporter})
@@ -95,6 +96,7 @@ func SetUpK8s() {
 	}
 
 	var err error
+	var args *arguments.Arguments
 	cfg, err = testEnv.Start()
 	Expect(err).ToNot(HaveOccurred())
 	Expect(cfg).ToNot(BeNil())
@@ -124,7 +126,10 @@ func SetUpK8s() {
 		// Recorder:           k8sManager.GetEventRecorderFor("idm-controller"),
 		// InitContainerImage: "initcontainer:1",
 	}
-	err = reconciler.SetupWithManager(k8sManager)
+	args, err = arguments.NewWithArguments([]string{os.Args[0]})
+	Expect(err).Should(BeNil())
+	Expect(args).ShouldNot(BeNil())
+	err = reconciler.SetupWithManager(k8sManager, args)
 	Expect(err).ToNot(HaveOccurred())
 
 	go func() {

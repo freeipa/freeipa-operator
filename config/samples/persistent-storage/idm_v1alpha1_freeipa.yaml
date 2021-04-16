@@ -1,0 +1,16 @@
+---
+apiVersion: idmocp.redhat.com/v1alpha1
+kind: IDM
+metadata:
+  name: idm-sample
+spec:
+  # Add fields here
+  realm: bar
+  passwordSecret: idm-sample
+  volumeClaimTemplate:
+    resources:
+      requests:
+        storage: 10Gi
+    volumeMode: Filesystem
+    accessModes:
+      - ReadWriteOnce

@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	generalerr "errors"
 
 	"github.com/go-logr/logr"
 	configv1 "github.com/openshift/api/config/v1"
@@ -32,6 +33,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	v1alpha1 "github.com/freeipa/freeipa-operator/api/v1alpha1"
+	arguments "github.com/freeipa/freeipa-operator/internal/arguments"
 	manifests "github.com/freeipa/freeipa-operator/manifests"
 )
 
@@ -42,6 +44,7 @@ type IDMReconciler struct {
 	Log        logr.Logger
 	Scheme     *runtime.Scheme
 	BaseDomain string
+	Arguments  *arguments.Arguments
 }
 
 var (
@@ -71,9 +74,10 @@ func (r *IDMReconciler) ReadBaseDomainFromOpenshiftConfig(ctx context.Context) (
 	return dnsConfig.Spec.BaseDomain, nil
 }
 
-// GetClusterDomain Retrieve if not cached, the cluster domain, and return it.
+// InitBaseDomain Initialize the cache for the BaseDomain that is
+// used by the cluster.
 // ctx The memory context to be used for the operation.
-// Return empty string if error, else the cluster domain and nil for error.
+// Return nil if it was initialized, else an error object.
 func (r *IDMReconciler) InitBaseDomain(ctx context.Context) error {
 	var err error
 	if r.BaseDomain == "" {
@@ -130,6 +134,10 @@ func (r *IDMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	}
 
 	if err := r.CreateSecret(ctx, &idm); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	if err := r.CreatePersistentVolumeClaim(ctx, &idm); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -239,6 +247,7 @@ func (r *IDMReconciler) CheckStatusSecret(ctx context.Context, item *v1alpha1.ID
 	return r.Get(ctx, namespacedName, found)
 }
 
+// UpdateStatusSecretNameWith Update the secretName status field
 func (r *IDMReconciler) UpdateStatusSecretNameWith(secretName string, ctx context.Context, item *v1alpha1.IDM) error {
 	item.Status.SecretName = secretName
 	if err := r.Status().Update(ctx, item); err != nil {
@@ -257,7 +266,10 @@ func (r *IDMReconciler) CreateSecret(ctx context.Context, item *v1alpha1.IDM) er
 
 	// If it was assigned it returns check status secret
 	if item.Status.SecretName != "" {
-		return r.CheckStatusSecret(ctx, item)
+		log.Info("Checking Current Secret Name")
+		if err = r.CheckStatusSecret(ctx, item); err != nil {
+			return err
+		}
 	}
 
 	if item.Spec.PasswordSecret != nil {
@@ -268,11 +280,25 @@ func (r *IDMReconciler) CreateSecret(ctx context.Context, item *v1alpha1.IDM) er
 		found := &corev1.Secret{}
 		err = r.Get(ctx, namespacedName, found)
 		if err == nil {
-			return r.UpdateStatusSecretNameWith(manifests.GetSecretName(item), ctx, item)
+			log.Info("Updating secret name in status")
+			if err = r.UpdateStatusSecretNameWith(manifests.GetSecretName(item), ctx, item); err != nil {
+				return err
+			}
+			return nil
 		}
 		if !errors.IsNotFound(err) {
 			return err
 		}
+		log.Info("Creating Secret")
+		manifest := manifests.SecretForIDM(item, manifests.GenerateRandomPassword())
+		ctrl.SetControllerReference(item, manifest, r.Scheme)
+		if err = r.Create(ctx, manifest); err != nil {
+			return err
+		}
+		if err = r.UpdateStatusSecretNameWith(manifests.GetSecretName(item), ctx, item); err != nil {
+			return err
+		}
+		return nil
 	}
 
 	// If a password was not specified, it creates a secret with a random password
@@ -282,7 +308,51 @@ func (r *IDMReconciler) CreateSecret(ctx context.Context, item *v1alpha1.IDM) er
 	if err = r.Create(ctx, manifest); err != nil {
 		return err
 	}
-	return r.UpdateStatusSecretNameWith(manifests.GetSecretName(item), ctx, item)
+	if err = r.UpdateStatusSecretNameWith(manifests.GetSecretName(item), ctx, item); err != nil {
+		return err
+	}
+	return nil
+}
+
+// CreatePersistentVolumeClaim Create the volum claim that will be used by the worload.
+func (r *IDMReconciler) CreatePersistentVolumeClaim(ctx context.Context, item *v1alpha1.IDM) error {
+	var err error
+	namespacedName := types.NamespacedName{
+		Namespace: item.Namespace,
+		Name:      manifests.GetMainPersistentVolumeClaimName(item),
+	}
+	log := r.Log.WithValues(item.Name, namespacedName)
+	if item.Spec.VolumeClaimTemplate == nil {
+		if r.Arguments.GetDefaultStorage() == "hostpath" {
+			log.Info("VolumeTemplateClaim not defined, using a 'hostPath' volume for storing data")
+			return nil
+		}
+		if r.Arguments.GetDefaultStorage() == "ephimeral" {
+			log.Info("VolumeTemplateClaim not defined, using an 'ephimeral' volume for storing data")
+			return nil
+		}
+		return generalerr.New("VolumeClaimTemplate is missed")
+	}
+	found := &corev1.PersistentVolumeClaim{}
+	err = r.Get(ctx, namespacedName, found)
+
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating Volume Claim")
+			manifest := manifests.MainPersistentVolumeClaimForIDM(item)
+			ctrl.SetControllerReference(item, manifest, r.Scheme)
+			if err = r.Create(ctx, manifest); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		// TODO Update changes if any that affect to the Pod
+		log.Info("Currently the Route exists")
+	}
+
+	return nil
 }
 
 // CreateMainPod Create the master freeipa pod
@@ -293,13 +363,22 @@ func (r *IDMReconciler) CreateMainPod(ctx context.Context, item *v1alpha1.IDM) e
 		Name:      manifests.GetMainPodName(item),
 	}
 	log := r.Log.WithValues("idm", namespacedName)
+
+	var defaultStorage = r.Arguments.GetDefaultStorage()
+	// Check volume storage information
+	err = manifests.CheckVolumeInformation(item, defaultStorage)
+	if err != nil {
+		log.Info("Checking Volume Information")
+		return err
+	}
+
 	found := &corev1.Pod{}
 	err = r.Get(ctx, namespacedName, found)
 
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating Master Pod")
-			manifest := manifests.MainPodForIDM(item, r.BaseDomain)
+			manifest := manifests.MainPodForIDM(item, r.BaseDomain, defaultStorage)
 			ctrl.SetControllerReference(item, manifest, r.Scheme)
 			if err = r.Create(ctx, manifest); err != nil {
 				return err
@@ -384,10 +463,11 @@ func (r *IDMReconciler) CreateRoute(ctx context.Context, item *v1alpha1.IDM) err
 
 // SetupWithManager Specifies how the controller is built to watch a CR and
 // other resources that are owned and managed by that controller.
-func (r *IDMReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *IDMReconciler) SetupWithManager(mgr ctrl.Manager, args *arguments.Arguments) error {
 	// A build pattern is used here, so that the controller
 	// is not 100% initialized until the Complete method has
 	// finished.
+	r.Arguments = args
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.IDM{}).
 		Complete(r)

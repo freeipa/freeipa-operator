@@ -1,0 +1,10 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Labels to add to all resources and selectors.
+commonLabels:
+  sample: hostpath-storage
+
+resources:
+  - idm_v1alpha1_freeipa.yaml
