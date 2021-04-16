@@ -36,6 +36,8 @@ spec:
           spec:
             description: IDMSpec defines the desired state of Freeipa
             properties:
+              passwordSecret:
+                type: string
               realm:
                 type: string
             type: object
@@ -48,6 +50,8 @@ spec:
                 items:
                   type: string
                 type: array
+              secretName:
+                type: string
             required:
             - master
             type: object
