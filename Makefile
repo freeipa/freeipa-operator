@@ -89,10 +89,11 @@ test: generate fmt vet manifests
 	go test ./... -coverprofile cover.out
 
 # Build manager binary
+# https://www.reddit.com/r/golang/comments/9ai79z/correct_usage_of_go_modules_vendor_still_connects/
 .PHONY: manager
 manager: generate fmt vet
 # manager: generate fmt
-	go build -o bin/manager main.go
+	go build -mod vendor -o bin/manager main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 .PHONY: run
@@ -124,6 +125,10 @@ install-crds: manifests kustomize
 .PHONY: uninstall-crds
 uninstall-crds: manifests kustomize
 	$(KUSTOMIZE) build config/crd | kubectl delete -f -
+
+# Redeploy cluster updated
+.PHONY: redeploy-cluster
+redeploy-cluster: undeploy-cluster container-build container-push deploy-cluster
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: deploy-cluster
