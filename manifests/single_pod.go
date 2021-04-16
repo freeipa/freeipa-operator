@@ -8,7 +8,7 @@ import (
 )
 
 // MainPodForIDM return a master pod for an IDM CRD
-func MainPodForIDM(m *v1alpha1.IDM) *corev1.Pod {
+func MainPodForIDM(m *v1alpha1.IDM, baseDomain string) *corev1.Pod {
 	sDirectoryOrCreate := corev1.HostPathDirectoryOrCreate
 	sDirectory := corev1.HostPathDirectory
 
@@ -85,10 +85,8 @@ func MainPodForIDM(m *v1alpha1.IDM) *corev1.Pod {
 						"ipa-server-install",
 						"-U",
 						"--realm",
-						// TODO Get the cluster domain name
-						"APPS.PERMANENT.IDMOCP.LAB.ENG.RDU2.REDHAT.COM",
-						// TODO Get the cluster domain name
-						"--ca-subject=CN=" + GetCaSubject(m) + ", O=APPS.PERMANENT.IDMOCP.LAB.ENG.RDU2.REDHAT.COM",
+						GetRealm(m, baseDomain),
+						"--ca-subject=" + GetCaSubject(m, baseDomain),
 						"--no-ntp",
 						"--no-sshd",
 						"--no-ssh",
@@ -126,7 +124,7 @@ func MainPodForIDM(m *v1alpha1.IDM) *corev1.Pod {
 						},
 						{
 							Name:  "IPA_SERVER_HOSTNAME",
-							Value: m.Namespace + ".apps.permanent.idmocp.lab.eng.rdu2.redhat.com",
+							Value: GetIpaServerHostname(m, baseDomain),
 						},
 						{
 							Name:  "container_uuid",

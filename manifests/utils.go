@@ -2,6 +2,7 @@ package helper
 
 import (
 	"math/rand"
+	"strings"
 
 	"github.com/freeipa/freeipa-operator/api/v1alpha1"
 	"github.com/google/uuid"
@@ -39,9 +40,21 @@ func RandStringBytes(n int) string {
 	return string(b)
 }
 
+// GetRealm Get the REALM for the POD
+func GetRealm(m *v1alpha1.IDM, baseDomain string) string {
+	return "APPS." + strings.ToUpper(baseDomain)
+}
+
+// GetIpaServerHostname Get the hostname passed to ipa installation
+func GetIpaServerHostname(m *v1alpha1.IDM, baseDomain string) string {
+	return m.Namespace + ".apps." + baseDomain
+}
+
 // GetCaSubject Get the CA Subject for the POD
-func GetCaSubject(m *v1alpha1.IDM) string {
-	return m.Namespace + "-" + RandStringBytes(7)
+func GetCaSubject(m *v1alpha1.IDM, baseDomain string) string {
+	cn := m.Namespace + "-" + RandStringBytes(7)
+	o := GetRealm(m, baseDomain)
+	return "CN=" + cn + ", O=" + o
 }
 
 // GetWebServiceName Return the MasterPodName for the requested IDM resource

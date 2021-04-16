@@ -10,6 +10,7 @@ require (
 	github.com/onsi/gomega v1.11.0
 	github.com/openlyinc/pointy v1.1.2
 	github.com/openshift/api v0.0.0-20210309190949-7d6cac66d2a4
+	github.com/pkg/errors v0.9.1 // indirect
 	k8s.io/api v0.20.4
 	k8s.io/apimachinery v0.20.4
 	k8s.io/client-go v0.20.4

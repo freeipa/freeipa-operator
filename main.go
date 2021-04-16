@@ -19,7 +19,9 @@ package main
 import (
 	"flag"
 	"os"
+	"strings"
 
+	configv1 "github.com/openshift/api/config/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -42,7 +44,14 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(idmv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(routev1.AddToScheme(scheme))
+	utilruntime.Must(configv1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
+}
+
+func readBaseDomainFromApiUrl(url string) string {
+	subdomain := strings.Split(url, "https://api.")[1]
+	subdomain = strings.Split(subdomain, ":")[0]
+	return subdomain
 }
 
 func main() {
@@ -69,9 +78,10 @@ func main() {
 	}
 
 	if err = (&controllers.IDMReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("IDM"),
-		Scheme: mgr.GetScheme(),
+		Client:     mgr.GetClient(),
+		Log:        ctrl.Log.WithName("controllers").WithName("IDM"),
+		Scheme:     mgr.GetScheme(),
+		BaseDomain: readBaseDomainFromApiUrl(mgr.GetConfig().Host),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "IDM")
 		os.Exit(1)
