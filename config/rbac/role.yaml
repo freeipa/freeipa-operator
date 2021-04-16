@@ -164,3 +164,11 @@ rules:
       - "list"
       - "create"
       - "watch"
+
+  - apiGroups: [""]
+    resources:
+      - "persistentvolumeclaims"
+    verbs:
+      - "list"
+      - "create"
+      - "watch"

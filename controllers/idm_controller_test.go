@@ -11,6 +11,7 @@ import (
 
 	"github.com/freeipa/freeipa-operator/api/v1alpha1"
 	. "github.com/freeipa/freeipa-operator/controllers"
+	"github.com/openlyinc/pointy"
 
 	. "github.com/onsi/ginkgo"
 
@@ -88,11 +89,12 @@ var _ = Describe("LOCAL:IDMReconciller", func() {
 					Namespace: "tests",
 				},
 				Spec: v1alpha1.IDMSpec{
-					Realm: "FREEIPA",
+					Realm:          "FREEIPA",
+					PasswordSecret: pointy.String("test-secret"),
 				},
 			}
 			Expect(idm).ShouldNot(BeNil())
-			pod := manifests.MainPodForIDM(idm, "localhost")
+			pod := manifests.MainPodForIDM(idm, "localhost", "ephimeral")
 			It("return nil error and valid Pod Object", func() {
 				Expect(pod).ShouldNot(BeNil())
 			})

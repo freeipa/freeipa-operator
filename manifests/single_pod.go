@@ -1,4 +1,4 @@
-package helper
+package manifests
 
 import (
 	"github.com/freeipa/freeipa-operator/api/v1alpha1"
@@ -23,8 +23,78 @@ func buildEnvFrom(m *v1alpha1.IDM) []corev1.EnvFromSource {
 	return result
 }
 
+func NeedsPersistentVolumeClaim(m *v1alpha1.IDM) bool {
+	return m.Spec.VolumeClaimTemplate != nil
+}
+
+func HasValidVolumeInformation(m *v1alpha1.IDM, defaultStorage string) bool {
+	if NeedsPersistentVolumeClaim(m) {
+		return true
+	}
+
+	if defaultStorage == "ephimeral" {
+		return true
+	}
+
+	if defaultStorage == "hostpath" {
+		return true
+	}
+
+	return false
+}
+
+// GetDataVolumeForPod
+func GetDataVolumeForMainPod(m *v1alpha1.IDM, defaultStorage string) corev1.Volume {
+	if NeedsPersistentVolumeClaim(m) {
+		return corev1.Volume{
+			Name: "data",
+			VolumeSource: corev1.VolumeSource{
+				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+					ClaimName: GetMainPersistentVolumeClaimName(m),
+				},
+			},
+		}
+	}
+
+	// Set /data volume according to defaultStorage
+	if defaultStorage == "ephimeral" {
+		return corev1.Volume{
+			Name: "data",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{
+					Medium: corev1.StorageMediumDefault,
+				},
+			},
+		}
+	}
+
+	// Use a hostPath for /data volume (only for developing)
+	if defaultStorage == "hostpath" {
+		var hostPathDirectoryOrCreate = corev1.HostPathDirectoryOrCreate
+		return corev1.Volume{
+			Name: "data",
+			VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: "/opt/freeipa/data",
+					Type: &hostPathDirectoryOrCreate,
+				},
+			},
+		}
+	}
+
+	// By default return ephimeral
+	return corev1.Volume{
+		Name: "data",
+		VolumeSource: corev1.VolumeSource{
+			EmptyDir: &corev1.EmptyDirVolumeSource{
+				Medium: corev1.StorageMediumDefault,
+			},
+		},
+	}
+}
+
 // MainPodForIDM return a master pod for an IDM CRD
-func MainPodForIDM(m *v1alpha1.IDM, baseDomain string) *corev1.Pod {
+func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage string) *corev1.Pod {
 	sDirectoryOrCreate := corev1.HostPathDirectoryOrCreate
 	sDirectory := corev1.HostPathDirectory
 
@@ -204,12 +274,7 @@ func MainPodForIDM(m *v1alpha1.IDM, baseDomain string) *corev1.Pod {
 				},
 			},
 			Volumes: []corev1.Volume{
-				{
-					Name: "data",
-					VolumeSource: corev1.VolumeSource{
-						EmptyDir: &corev1.EmptyDirVolumeSource{},
-					},
-				},
+				GetDataVolumeForMainPod(m, defaultStorage),
 				{
 					Name: "systemd-sys",
 					VolumeSource: corev1.VolumeSource{

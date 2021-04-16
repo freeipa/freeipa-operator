@@ -21,6 +21,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"k8s.io/api/core/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -90,6 +91,11 @@ func (in *IDMSpec) DeepCopyInto(out *IDMSpec) {
 		in, out := &in.PasswordSecret, &out.PasswordSecret
 		*out = new(string)
 		**out = **in
+	}
+	if in.VolumeClaimTemplate != nil {
+		in, out := &in.VolumeClaimTemplate, &out.VolumeClaimTemplate
+		*out = new(v1.PersistentVolumeClaimSpec)
+		(*in).DeepCopyInto(*out)
 	}
 }
 

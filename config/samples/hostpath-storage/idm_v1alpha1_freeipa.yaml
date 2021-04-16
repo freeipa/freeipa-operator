@@ -6,4 +6,4 @@ metadata:
 spec:
   # Add fields here
   realm: bar
-  passwordSecret: "$(SECRET_PASSWORD)"
+  passwordSecret: idm-sample

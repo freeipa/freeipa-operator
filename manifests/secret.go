@@ -1,4 +1,4 @@
-package helper
+package manifests
 
 import (
 	b64 "encoding/base64"

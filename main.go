@@ -17,7 +17,6 @@ limitations under the License.
 package main
 
 import (
-	"flag"
 	"os"
 
 	configv1 "github.com/openshift/api/config/v1"
@@ -31,12 +30,17 @@ import (
 
 	idmv1alpha1 "github.com/freeipa/freeipa-operator/api/v1alpha1"
 	"github.com/freeipa/freeipa-operator/controllers"
+	arguments "github.com/freeipa/freeipa-operator/internal/arguments"
 	// +kubebuilder:scaffold:imports
 )
 
 var (
 	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
+)
+
+const (
+	ENV_DEFAULT_STORAGE = "DEFAULT_STORAGE"
 )
 
 func init() {
@@ -48,41 +52,43 @@ func init() {
 }
 
 func main() {
-	var metricsAddr string
-	var enableLeaderElection bool
-	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
-	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
-		"Enable leader election for controller manager. "+
-			"Enabling this will ensure there is only one active controller manager.")
-	flag.Parse()
+	var err error
+	var ctrlArguments *arguments.Arguments
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
+	// Load and check arguments
+	ctrlArguments, err = arguments.New()
+	if err != nil {
+		setupLog.Error(err, "invalid controller arguments")
+		os.Exit(1)
+	}
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
-		MetricsBindAddress: metricsAddr,
+		MetricsBindAddress: ctrlArguments.GetMetricsAddr(),
 		Port:               9443,
-		LeaderElection:     enableLeaderElection,
+		LeaderElection:     ctrlArguments.GetEnableLeaderElection(),
 		LeaderElectionID:   "42b6c26c.redhat.com",
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
-		os.Exit(1)
+		os.Exit(2)
 	}
 
 	if err = (&controllers.IDMReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("IDM"),
 		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+	}).SetupWithManager(mgr, ctrlArguments); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "IDM")
-		os.Exit(1)
+		os.Exit(3)
 	}
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
-		os.Exit(1)
+		os.Exit(4)
 	}
 }

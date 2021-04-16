@@ -1,4 +1,4 @@
-package helper
+package manifests
 
 import (
 	"github.com/freeipa/freeipa-operator/api/v1alpha1"

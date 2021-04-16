@@ -2,7 +2,7 @@
 
 // https://semaphoreci.com/community/tutorials/getting-started-with-bdd-in-go-using-ginkgo
 
-package helper_test
+package manifests_test
 
 import (
 	b64 "encoding/base64"

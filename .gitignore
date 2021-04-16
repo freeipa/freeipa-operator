@@ -33,4 +33,4 @@ docker-image-freeipa-operator.tar.gz
 testbin/*
 
 # Ignore generated junit files
-TEST-ginkgo-junit_*.xml
+/junit
