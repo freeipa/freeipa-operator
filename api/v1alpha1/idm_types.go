@@ -25,7 +25,8 @@ import (
 
 // IDMSpec defines the desired state of Freeipa
 type IDMSpec struct {
-	Realm string `json:"realm,omitempty"`
+	Realm          string  `json:"realm,omitempty"`
+	PasswordSecret *string `json:"passwordSecret,omitempty"`
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
@@ -34,6 +35,7 @@ type IDMSpec struct {
 
 // IDMStatus defines the observed state of IDM
 type IDMStatus struct {
+	SecretName string   `json:"secretName,omitempty"`
 	MasterPod  string   `json:"master"`
 	ReplicaPod []string `json:"replicas,omitempty"`
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster

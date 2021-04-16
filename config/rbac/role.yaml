@@ -155,3 +155,12 @@ rules:
       - "securitycontextconstraints"
     verbs:
       - "use"
+
+  # Grant permissions for managing secrets
+  - apiGroups: [""]
+    resources:
+      - secrets
+    verbs:
+      - "list"
+      - "create"
+      - "watch"

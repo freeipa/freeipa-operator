@@ -1,0 +1,24 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../base
+
+secretGenerator:
+  - name: idm-sample
+    envs:
+      - "env.txt"
+
+resources:
+  - idm_v1alpha1_freeipa.yaml
+
+vars:
+  - name: IDM_SECRET
+    objref:
+      name: idm-sample
+      kind: Secret
+      apiVersion: v1
+
+# configurations:
+#   - kustomize.config

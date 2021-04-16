@@ -47,6 +47,7 @@ IMG ?= $(IMG_BASE)/$(IMG_NAME):$(IMG_TAG)
 CRD_OPTIONS ?= "crd:trivialVersions=true, crdVersions=v1"
 TEMPLATES_PATH ?= $(PWD)/config/templates
 SAMPLES_PATH ?= $(PWD)/config/samples
+SAMPLE ?= with-secret
 
 
 # Install kind by:
@@ -320,8 +321,13 @@ kind-long-tests:
 	ginkgo --focus="LONG TEST:" -nodes 6 --randomizeAllSpecs --trace --progress ./controllers
 	-kubectl delete IDM --all -n idm-system
 
+.PHONY: sample-delete
+sample-delete:
+	-kustomize build $(SAMPLES_PATH)/$(SAMPLE)/ | kubectl delete -f -
 
-.PHONY: recreate-sample-idm
-recreate-sample-idm:
-	-kubectl delete idm idm-sample
-	kubectl apply -f ./config/samples/idm_v1alpha1_freeipa.yaml
+.PHONY: sample-create
+sample-create:
+	kustomize build $(SAMPLES_PATH)/$(SAMPLE)/ | kubectl create -f -
+
+.PHONY: sample-recreate
+sample-recreate: sample-delete sample-create

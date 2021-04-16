@@ -129,6 +129,10 @@ func (r *IDMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, err
 	}
 
+	if err := r.CreateSecret(ctx, &idm); err != nil {
+		return ctrl.Result{}, err
+	}
+
 	if err := r.CreateMainPod(ctx, &idm); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -225,6 +229,62 @@ func (r *IDMReconciler) CreateServiceAccount(ctx context.Context, item *v1alpha1
 	return nil
 }
 
+// CheckStatusSecret Check the status indicated into the secret exists or not.
+func (r *IDMReconciler) CheckStatusSecret(ctx context.Context, item *v1alpha1.IDM) error {
+	namespacedName := types.NamespacedName{
+		Namespace: item.Namespace,
+		Name:      item.Status.SecretName,
+	}
+	found := &corev1.Secret{}
+	return r.Get(ctx, namespacedName, found)
+}
+
+func (r *IDMReconciler) UpdateStatusSecretNameWith(secretName string, ctx context.Context, item *v1alpha1.IDM) error {
+	item.Status.SecretName = secretName
+	if err := r.Status().Update(ctx, item); err != nil {
+		return err
+	}
+	return nil
+}
+
+// CreateSecret Create a secret for he encrypted information
+// ctx is the context for this request.
+// item is a reference to the custom resource to sync to.
+// Return no nil error when any situation happened, else it returns nil.
+func (r *IDMReconciler) CreateSecret(ctx context.Context, item *v1alpha1.IDM) error {
+	var err error
+	log := r.Log.WithValues("idm", item.Namespace)
+
+	// If it was assigned it returns check status secret
+	if item.Status.SecretName != "" {
+		return r.CheckStatusSecret(ctx, item)
+	}
+
+	if item.Spec.PasswordSecret != nil {
+		namespacedName := types.NamespacedName{
+			Namespace: item.Namespace,
+			Name:      *item.Spec.PasswordSecret,
+		}
+		found := &corev1.Secret{}
+		err = r.Get(ctx, namespacedName, found)
+		if err == nil {
+			return r.UpdateStatusSecretNameWith(manifests.GetSecretName(item), ctx, item)
+		}
+		if !errors.IsNotFound(err) {
+			return err
+		}
+	}
+
+	// If a password was not specified, it creates a secret with a random password
+	log.Info("Creating Secret with random password")
+	manifest := manifests.SecretForIDM(item, manifests.GenerateRandomPassword())
+	ctrl.SetControllerReference(item, manifest, r.Scheme)
+	if err = r.Create(ctx, manifest); err != nil {
+		return err
+	}
+	return r.UpdateStatusSecretNameWith(manifests.GetSecretName(item), ctx, item)
+}
+
 // CreateMainPod Create the master freeipa pod
 func (r *IDMReconciler) CreateMainPod(ctx context.Context, item *v1alpha1.IDM) error {
 	var err error
@@ -251,7 +311,6 @@ func (r *IDMReconciler) CreateMainPod(ctx context.Context, item *v1alpha1.IDM) e
 		// TODO Update changes if any that affect to the Pod
 		log.Info("Currently the Main Pod exists")
 	}
-
 	return nil
 }
 

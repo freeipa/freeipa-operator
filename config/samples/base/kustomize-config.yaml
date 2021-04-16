@@ -1,0 +1,7 @@
+# I did not find the below information into Kustomize reference
+# https://github.com/kubernetes-sigs/kustomize/issues/1938
+# https://github.com/kubernetes-sigs/kustomize/issues/2704
+---
+varReference:
+  - kind: IDM
+    path: spec/passwordSecret
