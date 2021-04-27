@@ -185,7 +185,7 @@ endif
 container-build: check-container-runtime
 	$(DOCKER) build . -t $(IMG)
 
-.PHONY: conainer-build-root
+.PHONY: container-build-root
 container-build-root: container-build container-save
 	cat $(CONTAINER_IMAGE_FILE) | sudo $(DOCKER) load $(IMG)
 
