@@ -22,7 +22,7 @@ FLAG_INSTALL_CRC="${FLAG_INSTALL_CRC:-ASK}"
 
 
 OPERATOR_SDK_VERSION="v1.0.0"
-OPENSHIFT_CLIENT_ARCHIVE_URL="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest-4.6/openshift-client-linux.tar.gz"
+OPENSHIFT_CLIENT_ARCHIVE_URL="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest-4.7/openshift-client-linux.tar.gz"
 
 
 ##
@@ -237,13 +237,13 @@ function install-go-tools
     }
 
     # Install godoc
-    (cd && GO11MODULE=on verbose go get -u -v golang.org/x/tools/cmd/godoc) || die "Installing godoc"
+    (cd && GO111MODULE=on verbose go get -u -v golang.org/x/tools/cmd/godoc) || die "Installing godoc"
 
     # Install debugger
-    (cd && GO11MODULE=on verbose go get -u -v github.com/go-delve/delve/cmd/dlv) || die "Installing dlv"
+    (cd && GO111MODULE=on verbose go get -u -v github.com/go-delve/delve/cmd/dlv) || die "Installing dlv"
 
     # Install linter
-    (cd && GO11MODULE=on verbose go get -u -v golang.org/x/lint/golint) || die "Installing golint"
+    (cd && GO111MODULE=on verbose go get -u -v golang.org/x/lint/golint) || die "Installing golint"
 
     # Install kustomize
     # install-kustomize-from-source || die "Installing kustomize"
