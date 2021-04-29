@@ -151,7 +151,7 @@ manifests: controller-gen
 # Launch lint
 .PHONY: lint
 lint:
-	./devel/lint.sh
+	./devel/lint.sh *.go $(shell find controllers -name '*.go') $(shell find api -name '*.go')
 
 # Run go fmt against code
 .PHONY: fmt
