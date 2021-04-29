@@ -32,6 +32,9 @@ jobs:
           go env
           go version
 
+      - name: Available disk space
+        run: df -H
+
   lint-golang:
     name: Lint golang code
     needs: [environment]

@@ -33,6 +33,10 @@ UNKNOWN_FILES=()
 
 FORCE=""
 
+TTY_OPTS=
+tty &>/dev/null && TTY_OPTS="-it"
+
+
 if command -v podman &>/dev/null; then
     oci="podman"
 elif command -v docker &>/dev/null; then
@@ -47,7 +51,8 @@ fi
 function lint-shellscript
 {
     [ $# -eq 0 ] && return 0
-    $oci run --rm -it \
+
+    $oci run --rm ${TTY_OPTS} \
              --volume "$PWD:/data:z" \
              --workdir "/data" \
              --entrypoint shellcheck \
@@ -62,7 +67,7 @@ function lint-shellscript
 function lint-dockerfile
 {
     [ $# -eq 0 ] && return 0
-    $oci run --rm -it \
+    $oci run --rm ${TTY_OPTS} \
              --volume "$PWD:/data:z" \
              --workdir "/data" \
              --entrypoint /bin/hadolint \
@@ -79,7 +84,7 @@ function lint-dockerfile
 function lint-yaml
 {
     [ $# -eq 0 ] && return 0
-    $oci   run --rm -it \
+    $oci   run --rm ${TTY_OPTS} \
                --volume "$PWD:/data:z" \
                --workdir "/data" \
                --entrypoint yamllint \
@@ -101,7 +106,7 @@ function lint-go
     reto=0
     for file in "${@}"
     do
-        $oci   run --rm -it \
+        $oci   run --rm ${TTY_OPTS} \
                    -e "GOPATH=/go" \
                    --volume "$GOPATH:/go:z" \
                    --volume "$PWD:/data:z" \
@@ -125,7 +130,7 @@ function lint-markdown
     reto=0
     for file in "$@"
     do
-        $oci   run --rm -it \
+        $oci   run --rm ${TTY_OPTS} \
                    --volume "$PWD:/data:z" \
                    --workdir "/data" \
                    docker.io/markdownlint/markdownlint \
@@ -142,7 +147,7 @@ function lint-markdown
 function lint-kubeobject
 {
     [ $# -eq 0 ] && return 0
-    $oci   run --rm -it \
+    $oci   run --rm ${TTY_OPTS} \
                --volume "$PWD:/data:z" \
                --workdir "/data" \
                --entrypoint /bin/bash \
