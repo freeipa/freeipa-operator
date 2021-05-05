@@ -19,7 +19,6 @@ package main
 import (
 	"flag"
 	"os"
-	"strings"
 
 	configv1 "github.com/openshift/api/config/v1"
 	routev1 "github.com/openshift/api/route/v1"
@@ -48,12 +47,6 @@ func init() {
 	// +kubebuilder:scaffold:scheme
 }
 
-func readBaseDomainFromApiUrl(url string) string {
-	subdomain := strings.Split(url, "https://api.")[1]
-	subdomain = strings.Split(subdomain, ":")[0]
-	return subdomain
-}
-
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
@@ -78,10 +71,9 @@ func main() {
 	}
 
 	if err = (&controllers.IDMReconciler{
-		Client:     mgr.GetClient(),
-		Log:        ctrl.Log.WithName("controllers").WithName("IDM"),
-		Scheme:     mgr.GetScheme(),
-		BaseDomain: readBaseDomainFromApiUrl(mgr.GetConfig().Host),
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("IDM"),
+		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "IDM")
 		os.Exit(1)
