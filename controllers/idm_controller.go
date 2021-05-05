@@ -20,6 +20,7 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
+	configv1 "github.com/openshift/api/config/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -47,6 +48,45 @@ var (
 	metricsAddr string
 )
 
+// ReadBaseDomainFromOpenshiftConfig This method encapsulate the operation below:
+//
+// ```raw
+// oc get dnses.config.openshift.io/cluster -o json | jq -r ".spec.baseDomain"
+// ```
+//
+// So that it returns the baseDomain that was configured meanwhile installing the
+// cluster. This value cannot be changed once the cluster has been installed.
+// ctx A memory context used for the operation.
+// Return If the operation is executed successfully, the baseDomain and nil for
+// error, else return empty string for baseDomain and the error object.
+func (r *IDMReconciler) ReadBaseDomainFromOpenshiftConfig(ctx context.Context) (string, error) {
+	namespacedName := types.NamespacedName{
+		Namespace: "",
+		Name:      "cluster",
+	}
+	dnsConfig := &configv1.DNS{}
+	if err := r.Get(ctx, namespacedName, dnsConfig); err != nil {
+		return "", err
+	}
+	return dnsConfig.Spec.BaseDomain, nil
+}
+
+// GetClusterDomain Retrieve if not cached, the cluster domain, and return it.
+// ctx The memory context to be used for the operation.
+// Return empty string if error, else the cluster domain and nil for error.
+func (r *IDMReconciler) InitBaseDomain(ctx context.Context) error {
+	var err error
+	if r.BaseDomain == "" {
+		log := r.Log.WithValues("idm_controller", "GetClusterDomain")
+		log.Info("BaseDomain is empty, retrieving")
+
+		if r.BaseDomain, err = r.ReadBaseDomainFromOpenshiftConfig(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Reconcile Read the current of the cluster for IDM object and makes the
 // necessary changes to bring the system to the requested state.
 // +kubebuilder:rbac:groups=idmocp.redhat.com,resources=idms,verbs=get;list;watch;create;update;patch;delete
@@ -69,6 +109,11 @@ func (r *IDMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		}
 		// Error reading the object - requeue the request.
 		log.Error(err, "Failed to get IDM")
+		return ctrl.Result{}, err
+	}
+
+	if err := r.InitBaseDomain(ctx); err != nil {
+		log.Error(err, "Failed initializing the BaseDomain attribute")
 		return ctrl.Result{}, err
 	}
 
