@@ -39,25 +39,33 @@ to prepare it.
   chcon -t container_file_t -l s0:c25,c10 /opt/freeipa/dat
   ```
 
-## Running the controller
+## Create the PersistentVolume
 
-You need to run the controller with an extra argument for using this feature.
-This is the `--default-storage {ephimeral,hostpath}` argument, or setting
-the `DEFAULT_STORAGE` environment variable for using `ephimeral` or
-`hostpath` values. This will allow to deploy a pod using one of those
-storages, leting you to quickly deploy in a SNC for testing or developing
-purposes.
+For using a hostPath persistent volume, you have to create it
+before deploy the workload using the operator; for that you will
+need to:
 
-- Using arguments:
+```shell
+oc create -f - | cat <<EOF
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: freeipa
+  labels:
+    app: freeipa
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+  - ReadWriteOnce
+  - ReadWriteMany
+  - ReadOnlyMany
+  persistentVolumeReclaimPolicy: Recycle
+  hostPath:
+    path: /opt/freeipa/data
+EOF
+```
 
-  - From the workstation:
-
-    ```shell
-    make run OPERATOR_ARGS="--default-storage hostpath"
-    ```
-
-  - Deploying into the cluster:
-
-    ```shell
-    make deploy-cluster OPERATOR_ARGS="--default-storage hostpath"
-    ```
+> `hostPath` attribute should match the local directory you created
+> previously into the cluster node.

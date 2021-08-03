@@ -323,10 +323,6 @@ func (r *IDMReconciler) CreatePersistentVolumeClaim(ctx context.Context, item *v
 	}
 	log := r.Log.WithValues(item.Name, namespacedName)
 	if item.Spec.VolumeClaimTemplate == nil {
-		if r.Arguments.GetDefaultStorage() == "hostpath" {
-			log.Info("VolumeTemplateClaim not defined, using a 'hostPath' volume for storing data")
-			return nil
-		}
 		if r.Arguments.GetDefaultStorage() == "ephimeral" {
 			log.Info("VolumeTemplateClaim not defined, using an 'ephimeral' volume for storing data")
 			return nil
@@ -348,8 +344,8 @@ func (r *IDMReconciler) CreatePersistentVolumeClaim(ctx context.Context, item *v
 			return err
 		}
 	} else {
-		// TODO Update changes if any that affect to the Pod
-		log.Info("Currently the Route exists")
+		// TODO Update changes if any that affect to the PersistentVolumeClaim
+		log.Info("Currently the PersistentVolumeClaim exists")
 	}
 
 	return nil

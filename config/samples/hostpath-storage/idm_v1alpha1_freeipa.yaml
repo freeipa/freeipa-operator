@@ -7,3 +7,13 @@ spec:
   # Add fields here
   realm: bar
   passwordSecret: idm-sample
+  volumeClaimTemplate:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+    volumeMode: Filesystem
+    selector:
+      matchLabels:
+        app: freeipa

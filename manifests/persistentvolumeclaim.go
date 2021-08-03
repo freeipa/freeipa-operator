@@ -76,21 +76,21 @@ func CheckVolumeInformation(m *v1alpha1.IDM, defaultStorage string) error {
 func MainPersistentVolumeClaimForIDM(m *v1alpha1.IDM) *corev1.PersistentVolumeClaim {
 	if m.Spec.VolumeClaimTemplate == nil {
 		return nil
+	} else {
+		return &corev1.PersistentVolumeClaim{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      GetMainPersistentVolumeClaimName(m),
+				Namespace: m.Namespace,
+				Labels:    LabelsForIDM(m),
+			},
+			Spec: corev1.PersistentVolumeClaimSpec{
+				AccessModes:      m.Spec.VolumeClaimTemplate.AccessModes,
+				DataSource:       m.Spec.VolumeClaimTemplate.DataSource,
+				Resources:        m.Spec.VolumeClaimTemplate.Resources,
+				StorageClassName: m.Spec.VolumeClaimTemplate.StorageClassName,
+				VolumeMode:       m.Spec.VolumeClaimTemplate.VolumeMode,
+				VolumeName:       m.Spec.VolumeClaimTemplate.VolumeName,
+			},
+		}
 	}
-	var pvc = &corev1.PersistentVolumeClaim{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      GetMainPersistentVolumeClaimName(m),
-			Namespace: m.Namespace,
-			Labels:    LabelsForIDM(m),
-		},
-		Spec: corev1.PersistentVolumeClaimSpec{
-			AccessModes:      m.Spec.VolumeClaimTemplate.AccessModes,
-			DataSource:       m.Spec.VolumeClaimTemplate.DataSource,
-			Resources:        m.Spec.VolumeClaimTemplate.Resources,
-			StorageClassName: m.Spec.VolumeClaimTemplate.StorageClassName,
-			VolumeMode:       m.Spec.VolumeClaimTemplate.VolumeMode,
-			VolumeName:       m.Spec.VolumeClaimTemplate.VolumeName,
-		},
-	}
-	return pvc
 }
