@@ -67,8 +67,9 @@ rules:
     resources:
       - "dnses"
     verbs:
-      - list
-      - get
+      - "list"
+      - "get"
+      - "watch"
 
   - apiGroups:
       - ""

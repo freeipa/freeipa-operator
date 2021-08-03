@@ -68,20 +68,6 @@ func GetDataVolumeForMainPod(m *v1alpha1.IDM, defaultStorage string) corev1.Volu
 		}
 	}
 
-	// Use a hostPath for /data volume (only for developing)
-	if defaultStorage == "hostpath" {
-		var hostPathDirectoryOrCreate = corev1.HostPathDirectoryOrCreate
-		return corev1.Volume{
-			Name: "data",
-			VolumeSource: corev1.VolumeSource{
-				HostPath: &corev1.HostPathVolumeSource{
-					Path: "/opt/freeipa/data",
-					Type: &hostPathDirectoryOrCreate,
-				},
-			},
-		}
-	}
-
 	// By default return ephimeral
 	return corev1.Volume{
 		Name: "data",

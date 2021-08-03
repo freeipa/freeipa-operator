@@ -341,7 +341,7 @@ sample-delete:
 
 .PHONY: check-password-is-provided sample-create
 sample-create:
-	@kubectl create secret generic idm-sample --from-literal=PASSWORD=$(PASSWORD)
+	@-kubectl create secret generic idm-sample --from-literal=PASSWORD=$(PASSWORD)
 	kustomize build $(SAMPLES_PATH)/$(SAMPLE)/ | kubectl create -f -
 
 .PHONY: sample-recreate
