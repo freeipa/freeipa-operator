@@ -21,18 +21,6 @@ func GetDataVolumeForMainStatefulset(m *v1alpha1.IDM, defaultStorage string) cor
 		}
 	}
 
-	// Set /data volume according to defaultStorage
-	if defaultStorage == "ephimeral" {
-		return corev1.Volume{
-			Name: "data",
-			VolumeSource: corev1.VolumeSource{
-				EmptyDir: &corev1.EmptyDirVolumeSource{
-					Medium: corev1.StorageMediumDefault,
-				},
-			},
-		}
-	}
-
 	// By default return ephimeral
 	return corev1.Volume{
 		Name: "data",
@@ -58,9 +46,9 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage st
 				"role": "main",
 				"idm":  m.Name,
 			},
-			Annotations: map[string]string{
-				"openshift.io/scc": "idm",
-			},
+			// Annotations: map[string]string{
+			// 	"openshift.io/scc": "idm",
+			// },
 		},
 		Spec: appsv1.StatefulSetSpec{
 			Template: corev1.PodTemplateSpec{
