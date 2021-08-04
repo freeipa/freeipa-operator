@@ -94,3 +94,28 @@ func MainPersistentVolumeClaimForIDM(m *v1alpha1.IDM) *corev1.PersistentVolumeCl
 		}
 	}
 }
+
+func MainPersistentVolumeClaimTemplatesForIDM(m *v1alpha1.IDM) []corev1.PersistentVolumeClaim {
+	var result []corev1.PersistentVolumeClaim
+	if m.Spec.VolumeClaimTemplate == nil {
+		return result
+	}
+	result = []corev1.PersistentVolumeClaim{
+		corev1.PersistentVolumeClaim{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      GetMainPersistentVolumeClaimName(m),
+				Namespace: m.Namespace,
+				Labels:    LabelsForIDM(m),
+			},
+			Spec: corev1.PersistentVolumeClaimSpec{
+				AccessModes:      m.Spec.VolumeClaimTemplate.AccessModes,
+				DataSource:       m.Spec.VolumeClaimTemplate.DataSource,
+				Resources:        m.Spec.VolumeClaimTemplate.Resources,
+				StorageClassName: m.Spec.VolumeClaimTemplate.StorageClassName,
+				VolumeMode:       m.Spec.VolumeClaimTemplate.VolumeMode,
+				VolumeName:       m.Spec.VolumeClaimTemplate.VolumeName,
+			},
+		},
+	}
+	return result
+}
