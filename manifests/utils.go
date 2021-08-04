@@ -30,6 +30,11 @@ func GetMainPodName(m *v1alpha1.IDM) string {
 	return m.Name + "-main"
 }
 
+// GetMainStatefulsetName Return the MainStatefulsetName for the requested IDM resource
+func GetMainStatefulsetName(m *v1alpha1.IDM) string {
+	return m.Name + "-main"
+}
+
 // RandStringBytes Read a string of n random chars
 func RandStringBytes(n int) string {
 	const letterBytes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"

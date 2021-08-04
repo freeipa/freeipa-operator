@@ -23,6 +23,7 @@ import (
 	"github.com/go-logr/logr"
 	configv1 "github.com/openshift/api/config/v1"
 	routev1 "github.com/openshift/api/route/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -137,11 +138,14 @@ func (r *IDMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, err
 	}
 
-	if err := r.CreatePersistentVolumeClaim(ctx, &idm); err != nil {
-		return ctrl.Result{}, err
-	}
+	// if err := r.CreatePersistentVolumeClaim(ctx, &idm); err != nil {
+	// 	return ctrl.Result{}, err
+	// }
 
-	if err := r.CreateMainPod(ctx, &idm); err != nil {
+	// if err := r.CreateMainPod(ctx, &idm); err != nil {
+	// 	return ctrl.Result{}, err
+	// }
+	if err := r.CreateStatefulsetMain(ctx, &idm); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -396,6 +400,44 @@ func getPodNames(pods []corev1.Pod) []string {
 		podNames = append(podNames, pod.Name)
 	}
 	return podNames
+}
+
+// CreateStatefulset
+func (r *IDMReconciler) CreateStatefulsetMain(ctx context.Context, item *v1alpha1.IDM) error {
+	var err error
+	namespacedName := types.NamespacedName{
+		Namespace: item.Namespace,
+		Name:      manifests.GetMainPodName(item),
+	}
+	log := r.Log.WithValues("idm", namespacedName)
+
+	var defaultStorage = r.Arguments.GetDefaultStorage()
+	// Check volume storage information
+	err = manifests.CheckVolumeInformation(item, defaultStorage)
+	if err != nil {
+		log.Info("Checking Volume Information")
+		return err
+	}
+
+	found := &appsv1.StatefulSet{}
+	err = r.Get(ctx, namespacedName, found)
+
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating Main Statefulset")
+			manifest := manifests.MainStatefulsetForIDM(item, r.BaseDomain, defaultStorage)
+			ctrl.SetControllerReference(item, manifest, r.Scheme)
+			if err = r.Create(ctx, manifest); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		// TODO Update changes if any that affect to the Pod
+		log.Info("Currently the Main Pod exists")
+	}
+	return nil
 }
 
 // CreateWebService Create the service to access the web frontend running on Apache
