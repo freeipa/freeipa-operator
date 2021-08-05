@@ -51,6 +51,13 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage st
 			// },
 		},
 		Spec: appsv1.StatefulSetSpec{
+			Selector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"app":  "idm",
+					"role": "main",
+					"idm":  m.Name,
+				},
+			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      GetMainPodName(m),
