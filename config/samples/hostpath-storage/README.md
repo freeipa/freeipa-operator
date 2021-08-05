@@ -29,7 +29,7 @@ to prepare it.
 - Create the internal path:
 
   ```shell
-  mkdir /opt/freeipa/data
+  mkdir -p /opt/freeipa/data
   ```
 
 - Change selinux context for the directory so that it can be accessed
