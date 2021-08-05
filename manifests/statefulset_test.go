@@ -280,6 +280,20 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 				// assertMapsEqual(result.ObjectMeta.Annotations, map[string]string{
 				// 	"openshift.io/scc": "idm",
 				// })
+				It("has a selector that match with the pod template", func(done Done) {
+					go func() {
+						defer GinkgoRecover()
+						var mapExpected map[string]string = map[string]string{
+							"app":  "idm",
+							"role": "main",
+							"idm":  idm.Name,
+						}
+						Expect(result.Spec.Selector).ShouldNot(BeNil())
+						Expect(len(result.Spec.Selector.MatchLabels)).Should(Equal(len(mapExpected)))
+						assertStringStringMapsEqual(result.Spec.Selector.MatchLabels, mapExpected)
+						close(done)
+					}()
+				})
 				Expect(result.Spec.Template.ObjectMeta.Name).Should(Equal(idm.Name + "-main"))
 				Expect(result.Spec.Template.ObjectMeta.Namespace).Should(Equal(idm.Namespace))
 				It("has the pod template labels expected", func(done Done) {
