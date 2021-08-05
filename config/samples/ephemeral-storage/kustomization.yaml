@@ -8,16 +8,3 @@ commonLabels:
 
 resources:
   - idm_v1alpha1_freeipa.yaml
-
-vars:
-  - name: SECRET_PASSWORD
-    objref:
-      kind: Secret
-      name: idm-sample
-      apiVersion: v1
-
-secretGenerator:
-  - name: idm-sample
-    type: Opaque
-    envs:
-      - env.txt
