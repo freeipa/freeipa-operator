@@ -127,12 +127,12 @@ endif
 
 # Install CRDs into a cluster
 .PHONY: install-crds
-install-crds: manifests kustomize
+install-crds: kustomize manifests
 	$(KUSTOMIZE) build config/crd | kubectl apply -f -
 
 # Uninstall CRDs from a cluster
 .PHONY: uninstall-crds
-uninstall-crds: manifests kustomize
+uninstall-crds: kustomize manifests
 	$(KUSTOMIZE) build config/crd | kubectl delete -f -
 
 # Redeploy cluster updated
@@ -141,13 +141,13 @@ redeploy-cluster: undeploy-cluster container-build container-push deploy-cluster
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: deploy-cluster
-deploy-cluster: manifests kustomize
+deploy-cluster: kustomize manifests install-crds
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/$(CONFIG) | kubectl apply -f -
 
 # Undeploy controller in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: deploy-cluster
-undeploy-cluster: manifests kustomize
+undeploy-cluster: kustomize manifests uninstall-crds
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	-$(KUSTOMIZE) build config/$(CONFIG) | kubectl delete -f -
 
@@ -247,7 +247,7 @@ endif
 
 # https://itnext.io/testing-kubernetes-operators-with-ginkgo-gomega-and-the-operator-runtime-6ad4c2492379
 .PHONY: deploy-kind
-deploy-kind: kind-create kind-load-img deploy-cluster install-crds # kustomize-deployment
+deploy-kind: kind-create kind-load-img deploy-cluster
 
 .PHONY: kind
 kind:
@@ -333,6 +333,10 @@ check-password-is-provided:
 ifeq (,$(PASSWORD))
 	@echo "PASSWORD must be provided; PASSWORD=MySecretPassword make ..."; exit 1
 endif
+
+.PHONY: sample-build
+sample-build:
+	-kustomize build $(SAMPLES_PATH)/$(SAMPLE)/
 
 .PHONY: sample-delete
 sample-delete:
