@@ -2,7 +2,6 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  creationTimestamp: null
   name: manager-role
 rules:
   - apiGroups:
@@ -17,18 +16,14 @@ rules:
       - patch
       - update
       - watch
+
   # https://github.com/operator-framework/operator-sdk/blob/e399ce1dadf4545ac12abf2f61d68fb334cc0bd4/doc/user/metrics/README.md#garbage-collection
   - apiGroups: ["idmocp.redhat.com"]
     resources:
       - "idms/finalizers"
     verbs:
       - "update"
-  - apiGroups: ["idmocp.redhat.com"]
-    resources:
-      - "idms/status"
-    verbs:
-      - "get"
-      - "update"
+
   - apiGroups:
       - idmocp.redhat.com
     resources:
