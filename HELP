@@ -28,9 +28,12 @@ Subcommands:
 
   manifests            Regenerate config/rbac/base and config/crd/base
 
-  recreate-sample-idm  Regenerate the sample idm inside the current cluster.
+  sample-recreate      Regenerate the sample idm inside the current cluster.
 
 Variables:
+  IMG_BASE  The base name for the container image; Change the value for this variable if you
+            want to use a different container image registry or scope; by default it is:
+            IMG_BASE=quay.io/freeipa
   IMG       The container image reference such as quay.io/freeipa/freeipa-operator:latest
             If IMG_TAG variable is not overrided, the local tag used is 'dev-GIT_SHA'.
   SAMPLE    The configuration to be used using config/samples as base directory.
@@ -52,11 +55,3 @@ Variables:
                    ** PASSWORD=Secret123 SAMPLE=ephemeral-storage make recreate-sample-idm
   CONFIG           The configuration to be used; by default 'default' is used, but
                    you can override setting it to 'default-hostpath'.
-
-                   ** ONLY FOR SINGLE NODE CLUSTERS AND FOR DEVELOPING **
-                   ** ACTUALLY IT NEEDS TO SET SELINUX IN PERMISSIVE MODE **
-                   ** oc debug nodes/....
-                   ** chroot /host
-                   ** setenforce Permissive
-                   **
-                   ** FINALLY: CONFIG=default-hostpath make deploy-cluster
