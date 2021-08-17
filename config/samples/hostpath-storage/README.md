@@ -46,7 +46,7 @@ before deploy the workload using the operator; for that you will
 need to:
 
 ```shell
-oc create -f - | cat <<EOF
+cat <<EOF | oc create -f -
 ---
 apiVersion: v1
 kind: PersistentVolume
