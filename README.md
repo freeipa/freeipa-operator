@@ -71,4 +71,14 @@ Experimental freeipa-operator for Freeipa.
    make undeploy-cluster
    ```
 
+> When using CodeReadyContainers, you will need to add the entry
+> `VM_IP   NAMESPACE.apps.crc.testing` to your `/etc/hosts` file
+> or it will not work as expected; in a real cluster it works
+> properly.
+> CodeReadyContainers create '*.apps-crc.testing' for the dnsmasq
+> service instead of the '*.apps.crc.testing' as in a normal cluster.
+>
+> The configuration for dnsmasq is auto-generated when crc start and
+> it is stored at `/var/lib/libvirt/dnsmasq/crc.conf`.
+
 See also: [Operator SDK 1.0.0 - Quick Start](https://sdk.operatorframework.io/docs/building-operators/golang/quickstart/).
