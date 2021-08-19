@@ -202,7 +202,16 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 			When("GetDataVolumeForMainStatefulset is called", func() {
 				var result = manifests.GetDataVolumeForMainStatefulset(&idm, "")
 				// EXPECT
-				AssertDataVolumeWithPVC(&result, manifests.GetMainPersistentVolumeClaimName(&idm))
+				It("has a PVC expected", func(done Done) {
+					go func() {
+						defer GinkgoRecover()
+
+						AssertDataVolumeWithPVC(&result, manifests.GetMainPersistentVolumeClaimNameForStatefulset(&idm))
+
+						close(done)
+					}()
+				})
+
 			})
 		})
 
@@ -415,7 +424,7 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 						defer GinkgoRecover()
 						volumeMountList := []corev1.VolumeMount{
 							{
-								Name:      "data",
+								Name:      manifests.GetMainPersistentVolumeClaimName(&idm),
 								MountPath: "/data",
 							},
 							{
@@ -468,7 +477,9 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 						sDirectory := corev1.HostPathDirectory
 
 						volumeList := []corev1.Volume{
-							manifests.GetDataVolumeForMainPod(&idm, "ephimeral"),
+							// Statefulset object add this automatically to the Pod, but
+							// it won't be listed here.
+							// manifests.GetDataVolumeForMainPod(&idm, "ephimeral"),
 							{
 								Name: "systemd-sys",
 								VolumeSource: corev1.VolumeSource{

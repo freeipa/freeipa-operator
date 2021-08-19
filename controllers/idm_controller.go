@@ -97,6 +97,7 @@ func (r *IDMReconciler) InitBaseDomain(ctx context.Context) error {
 // +kubebuilder:rbac:groups=idmocp.redhat.com,resources=idms,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=idmocp.redhat.com,resources=idms/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=coordination.k8s.io,resources=leases,verbs=get;list;create;update
+// +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;create;update;watch
 func (r *IDMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var err error
 	var idm v1alpha1.IDM = v1alpha1.IDM{}
@@ -138,13 +139,6 @@ func (r *IDMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, err
 	}
 
-	// if err := r.CreatePersistentVolumeClaim(ctx, &idm); err != nil {
-	// 	return ctrl.Result{}, err
-	// }
-
-	// if err := r.CreateMainPod(ctx, &idm); err != nil {
-	// 	return ctrl.Result{}, err
-	// }
 	if err := r.CreateStatefulsetMain(ctx, &idm); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -402,7 +396,7 @@ func getPodNames(pods []corev1.Pod) []string {
 	return podNames
 }
 
-// CreateStatefulset
+// CreateStatefulsetMain
 func (r *IDMReconciler) CreateStatefulsetMain(ctx context.Context, item *v1alpha1.IDM) error {
 	var err error
 	namespacedName := types.NamespacedName{
