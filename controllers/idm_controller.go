@@ -406,12 +406,6 @@ func (r *IDMReconciler) CreateStatefulsetMain(ctx context.Context, item *v1alpha
 	log := r.Log.WithValues("idm", namespacedName)
 
 	var defaultStorage = r.Arguments.GetDefaultStorage()
-	// Check volume storage information
-	err = manifests.CheckVolumeInformation(item, defaultStorage)
-	if err != nil {
-		log.Info("Checking Volume Information")
-		return err
-	}
 
 	found := &appsv1.StatefulSet{}
 	err = r.Get(ctx, namespacedName, found)
