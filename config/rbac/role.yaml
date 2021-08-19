@@ -175,3 +175,9 @@ rules:
       - "list"
       - "create"
       - "watch"
+
+  - apiGroups: ["security.openshift.io"]
+    resources:
+      - "securitycontextconstraints"
+    verbs:
+      - "use"
