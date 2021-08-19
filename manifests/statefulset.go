@@ -8,10 +8,101 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// MainStatefulsetForIDM return a master pod for an IDM CRD
-func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage string) *appsv1.StatefulSet {
+// GetEphimeralVolumeForMainStatefulset Return the Volume definition when using ephimeral
+// storage.
+func GetEphimeralVolumeForMainStatefulset(m *v1alpha1.IDM) corev1.Volume {
+	return corev1.Volume{
+		Name: GetMainPersistentVolumeClaimName(m),
+		VolumeSource: corev1.VolumeSource{
+			EmptyDir: &corev1.EmptyDirVolumeSource{},
+		},
+	}
+}
+
+// GetVolumeListForMainStatefulset Return the VolumeList for the Pod Spec embeded into
+// the Statefulset definition, giveng an IDM object.
+func GetVolumeListForMainStatefulset(m *v1alpha1.IDM) []corev1.Volume {
 	sDirectoryOrCreate := corev1.HostPathDirectoryOrCreate
 	sDirectory := corev1.HostPathDirectory
+	var result []corev1.Volume = []corev1.Volume{}
+	if m.Spec.VolumeClaimTemplate == nil {
+		result = append(result, GetEphimeralVolumeForMainStatefulset(m))
+	}
+	result = append(result, []corev1.Volume{
+		{
+			Name: "systemd-sys",
+			VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: "/sys",
+					Type: &sDirectoryOrCreate,
+				},
+			},
+		},
+		{
+			Name: "systemd-sys-fs-selinux",
+			VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: "/sys/fs/selinux",
+					Type: &sDirectory,
+				},
+			},
+		},
+		{
+			Name: "systemd-sys-firmware",
+			VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: "/sys/firmware",
+					Type: &sDirectory,
+				},
+			},
+		},
+		{
+			Name: "systemd-sys-kernel",
+			VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: "/sys/kernel",
+					Type: &sDirectory,
+				},
+			},
+		},
+		{
+			Name: "systemd-var-run",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{
+					Medium: corev1.StorageMedium("Memory"),
+				},
+			},
+		},
+		{
+			Name: "systemd-var-dirsrv",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{
+					Medium: corev1.StorageMedium("Memory"),
+				},
+			},
+		},
+		{
+			Name: "systemd-run-rpcbind",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{
+					Medium: corev1.StorageMedium("Memory"),
+				},
+			},
+		},
+		{
+			Name: "systemd-tmp",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{
+					Medium: corev1.StorageMedium("Memory"),
+				},
+			},
+		},
+	}...)
+	return result
+}
+
+// MainStatefulsetForIDM return a master pod for an IDM CRD
+func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage string) *appsv1.StatefulSet {
 
 	statefulset := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -22,9 +113,6 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage st
 				"role": "main",
 				"idm":  m.Name,
 			},
-			// Annotations: map[string]string{
-			// 	"openshift.io/scc": "idm",
-			// },
 		},
 		Spec: appsv1.StatefulSetSpec{
 			Selector: &metav1.LabelSelector{
@@ -210,77 +298,7 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage st
 							},
 						},
 					},
-					Volumes: []corev1.Volume{
-						// GetDataVolumeForMainStatefulset(m, defaultStorage),
-						{
-							Name: "systemd-sys",
-							VolumeSource: corev1.VolumeSource{
-								HostPath: &corev1.HostPathVolumeSource{
-									Path: "/sys",
-									Type: &sDirectoryOrCreate,
-								},
-							},
-						},
-						{
-							Name: "systemd-sys-fs-selinux",
-							VolumeSource: corev1.VolumeSource{
-								HostPath: &corev1.HostPathVolumeSource{
-									Path: "/sys/fs/selinux",
-									Type: &sDirectory,
-								},
-							},
-						},
-						{
-							Name: "systemd-sys-firmware",
-							VolumeSource: corev1.VolumeSource{
-								HostPath: &corev1.HostPathVolumeSource{
-									Path: "/sys/firmware",
-									Type: &sDirectory,
-								},
-							},
-						},
-						{
-							Name: "systemd-sys-kernel",
-							VolumeSource: corev1.VolumeSource{
-								HostPath: &corev1.HostPathVolumeSource{
-									Path: "/sys/kernel",
-									Type: &sDirectory,
-								},
-							},
-						},
-						{
-							Name: "systemd-var-run",
-							VolumeSource: corev1.VolumeSource{
-								EmptyDir: &corev1.EmptyDirVolumeSource{
-									Medium: corev1.StorageMedium("Memory"),
-								},
-							},
-						},
-						{
-							Name: "systemd-var-dirsrv",
-							VolumeSource: corev1.VolumeSource{
-								EmptyDir: &corev1.EmptyDirVolumeSource{
-									Medium: corev1.StorageMedium("Memory"),
-								},
-							},
-						},
-						{
-							Name: "systemd-run-rpcbind",
-							VolumeSource: corev1.VolumeSource{
-								EmptyDir: &corev1.EmptyDirVolumeSource{
-									Medium: corev1.StorageMedium("Memory"),
-								},
-							},
-						},
-						{
-							Name: "systemd-tmp",
-							VolumeSource: corev1.VolumeSource{
-								EmptyDir: &corev1.EmptyDirVolumeSource{
-									Medium: corev1.StorageMedium("Memory"),
-								},
-							},
-						},
-					},
+					Volumes: GetVolumeListForMainStatefulset(m),
 				},
 			},
 			VolumeClaimTemplates: MainPersistentVolumeClaimTemplatesForIDM(m),

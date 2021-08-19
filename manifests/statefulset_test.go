@@ -304,8 +304,11 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 
 						volumeList := []corev1.Volume{
 							// Statefulset object add this automatically to the Pod, but
-							// it won't be listed here.
-							// manifests.GetDataVolumeForMainPod(&idm, "ephimeral"),
+							// it won't be listed here. But ephimeral storage add this
+							// entry to the pod spec when the PVC template is nil
+							// When the PVC template section is defined, this function
+							// return an empty entry
+							// manifests.GetEphimeralVolumeForMainStatefulset(&idm),
 							{
 								Name: "systemd-sys",
 								VolumeSource: corev1.VolumeSource{
