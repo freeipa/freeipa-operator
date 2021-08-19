@@ -12,13 +12,6 @@ CodeReadyContainers or a SNC deployed with kcli.
 The usage of this configuration require a manual steps into the node
 to prepare it.
 
-- Retrieve the namespace information for freeipa for msc, we will need
-  it for setting the right context to the hostPath.
-
-  ```shell
-  oc describe namespace/freeipa
-  ```
-
 - Login into the node:
 
   ```shell
@@ -69,3 +62,44 @@ EOF
 
 > `hostPath` attribute should match the local directory you created
 > previously into the cluster node.
+
+## Running the operator
+
+We have two options here, running the controller locally or
+running the controller from a cluster. For developing propose
+the first option will fit better when debugging from the
+workstation; By the way, we will need to be logged in a cluster
+with enough privileges.
+
+```shell
+oc login -u username API_URL
+```
+
+### Locally
+
+Just run:
+
+```shell
+# Install CRDS into the cluster by
+make install-crds
+# Create RBAC resources
+kustomize build config/rbac | oc create -f -
+# Run the controller
+make run
+```
+
+### Cluster
+
+Just run:
+
+```shell
+make deploy-cluster
+```
+
+## Creating the sample idm resource
+
+Finally for using this sample we only have to run:
+
+```shell
+SAMPLE=hostpath-storage make sample-create
+```
