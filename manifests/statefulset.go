@@ -15,7 +15,7 @@ func GetDataVolumeForMainStatefulset(m *v1alpha1.IDM, defaultStorage string) cor
 			Name: "data",
 			VolumeSource: corev1.VolumeSource{
 				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-					ClaimName: GetMainPersistentVolumeClaimName(m),
+					ClaimName: GetMainPersistentVolumeClaimNameForStatefulset(m),
 				},
 			},
 		}
@@ -195,7 +195,8 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage st
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
-									Name:      "data",
+									// Name:      "data",
+									Name:      GetMainPersistentVolumeClaimName(m),
 									MountPath: "/data",
 								},
 								{
@@ -234,7 +235,7 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage st
 						},
 					},
 					Volumes: []corev1.Volume{
-						GetDataVolumeForMainPod(m, defaultStorage),
+						// GetDataVolumeForMainStatefulset(m, defaultStorage),
 						{
 							Name: "systemd-sys",
 							VolumeSource: corev1.VolumeSource{

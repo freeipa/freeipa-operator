@@ -86,5 +86,9 @@ func GetRoleBindingName(m *v1alpha1.IDM) string {
 // GetMainPersistentVolumeClaim Return the name for the PersistentVolumClaim
 // used by the main pod.
 func GetMainPersistentVolumeClaimName(m *v1alpha1.IDM) string {
-	return m.Name + "-main"
+	return m.Name
+}
+
+func GetMainPersistentVolumeClaimNameForStatefulset(m *v1alpha1.IDM) string {
+	return m.Name + "-" + m.Name + "-main-0"
 }
