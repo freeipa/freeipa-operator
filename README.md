@@ -59,13 +59,13 @@ Experimental freeipa-operator for Freeipa.
 
 1. And create a new idm resource by: `make recreate-sample-idm`
 
-1. Look at your objects by: `kubectl get all,idm`
+1. Look at your objects by: `kubectl get all,idm,pvc`
 
 1. And clean-up the cluster by:
 
    ```shell
    kubectl delete -f config/samples/freeipa_v1alpha1_freeipa.yaml
-   kustomize build config/default | kubectl delete -f -
+   make undeploy-cluster
    ```
 
 See also: [Operator SDK 1.0.0 - Quick Start](https://sdk.operatorframework.io/docs/building-operators/golang/quickstart/).
