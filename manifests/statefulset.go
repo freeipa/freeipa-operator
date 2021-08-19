@@ -8,30 +8,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// GetDataVolumeForPod
-func GetDataVolumeForMainStatefulset(m *v1alpha1.IDM, defaultStorage string) corev1.Volume {
-	if NeedsPersistentVolumeClaim(m) {
-		return corev1.Volume{
-			Name: "data",
-			VolumeSource: corev1.VolumeSource{
-				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-					ClaimName: GetMainPersistentVolumeClaimNameForStatefulset(m),
-				},
-			},
-		}
-	}
-
-	// By default return ephimeral
-	return corev1.Volume{
-		Name: "data",
-		VolumeSource: corev1.VolumeSource{
-			EmptyDir: &corev1.EmptyDirVolumeSource{
-				Medium: corev1.StorageMediumDefault,
-			},
-		},
-	}
-}
-
 // MainStatefulsetForIDM return a master pod for an IDM CRD
 func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage string) *appsv1.StatefulSet {
 	sDirectoryOrCreate := corev1.HostPathDirectoryOrCreate

@@ -246,7 +246,7 @@ func (r *IDMReconciler) CheckStatusSecret(ctx context.Context, item *v1alpha1.ID
 }
 
 // UpdateStatusSecretNameWith Update the secretName status field
-func (r *IDMReconciler) UpdateStatusSecretNameWith(secretName string, ctx context.Context, item *v1alpha1.IDM) error {
+func (r *IDMReconciler) UpdateStatusSecretNameWith(ctx context.Context, secretName string, item *v1alpha1.IDM) error {
 	item.Status.SecretName = secretName
 	if err := r.Status().Update(ctx, item); err != nil {
 		return err
@@ -279,7 +279,7 @@ func (r *IDMReconciler) CreateSecret(ctx context.Context, item *v1alpha1.IDM) er
 		err = r.Get(ctx, namespacedName, found)
 		if err == nil {
 			log.Info("Updating secret name in status")
-			if err = r.UpdateStatusSecretNameWith(manifests.GetSecretName(item), ctx, item); err != nil {
+			if err = r.UpdateStatusSecretNameWith(ctx, manifests.GetSecretName(item), item); err != nil {
 				return err
 			}
 			return nil
@@ -293,7 +293,7 @@ func (r *IDMReconciler) CreateSecret(ctx context.Context, item *v1alpha1.IDM) er
 		if err = r.Create(ctx, manifest); err != nil {
 			return err
 		}
-		if err = r.UpdateStatusSecretNameWith(manifests.GetSecretName(item), ctx, item); err != nil {
+		if err = r.UpdateStatusSecretNameWith(ctx, manifests.GetSecretName(item), item); err != nil {
 			return err
 		}
 		return nil
@@ -306,7 +306,7 @@ func (r *IDMReconciler) CreateSecret(ctx context.Context, item *v1alpha1.IDM) er
 	if err = r.Create(ctx, manifest); err != nil {
 		return err
 	}
-	if err = r.UpdateStatusSecretNameWith(manifests.GetSecretName(item), ctx, item); err != nil {
+	if err = r.UpdateStatusSecretNameWith(ctx, manifests.GetSecretName(item), item); err != nil {
 		return err
 	}
 	return nil
@@ -396,7 +396,7 @@ func getPodNames(pods []corev1.Pod) []string {
 	return podNames
 }
 
-// CreateStatefulsetMain
+// CreateStatefulsetMain Create the Statefulset object for the workload
 func (r *IDMReconciler) CreateStatefulsetMain(ctx context.Context, item *v1alpha1.IDM) error {
 	var err error
 	namespacedName := types.NamespacedName{
