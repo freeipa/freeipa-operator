@@ -56,6 +56,18 @@ rules:
       - "watch"
       - "list"
 
+  # Normal permissions for using the general resources.
+  - apiGroups:
+      - "apps"
+    resources:
+      - "statefulsets"
+    verbs:
+      - "get"
+      - "create"
+      - "update"
+      - "watch"
+      - "list"
+
   # Allow to retrieve the baseDomain
   - apiGroups:
       - "config.openshift.io"
@@ -145,11 +157,6 @@ rules:
       - "list"
       - "create"
       - "watch"
-      - "use"
-  - apiGroups: ["security.openshift.io"]
-    resources:
-      - "securitycontextconstraints"
-    verbs:
       - "use"
 
   # Grant permissions for managing secrets
