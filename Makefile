@@ -334,6 +334,12 @@ ifeq (,$(PASSWORD))
 	@echo "PASSWORD must be provided; PASSWORD=MySecretPassword make ..."; exit 1
 endif
 
+.PHONY: check-password
+check-password:
+ifeq (,$(PASSWORD))
+	@echo "ERROR:PASSWORD can not be empty"; exit 1
+endif
+
 .PHONY: sample-build
 sample-build:
 	-kustomize build $(SAMPLES_PATH)/$(SAMPLE)/
@@ -344,7 +350,7 @@ sample-delete:
 	-kustomize build $(SAMPLES_PATH)/$(SAMPLE)/ | kubectl delete -f -
 
 .PHONY: check-password-is-provided sample-create
-sample-create:
+sample-create: check-password
 	@-kubectl create secret generic idm-sample --from-literal=PASSWORD=$(PASSWORD)
 	kustomize build $(SAMPLES_PATH)/$(SAMPLE)/ | kubectl create -f -
 
