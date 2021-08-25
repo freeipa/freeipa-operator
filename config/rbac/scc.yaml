@@ -9,7 +9,7 @@ metadata:
     kubernetes.io/description: Provides a Freeipa Pod deployed all in one
       just for investigation prupose.
     release.openshift.io/create-only: "true"
-allowHostDirVolumePlugin: true
+allowHostDirVolumePlugin: false
 allowHostIPC: false
 allowHostNetwork: false
 allowHostPID: false
@@ -74,4 +74,3 @@ volumes:
   - persistentVolumeClaim
   - projected
   - secret
-  - hostPath
