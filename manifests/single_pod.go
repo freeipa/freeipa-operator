@@ -81,9 +81,6 @@ func GetDataVolumeForMainPod(m *v1alpha1.IDM, defaultStorage string) corev1.Volu
 
 // MainPodForIDM return a master pod for an IDM CRD
 func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage string) *corev1.Pod {
-	sDirectoryOrCreate := corev1.HostPathDirectoryOrCreate
-	sDirectory := corev1.HostPathDirectory
-
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetMainPodName(m),
@@ -229,26 +226,6 @@ func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage string) *c
 							MountPath: "/tmp",
 						},
 						{
-							Name:      "systemd-sys",
-							MountPath: "/sys",
-							ReadOnly:  true,
-						},
-						{
-							Name:      "systemd-sys-fs-selinux",
-							MountPath: "/sys/fs/selinux",
-							ReadOnly:  true,
-						},
-						{
-							Name:      "systemd-sys-firmware",
-							MountPath: "/sys/firmware",
-							ReadOnly:  true,
-						},
-						{
-							Name:      "systemd-sys-kernel",
-							MountPath: "/sys/kernel",
-							ReadOnly:  true,
-						},
-						{
 							Name:      "systemd-var-run",
 							MountPath: "/var/run",
 						},
@@ -261,42 +238,6 @@ func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage string) *c
 			},
 			Volumes: []corev1.Volume{
 				GetDataVolumeForMainPod(m, defaultStorage),
-				{
-					Name: "systemd-sys",
-					VolumeSource: corev1.VolumeSource{
-						HostPath: &corev1.HostPathVolumeSource{
-							Path: "/sys",
-							Type: &sDirectoryOrCreate,
-						},
-					},
-				},
-				{
-					Name: "systemd-sys-fs-selinux",
-					VolumeSource: corev1.VolumeSource{
-						HostPath: &corev1.HostPathVolumeSource{
-							Path: "/sys/fs/selinux",
-							Type: &sDirectory,
-						},
-					},
-				},
-				{
-					Name: "systemd-sys-firmware",
-					VolumeSource: corev1.VolumeSource{
-						HostPath: &corev1.HostPathVolumeSource{
-							Path: "/sys/firmware",
-							Type: &sDirectory,
-						},
-					},
-				},
-				{
-					Name: "systemd-sys-kernel",
-					VolumeSource: corev1.VolumeSource{
-						HostPath: &corev1.HostPathVolumeSource{
-							Path: "/sys/kernel",
-							Type: &sDirectory,
-						},
-					},
-				},
 				{
 					Name: "systemd-var-run",
 					VolumeSource: corev1.VolumeSource{
