@@ -258,26 +258,6 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 								MountPath: "/tmp",
 							},
 							{
-								Name:      "systemd-sys",
-								MountPath: "/sys",
-								ReadOnly:  true,
-							},
-							{
-								Name:      "systemd-sys-fs-selinux",
-								MountPath: "/sys/fs/selinux",
-								ReadOnly:  true,
-							},
-							{
-								Name:      "systemd-sys-firmware",
-								MountPath: "/sys/firmware",
-								ReadOnly:  true,
-							},
-							{
-								Name:      "systemd-sys-kernel",
-								MountPath: "/sys/kernel",
-								ReadOnly:  true,
-							},
-							{
 								Name:      "systemd-var-run",
 								MountPath: "/var/run",
 							},
@@ -299,8 +279,6 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 				It("has the volumeList expected", func(done Done) {
 					go func() {
 						defer GinkgoRecover()
-						sDirectoryOrCreate := corev1.HostPathDirectoryOrCreate
-						sDirectory := corev1.HostPathDirectory
 
 						volumeList := []corev1.Volume{
 							// Statefulset object add this automatically to the Pod, but
@@ -309,42 +287,6 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 							// When the PVC template section is defined, this function
 							// return an empty entry
 							// manifests.GetEphimeralVolumeForMainStatefulset(&idm),
-							{
-								Name: "systemd-sys",
-								VolumeSource: corev1.VolumeSource{
-									HostPath: &corev1.HostPathVolumeSource{
-										Path: "/sys",
-										Type: &sDirectoryOrCreate,
-									},
-								},
-							},
-							{
-								Name: "systemd-sys-fs-selinux",
-								VolumeSource: corev1.VolumeSource{
-									HostPath: &corev1.HostPathVolumeSource{
-										Path: "/sys/fs/selinux",
-										Type: &sDirectory,
-									},
-								},
-							},
-							{
-								Name: "systemd-sys-firmware",
-								VolumeSource: corev1.VolumeSource{
-									HostPath: &corev1.HostPathVolumeSource{
-										Path: "/sys/firmware",
-										Type: &sDirectory,
-									},
-								},
-							},
-							{
-								Name: "systemd-sys-kernel",
-								VolumeSource: corev1.VolumeSource{
-									HostPath: &corev1.HostPathVolumeSource{
-										Path: "/sys/kernel",
-										Type: &sDirectory,
-									},
-								},
-							},
 							{
 								Name: "systemd-var-run",
 								VolumeSource: corev1.VolumeSource{
