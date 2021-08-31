@@ -4,7 +4,7 @@ kind: Kustomization
 
 # Labels to add to all resources and selectors.
 commonLabels:
-  sample: ephimeral-storage
+  sample: ephemeral-storage
 
 resources:
   - idm_v1alpha1_freeipa.yaml

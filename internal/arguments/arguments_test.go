@@ -15,7 +15,7 @@ var _ = Describe("Arguments package", func() {
 			":8081",
 			"--enable-leader-election",
 			"--default-storage",
-			"ephimeral",
+			"ephemeral",
 		}
 		// WHEN
 		It("initializes with no errors", func() {
@@ -25,7 +25,7 @@ var _ = Describe("Arguments package", func() {
 			Expect(result).ShouldNot(BeNil())
 			Expect(result.GetMetricsAddr()).Should(Equal(":8081"))
 			Expect(result.GetEnableLeaderElection()).Should(BeTrue())
-			Expect(result.GetDefaultStorage()).Should(Equal("ephimeral"))
+			Expect(result.GetDefaultStorage()).Should(Equal("ephemeral"))
 		})
 	})
 

@@ -33,9 +33,9 @@ Variables:
   IMG       The container image reference such as quay.io/freeipa/freeipa-operator:latest
             If IMG_TAG variable is not overrided, the local tag used is 'dev-GIT_SHA'.
   SAMPLE    The configuration to be used using config/samples as base directory.
-            # make SAMPLE=ephimeral-storage recreate-idm-sample
-            Default is 'ephimeral-storage'
-  DEFAULT_STORAGE  It is used for enabling hostpath and ephimeral storages when no
+            # make SAMPLE=ephemeral-storage recreate-idm-sample
+            Default is 'ephemeral-storage'
+  DEFAULT_STORAGE  It is used for enabling hostpath and ephemeral storages when no
                    PersistentVolumeClaim Template is specified. It is used when
                    doing 'make run'
                    ** EXAMPLE
@@ -48,7 +48,7 @@ Variables:
                    service admin. It is used the same so far.
                    It must be specified when running ' make recreate-sample-idm'.
                    ** EXAMPLE
-                   ** PASSWORD=Secret123 SAMPLE=ephimeral-storage make recreate-sample-idm
+                   ** PASSWORD=Secret123 SAMPLE=ephemeral-storage make recreate-sample-idm
   CONFIG           The configuration to be used; by default 'default' is used, but
                    you can override setting it to 'default-hostpath'.
 

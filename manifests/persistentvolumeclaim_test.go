@@ -197,7 +197,7 @@ var _ = Describe("LOCAL:PersistentVolumeClaim tests", func() {
 		}
 		var ds []string = []string{
 			"",
-			"ephimeral",
+			"ephemeral",
 			"hostpath",
 			"",
 			"wrongdefaultsorage",
@@ -207,7 +207,7 @@ var _ = Describe("LOCAL:PersistentVolumeClaim tests", func() {
 			nil,
 			nil,
 			errors.New("no VolumeClaimTemplate nor defaultStorage found"),
-			errors.New("defaultStorage has an invalid value; only 'ephimeral' and 'hostpath' are allowed"),
+			errors.New("defaultStorage has an invalid value; only 'ephemeral' and 'hostpath' are allowed"),
 		}
 
 		for index, item := range r {

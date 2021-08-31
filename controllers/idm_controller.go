@@ -323,8 +323,8 @@ func (r *IDMReconciler) CreatePersistentVolumeClaim(ctx context.Context, item *v
 	}
 	log := r.Log.WithValues(item.Name, namespacedName)
 	if item.Spec.VolumeClaimTemplate == nil {
-		if r.Arguments.GetDefaultStorage() == "ephimeral" {
-			log.Info("VolumeTemplateClaim not defined, using an 'ephimeral' volume for storing data")
+		if r.Arguments.GetDefaultStorage() == "ephemeral" {
+			log.Info("VolumeTemplateClaim not defined, using an 'ephemeral' volume for storing data")
 			return nil
 		}
 		return generalerr.New("VolumeClaimTemplate is missed")

@@ -54,7 +54,7 @@ func CheckVolumeInformation(m *v1alpha1.IDM, defaultStorage string) error {
 		return nil
 	}
 
-	if defaultStorage == "ephimeral" {
+	if defaultStorage == "ephemeral" {
 		return nil
 	}
 
@@ -65,7 +65,7 @@ func CheckVolumeInformation(m *v1alpha1.IDM, defaultStorage string) error {
 	if defaultStorage == "" {
 		return errors.New("no VolumeClaimTemplate nor defaultStorage found")
 	} else {
-		return errors.New("defaultStorage has an invalid value; only 'ephimeral' and 'hostpath' are allowed")
+		return errors.New("defaultStorage has an invalid value; only 'ephemeral' and 'hostpath' are allowed")
 	}
 }
 
