@@ -47,8 +47,8 @@ IMG ?= $(IMG_BASE)/$(IMG_NAME):$(IMG_TAG)
 CRD_OPTIONS ?= "crd:trivialVersions=true, crdVersions=v1"
 TEMPLATES_PATH ?= $(PWD)/config/templates
 SAMPLES_PATH ?= $(PWD)/config/samples
-SAMPLE ?= ephimeral-storage
-DEFAULT_STORAGE ?= ephimeral
+SAMPLE ?= ephemeral-storage
+DEFAULT_STORAGE ?= ephemeral
 CONFIG ?= default
 
 

@@ -32,7 +32,7 @@ func HasValidVolumeInformation(m *v1alpha1.IDM, defaultStorage string) bool {
 		return true
 	}
 
-	if defaultStorage == "ephimeral" {
+	if defaultStorage == "ephemeral" {
 		return true
 	}
 
@@ -57,7 +57,7 @@ func GetDataVolumeForMainPod(m *v1alpha1.IDM, defaultStorage string) corev1.Volu
 	}
 
 	// Set /data volume according to defaultStorage
-	if defaultStorage == "ephimeral" {
+	if defaultStorage == "ephemeral" {
 		return corev1.Volume{
 			Name: "data",
 			VolumeSource: corev1.VolumeSource{
@@ -68,7 +68,7 @@ func GetDataVolumeForMainPod(m *v1alpha1.IDM, defaultStorage string) corev1.Volu
 		}
 	}
 
-	// By default return ephimeral
+	// By default return ephemeral
 	return corev1.Volume{
 		Name: "data",
 		VolumeSource: corev1.VolumeSource{

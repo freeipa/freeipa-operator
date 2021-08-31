@@ -32,18 +32,18 @@ func NewWithArguments(Args []string) (*Arguments, error) {
 		os.Getenv(ENV_DEFAULT_STORAGE),
 		"Default storage. An empty string here make sure the persistent volume"+
 			"claim section is not empty. "+
-			"It can be 'ephimeral' or 'hostpath'. The default value is retrieved from "+
+			"It can be 'ephemeral' or 'hostpath'. The default value is retrieved from "+
 			"the DEFAULT_STORAGE environment variable.")
 	Flag.Usage = func() {
 		fmt.Printf("Controller usage:\n")
-		fmt.Printf("%s --metrics-addr :8080 --enable-leader-election --default-storage {ephimeral,hostPath}\n", os.Args[0])
+		fmt.Printf("%s --metrics-addr :8080 --enable-leader-election --default-storage {ephemeral,hostPath}\n", os.Args[0])
 	}
 
 	Flag.Parse(Args[1:])
 
-	if defaultStorage != "" && defaultStorage != "ephimeral" && defaultStorage != "hostpath" {
+	if defaultStorage != "" && defaultStorage != "ephemeral" && defaultStorage != "hostpath" {
 		Flag.Usage()
-		fmt.Printf("ERROR:'--default-storage' must be empty, 'ephimeral' or 'hostpath' values\n")
+		fmt.Printf("ERROR:'--default-storage' must be empty, 'ephemeral' or 'hostpath' values\n")
 		fmt.Printf("ERROR:When not specified it defaults to DEFAULT_STORAGE environment variable\n")
 		panic(func() {})
 	}
