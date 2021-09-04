@@ -10,6 +10,7 @@ import (
 	"github.com/freeipa/freeipa-operator/api/v1alpha1"
 	manifests "github.com/freeipa/freeipa-operator/manifests"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -66,6 +67,31 @@ func assertPodSecurityContext(data *corev1.SecurityContext) {
 	Expect(*data.Privileged).Should(BeFalse())
 }
 
+func assertQuantityEqual(data1 *resource.Quantity, data2 *resource.Quantity) {
+	Expect(data1).ShouldNot(BeNil())
+	Expect(data2).ShouldNot(BeNil())
+
+	Expect(data1.Cmp(*data2)).Should(BeZero())
+}
+
+func assertResourceListEqual(data1 *corev1.ResourceList, data2 *corev1.ResourceList) {
+	Expect(data1).ShouldNot(BeNil())
+	Expect(data2).ShouldNot(BeNil())
+
+	assertQuantityEqual(data1.Cpu(), data2.Cpu())
+	assertQuantityEqual(data1.Memory(), data2.Memory())
+	assertQuantityEqual(data1.Storage(), data2.Storage())
+	assertQuantityEqual(data1.StorageEphemeral(), data2.StorageEphemeral())
+}
+
+func assertContainerResourcesEqual(data1 *corev1.ResourceRequirements, data2 *corev1.ResourceRequirements) {
+	Expect(data1).ShouldNot(BeNil())
+	Expect(data2).ShouldNot(BeNil())
+
+	assertResourceListEqual(&data1.Limits, &data2.Limits)
+	assertResourceListEqual(&data1.Requests, &data2.Requests)
+}
+
 var _ = Describe("LOCAL:Statefulset tests", func() {
 
 	Describe("MainStatefulsetForIDM", func() {
@@ -81,6 +107,18 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 				Spec: v1alpha1.IDMSpec{
 					Realm:          "IPA.TEST",
 					PasswordSecret: pointy.String("test"),
+					Resources: corev1.ResourceRequirements{
+						Requests: corev1.ResourceList{
+							"cpu":     resource.MustParse("1500m"),
+							"memory":  resource.MustParse("2Gi"),
+							"storage": resource.MustParse("10Gi"),
+						},
+						Limits: corev1.ResourceList{
+							"cpu":     resource.MustParse("2000m"),
+							"memory":  resource.MustParse("2Gi"),
+							"storage": resource.MustParse("10Gi"),
+						},
+					},
 					VolumeClaimTemplate: &corev1.PersistentVolumeClaimSpec{
 						AccessModes: []corev1.PersistentVolumeAccessMode{
 							corev1.ReadOnlyMany,
@@ -244,6 +282,10 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 					By("Checking result.Spec.Template.Spec.Containers[0].Ports[].Name: " + item.Name)
 					assertContainerPortEqual(&item, &portList[index])
 				}
+
+				It("has the resources expected", func() {
+					assertContainerResourcesEqual(&idm.Spec.Resources, &result.Spec.Template.Spec.Containers[0].Resources)
+				})
 
 				It("has the volumeMountList expected", func(done Done) {
 					go func() {

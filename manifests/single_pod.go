@@ -98,9 +98,10 @@ func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage string) *c
 			ServiceAccountName: GetServiceAccountName(m),
 			Containers: []corev1.Container{
 				{
-					Name:  "main",
-					Image: "quay.io/freeipa/freeipa-openshift-container:freeipa-server",
-					TTY:   true,
+					Name:      "main",
+					Image:     "quay.io/freeipa/freeipa-openshift-container:freeipa-server",
+					TTY:       true,
+					Resources: m.Spec.Resources,
 					SecurityContext: &corev1.SecurityContext{
 						Privileged: pointy.Bool(false),
 						Capabilities: &corev1.Capabilities{
