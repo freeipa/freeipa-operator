@@ -92,6 +92,7 @@ func (in *IDMSpec) DeepCopyInto(out *IDMSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	in.Resources.DeepCopyInto(&out.Resources)
 	if in.VolumeClaimTemplate != nil {
 		in, out := &in.VolumeClaimTemplate, &out.VolumeClaimTemplate
 		*out = new(v1.PersistentVolumeClaimSpec)

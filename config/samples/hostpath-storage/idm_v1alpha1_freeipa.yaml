@@ -7,6 +7,13 @@ spec:
   # Add fields here
   realm: bar
   passwordSecret: idm-sample
+  resources:
+    requests:
+      cpu: "1500m"
+      memory: "2Gi"
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
   volumeClaimTemplate:
     accessModes:
       - ReadWriteOnce
