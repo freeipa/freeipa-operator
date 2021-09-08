@@ -302,7 +302,7 @@ func (r *IDMReconciler) CreateSecret(ctx context.Context, item *v1alpha1.IDM) er
 
 	// If a password was not specified, it creates a secret with a random password
 	log.Info("Creating Secret with random password")
-	manifest := manifests.SecretForIDM(item, manifests.GenerateRandomPassword())
+	manifest := manifests.SecretForIDM(item, manifests.GenerateRandomPassword(), manifests.GenerateRandomPassword())
 	ctrl.SetControllerReference(item, manifest, r.Scheme)
 	if err = r.Create(ctx, manifest); err != nil {
 		return err
