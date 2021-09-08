@@ -80,7 +80,7 @@ func GetDataVolumeForMainPod(m *v1alpha1.IDM, defaultStorage string) corev1.Volu
 }
 
 // MainPodForIDM return a master pod for an IDM CRD
-func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage string) *corev1.Pod {
+func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, workload string, defaultStorage string) *corev1.Pod {
 	sDirectoryOrCreate := corev1.HostPathDirectoryOrCreate
 	sDirectory := corev1.HostPathDirectory
 
@@ -102,7 +102,7 @@ func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage string) *c
 			Containers: []corev1.Container{
 				{
 					Name:  "main",
-					Image: "quay.io/freeipa/freeipa-openshift-container:freeipa-server",
+					Image: workload,
 					TTY:   true,
 					SecurityContext: &corev1.SecurityContext{
 						Privileged: pointy.Bool(false),

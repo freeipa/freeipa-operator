@@ -59,3 +59,6 @@ Variables:
                    ** setenforce Permissive
                    **
                    ** FINALLY: CONFIG=default-hostpath make deploy-cluster
+  WORKLOAD_IMAGE   Set the image to be used for the workload.
+                   By default "quay.io/freeipa/freeipa-openshift-container:freeipa-server"
+                   is used.

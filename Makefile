@@ -58,6 +58,7 @@ KIND_CLUSTER_NAME ?= idmcontroller
 K8S_NODE_IMAGE ?= v1.19.0
 PROMETHEUS_INSTANCE_NAME ?= prometheus-operator
 # CONFIG_MAP_NAME ?= initcontainer-configmap
+WORKLOAD_IMAGE ?= "quay.io/freeipa/freeipa-openshift-container:freeipa-server"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
