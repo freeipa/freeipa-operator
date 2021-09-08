@@ -55,3 +55,14 @@ Variables:
                    ** PASSWORD=Secret123 SAMPLE=ephemeral-storage make recreate-sample-idm
   CONFIG           The configuration to be used; by default 'default' is used, but
                    you can override setting it to 'default-hostpath'.
+
+                   ** ONLY FOR SINGLE NODE CLUSTERS AND FOR DEVELOPING **
+                   ** ACTUALLY IT NEEDS TO SET SELINUX IN PERMISSIVE MODE **
+                   **   oc debug nodes/....
+                   **   chroot /host
+                   **   setenforce Permissive
+                   **
+                   ** FINALLY: CONFIG=default-hostpath make deploy-cluster
+  WORKLOAD_IMAGE   Set the image to be used for the workload.
+                   By default "quay.io/freeipa/freeipa-openshift-container:freeipa-server"
+                   is used.
