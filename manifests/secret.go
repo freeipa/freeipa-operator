@@ -29,11 +29,15 @@ func GetSecretName(m *v1alpha1.IDM) string {
 // m It is the idm manifest that triggered the event.
 // password It is the password that will be used for deploying
 // the freeipa workload.
-func SecretForIDM(m *v1alpha1.IDM, password string) *corev1.Secret {
-	if password == "" {
-		password = GenerateRandomPassword()
+func SecretForIDM(m *v1alpha1.IDM, adminPassword string, dsPassword string) *corev1.Secret {
+	if adminPassword == "" {
+		adminPassword = GenerateRandomPassword()
 	}
-	password = b64.StdEncoding.EncodeToString([]byte(password))
+	if dsPassword == "" {
+		dsPassword = GenerateRandomPassword()
+	}
+	adminPassword = b64.StdEncoding.EncodeToString([]byte(adminPassword))
+	dsPassword = b64.StdEncoding.EncodeToString([]byte(dsPassword))
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetSecretName(m),
@@ -43,7 +47,8 @@ func SecretForIDM(m *v1alpha1.IDM, password string) *corev1.Secret {
 		Immutable: pointy.Bool(true),
 		Type:      corev1.SecretTypeOpaque,
 		StringData: map[string]string{
-			"PASSWORD": password,
+			"ADMIN_PASSWORD": adminPassword,
+			"DS_PASSWORD":    dsPassword,
 		},
 	}
 	return secret
