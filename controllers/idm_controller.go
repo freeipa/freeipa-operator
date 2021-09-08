@@ -42,10 +42,11 @@ import (
 type IDMReconciler struct {
 	client.Client
 
-	Log        logr.Logger
-	Scheme     *runtime.Scheme
-	BaseDomain string
-	Arguments  *arguments.Arguments
+	Log           logr.Logger
+	Scheme        *runtime.Scheme
+	BaseDomain    string
+	Arguments     *arguments.Arguments
+	WorkloadImage string
 }
 
 var (
@@ -372,7 +373,7 @@ func (r *IDMReconciler) CreateMainPod(ctx context.Context, item *v1alpha1.IDM) e
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating Master Pod")
-			manifest := manifests.MainPodForIDM(item, r.BaseDomain, defaultStorage)
+			manifest := manifests.MainPodForIDM(item, r.BaseDomain, r.WorkloadImage, defaultStorage)
 			ctrl.SetControllerReference(item, manifest, r.Scheme)
 			if err = r.Create(ctx, manifest); err != nil {
 				return err

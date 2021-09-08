@@ -62,9 +62,17 @@ func getWatchNamespace() (string, error) {
 	return ns, nil
 }
 
+func getWorkloadImage() string {
+	if workload, exist := os.LookupEnv("WORKLOAD_IMAGE"); exist {
+		return workload
+	}
+	return "quay.io/freeipa/freeipa-openshift-container:freeipa-server"
+}
+
 func main() {
 	var err error
 	var ctrlArguments *arguments.Arguments
+	var workloadImage string = getWorkloadImage()
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
@@ -96,9 +104,10 @@ func main() {
 	}
 
 	if err = (&controllers.IDMReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("IDM"),
-		Scheme: mgr.GetScheme(),
+		Client:        mgr.GetClient(),
+		Log:           ctrl.Log.WithName("controllers").WithName("IDM"),
+		Scheme:        mgr.GetScheme(),
+		WorkloadImage: workloadImage,
 	}).SetupWithManager(mgr, ctrlArguments); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "IDM")
 		os.Exit(3)
