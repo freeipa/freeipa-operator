@@ -51,6 +51,13 @@ func init() {
 	// +kubebuilder:scaffold:scheme
 }
 
+func readNameSpace() string {
+	if namespace, exist := os.LookupEnv("WATCH_NAMESPACE"); exist {
+		return namespace
+	}
+	return ""
+}
+
 func main() {
 	var err error
 	var ctrlArguments *arguments.Arguments
@@ -70,6 +77,7 @@ func main() {
 		Port:               9443,
 		LeaderElection:     ctrlArguments.GetEnableLeaderElection(),
 		LeaderElectionID:   "42b6c26c.redhat.com",
+		Namespace:          readNameSpace(),
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
