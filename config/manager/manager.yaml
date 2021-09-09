@@ -23,22 +23,29 @@ spec:
       labels:
         control-plane: controller-manager
     spec:
-      containers:
-        - command:
-            - /manager
-          args:
-            - --enable-leader-election
-            # FIXME Remove -debug for releases
-            - -debug
-          image: controller:latest
-          name: manager
-          # FIXME Remove imagaPullPolicy for releases
-          imagePullPolicy: Always
-          resources:
-            limits:
-              cpu: 100m
-              memory: 150Mi
-            requests:
-              cpu: 100m
-              memory: 100Mi
       terminationGracePeriodSeconds: 10
+      containers:
+      - name: manager
+        image: controller:latest
+        # FIXME Remove imagaPullPolicy for releases
+        imagePullPolicy: Always
+
+        resources:
+          limits:
+            cpu: 100m
+            memory: 80Mi
+          requests:
+            cpu: 100m
+            memory: 60Mi
+
+        command:
+        - /manager
+        args:
+        - --enable-leader-election
+        # FIXME Remove -debug for releases
+        - -debug
+        env:
+        - name: WATCH_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
