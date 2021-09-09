@@ -48,6 +48,7 @@ type IDMStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:resource:path=idms,scope=Namespaced
 
 // IDM is the Schema for the idms API
 type IDM struct {
