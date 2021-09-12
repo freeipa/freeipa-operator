@@ -1,0 +1,16 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: dnses-role
+rules:
+  # Allow to retrieve the baseDomain
+  - apiGroups:
+      - "config.openshift.io"
+    resources:
+      - "dnses"
+    verbs:
+      - list
+      - get
+      - watch
