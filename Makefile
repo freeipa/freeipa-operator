@@ -1,3 +1,5 @@
+WATCH_NAMESPACE ?= $(shell kubectl config view --minify --output 'jsonpath={..namespace}')
+
 IMG_NAME := freeipa-operator
 
 ifneq (,$(shell command -v podman 2>/dev/null))
@@ -143,6 +145,8 @@ redeploy-cluster: undeploy-cluster container-build container-push deploy-cluster
 .PHONY: deploy-cluster
 deploy-cluster: kustomize manifests install-crds
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
+	cd config/manager && $(KUSTOMIZE) edit set namespace $(WATCH_NAMESPACE)
+	-oc create new-project $(WATCH_NAMESPACE)
 	$(KUSTOMIZE) build config/$(CONFIG) | kubectl apply -f -
 
 # Undeploy controller in the configured Kubernetes cluster in ~/.kube/config
