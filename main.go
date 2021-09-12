@@ -17,6 +17,11 @@ limitations under the License.
 package main
 
 import (
+<<<<<<< HEAD
+=======
+	"flag"
+	"fmt"
+>>>>>>> 60b27b4 (Read namespace to be watched from WATCH_NAMESPACE environment variable)
 	"os"
 
 	configv1 "github.com/openshift/api/config/v1"
@@ -51,11 +56,18 @@ func init() {
 	// +kubebuilder:scaffold:scheme
 }
 
-func readNameSpace() string {
-	if namespace, exist := os.LookupEnv("WATCH_NAMESPACE"); exist {
-		return namespace
+// getWatchNamespace returns the Namespace the operator should be watching for changes
+func getWatchNamespace() (string, error) {
+	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
+	// which specifies the Namespace to watch.
+	// An empty value means the operator is running with cluster scope.
+	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
+
+	ns, found := os.LookupEnv(watchNamespaceEnvVar)
+	if !found {
+		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
 	}
-	return ""
+	return ns, nil
 }
 
 func main() {
@@ -71,13 +83,20 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Get WATCH_NAMESPACE value
+	watchNamespace, err := getWatchNamespace()
+	if err != nil || watchNamespace == "" {
+		setupLog.Error(err, "unable to get WatchNamespace, "+
+			"the manager will watch and manage resources in all namespaces")
+	}
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: ctrlArguments.GetMetricsAddr(),
 		Port:               9443,
 		LeaderElection:     ctrlArguments.GetEnableLeaderElection(),
 		LeaderElectionID:   "42b6c26c.redhat.com",
-		Namespace:          readNameSpace(),
+		Namespace:          watchNamespace, // namespaced-scope when the value is not an empty string
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
