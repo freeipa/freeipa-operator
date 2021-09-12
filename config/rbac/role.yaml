@@ -68,16 +68,6 @@ rules:
       - "watch"
       - "list"
 
-  # Allow to retrieve the baseDomain
-  - apiGroups:
-      - "config.openshift.io"
-    resources:
-      - "dnses"
-    verbs:
-      - "list"
-      - "get"
-      - "watch"
-
   - apiGroups:
       - ""
     resources:
