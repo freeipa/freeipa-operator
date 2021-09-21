@@ -307,11 +307,11 @@ endif
 ifeq (podman,$(DOCKER))
 kind-load-img: container-build-root
 	@echo "Loading image into kind"
-	sudo -E --preserve-env=HOME,PATH,GOPATH -- $(KIND) load docker-image $(IMG) --name $(KIND_CLUSTER_NAME) --loglevel "trace"
+	sudo -E --preserve-env=HOME,PATH,GOPATH -- $(KIND) load docker-image $(IMG) --name $(KIND_CLUSTER_NAME) --verbosity 9
 else ifeq (docker,$(DOCKER))
 kind-load-img: container-build
 	@echo "Loading image into kind"
-	$(KIND) load docker-image $(IMG) --name $(KIND_CLUSTER_NAME) --loglevel "trace"
+	$(KIND) load docker-image $(IMG) --name $(KIND_CLUSTER_NAME) --verbosity 9
 else
 kind-load-img: container-build-root
 	@echo container enginer not supported; exit 1
