@@ -259,7 +259,7 @@ kind-create: kind
 	then \
 	  echo "Cluster '$(KIND_CLUSTER_NAME)' already exists"; \
 	else \
-	  $(KIND) create cluster --name $(KIND_CLUSTER_NAME) --image=kindest/node:$(K8S_NODE_IMAGE); \
+	  $(KIND) create cluster --name $(KIND_CLUSTER_NAME) --image=kindest/node:$(K8S_NODE_IMAGE) --config config/kind/config.yaml; \
 	fi
 else ifeq (docker,$(DOCKER))
 kind-create:
@@ -267,7 +267,7 @@ kind-create:
 	then \
 	  echo "Cluster '$(KIND_CLUSTER_NAME)' already exists"; \
 	else \
-	  $(KIND) create cluster --name $(KIND_CLUSTER_NAME) --image=kindest/node:$(K8S_NODE_IMAGE); \
+	  $(KIND) create cluster --name $(KIND_CLUSTER_NAME) --image=kindest/node:$(K8S_NODE_IMAGE) --config config/kind/config.yaml; \
 	fi
 else
 kind-create:
