@@ -54,6 +54,7 @@ CONFIG ?= default
 
 # Install kind by:
 # GO111MODULE="on" go get sigs.k8s.io/kind@v0.10.0
+KIND_VERSION := v0.11.1
 KIND_CLUSTER_NAME ?= idmcontroller
 K8S_NODE_IMAGE ?= v1.19.0
 PROMETHEUS_INSTANCE_NAME ?= prometheus-operator
@@ -252,7 +253,7 @@ deploy-kind: kind-create kind-load-img deploy-cluster
 .PHONY: kind
 kind:
 ifeq (, $(shell which kind))
-	@(cd && GO111MODULE="on" go get sigs.k8s.io/kind@v0.10.0)
+	@(cd && GO111MODULE="on" go get sigs.k8s.io/kind@$(KIND_VERSION))
 KIND=$(GOBIN)/kind
 else
 KIND=$(shell which kind)
