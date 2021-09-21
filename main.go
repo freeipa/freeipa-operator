@@ -40,10 +40,6 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
-const (
-	ENV_DEFAULT_STORAGE = "DEFAULT_STORAGE"
-)
-
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(idmv1alpha1.AddToScheme(scheme))
