@@ -195,14 +195,6 @@ endif
 container-build: check-container-runtime
 	$(DOCKER) build . -t $(IMG)
 
-.PHONY: container-build-root
-container-build-root: container-build container-save
-	cat $(CONTAINER_IMAGE_FILE) | sudo $(DOCKER) load
-
-.PHONY: container-delete-root
-container-delete-root:
-	sudo -E --preserve-env=HOME,PATH,GOPATH $(DOCKER) image rm $(IMG)
-
 .PHONY: container-save
 container-save: check-container-runtime $(CONTAINER_IMAGE_FILE)
 $(CONTAINER_IMAGE_FILE): FORCE
@@ -263,11 +255,11 @@ endif
 .PHONY: kind-create
 ifeq (podman,$(DOCKER))
 kind-create: kind
-	@if (sudo -E --preserve-env=HOME,PATH,GOPATH $(KIND) get clusters 2>/dev/null | grep -q ^$(KIND_CLUSTER_NAME)\$$); \
+	@if ($(KIND) get clusters 2>/dev/null | grep -q ^$(KIND_CLUSTER_NAME)\$$); \
 	then \
 	  echo "Cluster '$(KIND_CLUSTER_NAME)' already exists"; \
 	else \
-	  sudo -E --preserve-env=HOME,PATH,GOPATH $(KIND) create cluster --name $(KIND_CLUSTER_NAME) --image=kindest/node:$(K8S_NODE_IMAGE); \
+	  $(KIND) create cluster --name $(KIND_CLUSTER_NAME) --image=kindest/node:$(K8S_NODE_IMAGE); \
 	fi
 else ifeq (docker,$(DOCKER))
 kind-create:
@@ -285,9 +277,9 @@ endif
 .PHONY: kind-delete
 ifeq (podman,$(DOCKER))
 kind-delete:
-	@if (sudo -E --preserve-env=HOME,PATH,GOPATH $(KIND) get clusters 2>/dev/null | grep -q ^$(KIND_CLUSTER_NAME)\$$); \
+	@if ($(KIND) get clusters 2>/dev/null | grep -q ^$(KIND_CLUSTER_NAME)\$$); \
 	then \
-	  sudo -E --preserve-env=HOME,PATH,GOPATH $(KIND) delete cluster --name $(KIND_CLUSTER_NAME); \
+	  $(KIND) delete cluster --name $(KIND_CLUSTER_NAME); \
 	else \
 	  echo "Cluster '$(KIND_CLUSTER_NAME)' does not exist"; \
 	fi
@@ -306,15 +298,15 @@ endif
 
 .PHONY: kind-load-img
 ifeq (podman,$(DOCKER))
-kind-load-img: container-build-root
+kind-load-img: container-build
 	@echo "Loading image into kind"
-	sudo -E --preserve-env=HOME,PATH,GOPATH -- $(KIND) load docker-image $(IMG) --name $(KIND_CLUSTER_NAME) --verbosity 9
+	$(KIND) load docker-image $(IMG) --name $(KIND_CLUSTER_NAME) --verbosity 9
 else ifeq (docker,$(DOCKER))
 kind-load-img: container-build
 	@echo "Loading image into kind"
 	$(KIND) load docker-image $(IMG) --name $(KIND_CLUSTER_NAME) --verbosity 9
 else
-kind-load-img: container-build-root
+kind-load-img: container-build
 	@echo container enginer not supported; exit 1
 endif
 
