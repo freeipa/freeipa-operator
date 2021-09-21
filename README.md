@@ -4,6 +4,10 @@ Experimental freeipa-operator for Freeipa.
 
 ## Quick Start
 
+> It requires golang 1.16; if your system is providing a lower
+> version, consider to install [gvm](https://github.com/moovweb/gvm#installing).
+> for using different golang versions.
+
 1. Clone the repository by:
 
    ```shell

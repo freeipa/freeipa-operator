@@ -169,6 +169,7 @@ function install-packages
     esac
 } # install-packages
 
+# FIXME Clean-up this function
 ##
 # Install kustomize tool from source code. The other ways failed in Fedora 32.
 # See: https://kubernetes-sigs.github.io/kustomize/installation/source/#install-the-kustomize-cli-from-local-source-with-cloning-the-repo
@@ -230,6 +231,11 @@ function install-dive-tool
 ##
 function install-go-tools
 {
+    local GODOC_VERSION="v0.1.6"
+    local DELVE_VERSION="v1.7.1"
+    local GOLINT_VERSION="master"
+    local KUSTOMIZE_VERSION="v3.2.3"
+
     [ "$GOPATH" == "" ] && {
         GOPATH="$HOME/go"
         [ -e "$GOPATH" ] || mkdir -p "$GOPATH"
@@ -237,17 +243,16 @@ function install-go-tools
     }
 
     # Install godoc
-    (cd && GO111MODULE=on verbose go get -u -v golang.org/x/tools/cmd/godoc) || die "Installing godoc"
+    go install golang.org/x/tools/cmd/godoc@${GODOC_VERSION} || die "Installing godoc"
 
     # Install debugger
-    (cd && GO111MODULE=on verbose go get -u -v github.com/go-delve/delve/cmd/dlv) || die "Installing dlv"
+    go install github.com/go-delve/delve/cmd/dlv@${DELVE_VERSION} || die "Installing dlv"
 
     # Install linter
-    (cd && GO111MODULE=on verbose go get -u -v golang.org/x/lint/golint) || die "Installing golint"
+    go install golang.org/x/lint/golint@${GOLINT_VERSION} || die "Installing golint"
 
     # Install kustomize
-    # install-kustomize-from-source || die "Installing kustomize"
-    (cd && GO111MODULE=on verbose go get -v sigs.k8s.io/kustomize/kustomize/v3@v3.2.3) || die "Installing kustomize"
+    go install sigs.k8s.io/kustomize/kustomize/v3@${KUSTOMIZE_VERSION} || die "Installing kustomize"
 
     # Install dive
     install-dive-tool
