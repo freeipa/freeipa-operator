@@ -17,11 +17,7 @@ limitations under the License.
 package main
 
 import (
-<<<<<<< HEAD
-=======
-	"flag"
 	"fmt"
->>>>>>> 60b27b4 (Read namespace to be watched from WATCH_NAMESPACE environment variable)
 	"os"
 
 	configv1 "github.com/openshift/api/config/v1"
