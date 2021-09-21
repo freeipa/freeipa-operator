@@ -1,7 +1,7 @@
 // https://blog.golang.org/using-go-modules
 module github.com/freeipa/freeipa-operator
 
-go 1.14
+go 1.16
 
 require (
 	github.com/go-logr/logr v0.4.0
