@@ -56,7 +56,7 @@ CONFIG ?= default
 # GO111MODULE="on" go get sigs.k8s.io/kind@v0.10.0
 KIND_VERSION := v0.11.1
 KIND_CLUSTER_NAME ?= idmcontroller
-K8S_NODE_IMAGE ?= v1.19.0
+K8S_NODE_IMAGE ?= v1.21.1
 PROMETHEUS_INSTANCE_NAME ?= prometheus-operator
 # CONFIG_MAP_NAME ?= initcontainer-configmap
 
