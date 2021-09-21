@@ -196,7 +196,7 @@ container-build: check-container-runtime
 
 .PHONY: container-build-root
 container-build-root: container-build container-save
-	cat $(CONTAINER_IMAGE_FILE) | sudo $(DOCKER) load $(IMG)
+	cat $(CONTAINER_IMAGE_FILE) | sudo $(DOCKER) load
 
 .PHONY: container-delete-root
 container-delete-root:
@@ -215,12 +215,12 @@ $(CONTAINER_IMAGE_FILE).gz: FORCE
 .PHONY: container-load
 container-load: check-container-runtime
 	@if [ ! -e "$(CONTAINER_IMAGE_FILE)" ]; then echo "No image file found. Run 'make container-build container-save' to generate a fresh image file before load it"; exit 2; fi
-	cat $(CONTAINER_IMAGE_FILE) | $(DOCKER) load $(IMG)
+	cat $(CONTAINER_IMAGE_FILE) | $(DOCKER) load
 
 .PHONY: container-load-gz
 container-load-gz: check-container-runtime
 	@if [ ! -e "$(CONTAINER_IMAGE_FILE).gz" ]; then echo "No image file found. Run 'make container-build container-save-gz' to generate a fresh image file before load it"; exit 2; fi
-	gunzip $(CONTAINER_IMAGE_FILE).gz -c | $(DOCKER) load $(IMG)
+	gunzip $(CONTAINER_IMAGE_FILE).gz -c | $(DOCKER) load
 
 # Push the docker image
 .PHONY: container-push
