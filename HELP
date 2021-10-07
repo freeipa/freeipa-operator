@@ -15,7 +15,7 @@ Subcommands:
 
   install-crds         Install the CRD manifest into the cluster.
   uninstall-crds       Uninstall the CRD manifest.
-  deploy-cluster       Deploy controller into the cluster and CRDS.
+  deploy-cluster       Deploy controller and CRDs into the cluster.
                        It uses IMG to define the container image that contain the controller.
   undeploy-cluster     Undeploy controller and CRDS from the cluster.
   deploy-kind          Deploy controller into a kind cluster.
