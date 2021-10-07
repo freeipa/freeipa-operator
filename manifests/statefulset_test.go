@@ -79,7 +79,7 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 					},
 				},
 				Spec: v1alpha1.IDMSpec{
-					Realm:          "TEST.COM",
+					Realm:          "IPA.TEST",
 					PasswordSecret: pointy.String("test"),
 					VolumeClaimTemplate: &corev1.PersistentVolumeClaimSpec{
 						AccessModes: []corev1.PersistentVolumeAccessMode{
@@ -94,7 +94,7 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 			}
 			// WHEN
 			When("MainStatefulsetForIDM is called", func() {
-				var result = manifests.MainStatefulsetForIDM(&idm, "test.com", "")
+				var result = manifests.MainStatefulsetForIDM(&idm, "ipa.test", "")
 				// EXPECT
 				Expect(result).ShouldNot(BeNil())
 				Expect(result.ObjectMeta.Name).Should(Equal(idm.Name + "-main"))
@@ -165,12 +165,12 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 					"ipa-server-install",
 					"-U",
 					"--realm",
-					// manifests.GetRealm(&idm, "test.com"),
-					// "--ca-subject=" + manifests.GetCaSubject(&idm, "test.com"),
+					// manifests.GetRealm(&idm, "ipa.test"),
+					// "--ca-subject=" + manifests.GetCaSubject(&idm, "ipa.test"),
 				})
 				assertStringListsEqual(result.Spec.Template.Spec.Containers[0].Args[6:], []string{
-					// manifests.GetRealm(&idm, "test.com"),
-					// "--ca-subject=" + manifests.GetCaSubject(&idm, "test.com"),
+					// manifests.GetRealm(&idm, "ipa.test"),
+					// "--ca-subject=" + manifests.GetCaSubject(&idm, "ipa.test"),
 					"--no-ntp",
 					"--no-sshd",
 					"--no-ssh",
@@ -203,7 +203,7 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 					},
 					{
 						Name:  "IPA_SERVER_HOSTNAME",
-						Value: manifests.GetIpaServerHostname(&idm, "test.com"),
+						Value: manifests.GetIpaServerHostname(&idm, "ipa.test"),
 					},
 					{
 						Name:  "container_uuid",
