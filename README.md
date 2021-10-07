@@ -58,7 +58,7 @@ Experimental freeipa-operator for Freeipa.
 1. Now create a new namespace by: `kubectl create namespace my-freeipa`
 
 1. And create a new idm resource by:
-   `PASSWORD=myPassword124 SAMPLE=ephimeral-storage make sample-create`
+   `PASSWORD=myPassword124 SAMPLE=ephemeral-storage make sample-create`
 
    > You can check more samples at `config/samples` directory.
 
@@ -67,7 +67,7 @@ Experimental freeipa-operator for Freeipa.
 1. And clean-up the cluster by:
 
    ```shell
-   SAMPLE=ephimeral-storage make sample-delete
+   SAMPLE=ephemeral-storage make sample-delete
    make undeploy-cluster
    ```
 
