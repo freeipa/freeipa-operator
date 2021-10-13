@@ -289,7 +289,7 @@ func (r *IDMReconciler) CreateSecret(ctx context.Context, item *v1alpha1.IDM) er
 			return err
 		}
 		log.Info("Creating Secret")
-		manifest := manifests.SecretForIDM(item, manifests.GenerateRandomPassword())
+		manifest := manifests.SecretForIDM(item, manifests.GenerateRandomPassword(), manifests.GenerateRandomPassword())
 		ctrl.SetControllerReference(item, manifest, r.Scheme)
 		if err = r.Create(ctx, manifest); err != nil {
 			return err
