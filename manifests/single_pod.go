@@ -81,9 +81,6 @@ func GetDataVolumeForMainPod(m *v1alpha1.IDM, defaultStorage string) corev1.Volu
 
 // MainPodForIDM return a master pod for an IDM CRD
 func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, workload string, defaultStorage string) *corev1.Pod {
-	sDirectoryOrCreate := corev1.HostPathDirectoryOrCreate
-	sDirectory := corev1.HostPathDirectory
-
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetMainPodName(m),
