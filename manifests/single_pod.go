@@ -93,7 +93,6 @@ func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, workload string, defaultS
 							Drop: []corev1.Capability{
 								"NET_RAW",
 								"SYS_CHROOT",
-								"FSETID",
 								"AUDIT_CONTROL",
 								"AUDIT_READ",
 								"BLOCK_SUSPEND",
@@ -131,6 +130,7 @@ func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, workload string, defaultS
 								"SETFCAP",
 								"SYS_ADMIN",
 								"SYS_RESOURCE",
+								"FSETID",
 							},
 						},
 					},
