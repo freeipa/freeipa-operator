@@ -149,7 +149,7 @@ func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, workload string, defaultS
 							},
 						},
 					},
-					Command: []string{"/usr/sbin/init"},
+					Command: []string{"/usr/local/sbin/init"},
 					Args: []string{
 						"no-exit",
 						"ipa-server-install",
@@ -160,30 +160,9 @@ func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, workload string, defaultS
 						"--no-ntp",
 						"--no-sshd",
 						"--no-ssh",
-						"--verbose",
 					},
 					EnvFrom: buildEnvFrom(m),
 					Env: []corev1.EnvVar{
-						{
-							Name:  "KRB5_TRACE",
-							Value: "/dev/console",
-						},
-						{
-							Name:  "SYSTEMD_LOG_LEVEL",
-							Value: "debug",
-						},
-						{
-							Name:  "SYSTEMD_LOG_COLOR",
-							Value: "no",
-						},
-						{
-							Name:  "INIT_WRAPPER",
-							Value: "1",
-						},
-						{
-							Name:  "DEBUG_TRACE",
-							Value: "2",
-						},
 						{
 							Name:  "NAMESPACE",
 							Value: m.Namespace,

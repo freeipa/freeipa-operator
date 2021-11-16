@@ -64,7 +64,7 @@ func GetVolumeListForMainStatefulset(m *v1alpha1.IDM) []corev1.Volume {
 }
 
 // MainStatefulsetForIDM return a master pod for an IDM CRD
-func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage string) *appsv1.StatefulSet {
+func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, workload string, defaultStorage string) *appsv1.StatefulSet {
 
 	statefulset := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -102,7 +102,7 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage st
 					Containers: []corev1.Container{
 						{
 							Name:      "main",
-							Image:     "quay.io/freeipa/freeipa-openshift-container:freeipa-server",
+							Image:     workload,
 							TTY:       true,
 							Resources: m.Spec.Resources,
 							SecurityContext: &corev1.SecurityContext{
@@ -152,7 +152,7 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage st
 									},
 								},
 							},
-							Command: []string{"/usr/sbin/init"},
+							Command: []string{"/usr/local/sbin/init"},
 							Args: []string{
 								"no-exit",
 								"ipa-server-install",
@@ -163,30 +163,9 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, defaultStorage st
 								"--no-ntp",
 								"--no-sshd",
 								"--no-ssh",
-								"--verbose",
 							},
 							EnvFrom: buildEnvFrom(m),
 							Env: []corev1.EnvVar{
-								{
-									Name:  "KRB5_TRACE",
-									Value: "/dev/console",
-								},
-								{
-									Name:  "SYSTEMD_LOG_LEVEL",
-									Value: "debug",
-								},
-								{
-									Name:  "SYSTEMD_LOG_COLOR",
-									Value: "no",
-								},
-								{
-									Name:  "INIT_WRAPPER",
-									Value: "1",
-								},
-								{
-									Name:  "DEBUG_TRACE",
-									Value: "2",
-								},
 								{
 									Name:  "NAMESPACE",
 									Value: m.Namespace,

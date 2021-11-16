@@ -414,7 +414,7 @@ func (r *IDMReconciler) CreateStatefulsetMain(ctx context.Context, item *v1alpha
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating Main Statefulset")
-			manifest := manifests.MainStatefulsetForIDM(item, r.BaseDomain, defaultStorage)
+			manifest := manifests.MainStatefulsetForIDM(item, r.BaseDomain, r.WorkloadImage, defaultStorage)
 			ctrl.SetControllerReference(item, manifest, r.Scheme)
 			if err = r.Create(ctx, manifest); err != nil {
 				return err
