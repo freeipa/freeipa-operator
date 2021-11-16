@@ -94,9 +94,9 @@ var _ = Describe("LOCAL:IDMReconciller", func() {
 				},
 			}
 			Expect(idm).ShouldNot(BeNil())
-			pod := manifests.MainPodForIDM(idm, "localhost", "quay.io/freeipa/freeipa-openshift-container:freeipa-server", "ephemeral")
-			It("return nil error and valid Pod Object", func() {
-				Expect(pod).ShouldNot(BeNil())
+			statefulset := manifests.MainStatefulsetForIDM(idm, "localhost", "quay.io/freeipa/freeipa-openshift-container:latest", "ephemeral")
+			It("return a valid statefulset Object", func() {
+				Expect(statefulset).ShouldNot(BeNil())
 			})
 		})
 	})

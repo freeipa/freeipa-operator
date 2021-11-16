@@ -55,6 +55,7 @@ Variables:
                    ** PASSWORD=Secret123 SAMPLE=ephemeral-storage make recreate-sample-idm
   CONFIG           The configuration to be used; by default 'default' is used, but
                    you can override setting it to 'default-hostpath'.
-  WORKLOAD_IMAGE   Set the image to be used for the workload.
+  RELATED_IMAGE_FREEIPA
+                   Set the image to be used for the workload.
                    By default "quay.io/freeipa/freeipa-openshift-container:freeipa-server"
                    is used.

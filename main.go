@@ -62,17 +62,18 @@ func getWatchNamespace() (string, error) {
 	return ns, nil
 }
 
-func getWorkloadImage() string {
-	if workload, exist := os.LookupEnv("WORKLOAD_IMAGE"); exist {
-		return workload
+// getWorkloadImage return t
+func getWorkloadImage() (string, error) {
+	if workload, exist := os.LookupEnv("RELATED_IMAGE_FREEIPA"); exist && workload != "" {
+		return workload, nil
 	}
-	return "quay.io/freeipa/freeipa-openshift-container:freeipa-server"
+	return "", fmt.Errorf("RELATED_IMAGE_FREEIPA environment variable must be specified and not empty")
 }
 
 func main() {
 	var err error
 	var ctrlArguments *arguments.Arguments
-	var workloadImage string = getWorkloadImage()
+	var workloadImage string
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
@@ -81,6 +82,13 @@ func main() {
 	if err != nil {
 		setupLog.Error(err, "invalid controller arguments")
 		os.Exit(1)
+	}
+
+	// Get RELATED_IMAGE_FREEIPA
+	workloadImage, err = getWorkloadImage()
+	if err != nil {
+		setupLog.Error(err, "Reading RELATED_IMAGE_FREEIPA")
+		os.Exit(2)
 	}
 
 	// Get WATCH_NAMESPACE value

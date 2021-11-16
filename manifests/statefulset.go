@@ -163,6 +163,10 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, workload string, 
 								"--no-ntp",
 								"--no-sshd",
 								"--no-ssh",
+								// TODO Add --verbose if some indicator for debugging
+								//      is set up such as '--verbose-freeipa' to avoid
+								//      enable it isolated from '-debug' flag which is
+								//      passed to the controller.
 							},
 							EnvFrom: buildEnvFrom(m),
 							Env: []corev1.EnvVar{

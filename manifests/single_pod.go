@@ -23,29 +23,14 @@ func buildEnvFrom(m *v1alpha1.IDM) []corev1.EnvFromSource {
 	return result
 }
 
-func NeedsPersistentVolumeClaim(m *v1alpha1.IDM) bool {
+func needsPersistentVolumeClaim(m *v1alpha1.IDM) bool {
 	return m.Spec.VolumeClaimTemplate != nil
 }
 
-func HasValidVolumeInformation(m *v1alpha1.IDM, defaultStorage string) bool {
-	if NeedsPersistentVolumeClaim(m) {
-		return true
-	}
-
-	if defaultStorage == "ephemeral" {
-		return true
-	}
-
-	if defaultStorage == "hostpath" {
-		return true
-	}
-
-	return false
-}
-
-// GetDataVolumeForPod
+// GetDataVolumeForMainPod Return a corev1.Volume block for the PVC to be mounted
+// Return a corev1.Volume structure properly filled.
 func GetDataVolumeForMainPod(m *v1alpha1.IDM, defaultStorage string) corev1.Volume {
-	if NeedsPersistentVolumeClaim(m) {
+	if needsPersistentVolumeClaim(m) {
 		return corev1.Volume{
 			Name: "data",
 			VolumeSource: corev1.VolumeSource{
@@ -160,6 +145,10 @@ func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, workload string, defaultS
 						"--no-ntp",
 						"--no-sshd",
 						"--no-ssh",
+						// TODO Add --verbose if some indicator for debugging
+						//      is set up such as '--verbose-freeipa' to avoid
+						//      enable it isolated from '-debug' flag which is
+						//      passed to the controller.
 					},
 					EnvFrom: buildEnvFrom(m),
 					Env: []corev1.EnvVar{
