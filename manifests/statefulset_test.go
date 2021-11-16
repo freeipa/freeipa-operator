@@ -132,7 +132,8 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 			}
 			// WHEN
 			When("MainStatefulsetForIDM is called", func() {
-				var result = manifests.MainStatefulsetForIDM(&idm, "ipa.test", "")
+				var workload = "quay.io/freeipa/freeipa-openshift-container:latest"
+				var result = manifests.MainStatefulsetForIDM(&idm, "ipa.test", workload, "")
 				// EXPECT
 				Expect(result).ShouldNot(BeNil())
 				Expect(result.ObjectMeta.Name).Should(Equal(idm.Name + "-main"))
@@ -192,11 +193,11 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 				Expect(result.Spec.Template.Spec.ServiceAccountName).Should(Equal("idm"))
 				Expect(len(result.Spec.Template.Spec.Containers)).Should(Equal(1))
 				Expect(result.Spec.Template.Spec.Containers[0].Name).Should(Equal("main"))
-				Expect(result.Spec.Template.Spec.Containers[0].Image).Should(Equal("quay.io/freeipa/freeipa-openshift-container:freeipa-server"))
+				Expect(result.Spec.Template.Spec.Containers[0].Image).Should(Equal(workload))
 				Expect(result.Spec.Template.Spec.Containers[0].TTY).Should(BeTrue())
 				assertPodSecurityContext(result.Spec.Template.Spec.Containers[0].SecurityContext)
 				assertStringListsEqual(result.Spec.Template.Spec.Containers[0].Command, []string{
-					"/usr/sbin/init",
+					"/usr/local/sbin/init",
 				})
 				assertStringListsEqual(result.Spec.Template.Spec.Containers[0].Args[:4], []string{
 					"no-exit",
@@ -212,29 +213,8 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 					"--no-ntp",
 					"--no-sshd",
 					"--no-ssh",
-					"--verbose",
 				})
 				envList := []corev1.EnvVar{
-					{
-						Name:  "KRB5_TRACE",
-						Value: "/dev/console",
-					},
-					{
-						Name:  "SYSTEMD_LOG_LEVEL",
-						Value: "debug",
-					},
-					{
-						Name:  "SYSTEMD_LOG_COLOR",
-						Value: "no",
-					},
-					{
-						Name:  "INIT_WRAPPER",
-						Value: "1",
-					},
-					{
-						Name:  "DEBUG_TRACE",
-						Value: "2",
-					},
 					{
 						Name:  "NAMESPACE",
 						Value: idm.Namespace,
@@ -257,13 +237,15 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 					},
 				}
 				Expect(len(result.Spec.Template.Spec.Containers[0].Env)).Should(Equal(len(envList)))
-				for index, item := range result.Spec.Template.Spec.Containers[0].Env[:7] {
-					By("Checking result.Spec.Template.Spec.Containers[0].Env[].Name: " + item.Name)
-					assertEnvVarEqual(&item, &envList[index])
-				}
-				for index, item := range result.Spec.Template.Spec.Containers[0].Env[8:] {
-					By("Checking result.Spec.Template.Spec.Containers[0].Env[].Name: " + item.Name)
-					assertEnvVarEqual(&item, &envList[index+8])
+				for index, item := range result.Spec.Template.Spec.Containers[0].Env[:] {
+					It("matches the env '"+item.Name+"'", func(done Done) {
+						go func() {
+							defer GinkgoRecover()
+							By("Checking result.Spec.Template.Spec.Containers[0].Env[].Name: " + item.Name)
+							assertEnvVarEqual(&item, &envList[index])
+							close(done)
+						}()
+					})
 				}
 				portList := []corev1.ContainerPort{
 					{
