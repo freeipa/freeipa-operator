@@ -59,6 +59,14 @@ func GetVolumeListForMainStatefulset(m *v1alpha1.IDM) []corev1.Volume {
 				},
 			},
 		},
+		{
+			Name: "dirsrv-var-lock-dirsrv",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{
+					Medium: corev1.StorageMedium("Memory"),
+				},
+			},
+		},
 	}...)
 	return result
 }
@@ -220,6 +228,11 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, workload string, 
 								{
 									Name:      "systemd-var-dirsrv",
 									MountPath: "/var/run/dirsrv",
+								},
+								// This fix 'Error - Problem accessing the lockfile /var/lock/dirsrv/slapd-*/lock'
+								{
+									Name:      "dirsrv-var-lock-dirsrv",
+									MountPath: "/var/lock/dirsrv",
 								},
 							},
 						},

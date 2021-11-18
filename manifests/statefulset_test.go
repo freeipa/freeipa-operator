@@ -289,6 +289,10 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 								Name:      "systemd-var-dirsrv",
 								MountPath: "/var/run/dirsrv",
 							},
+							{
+								Name:      "dirsrv-var-lock-dirsrv",
+								MountPath: "/var/lock/dirsrv",
+							},
 						}
 						By("Checking VolumeMounts length")
 						Expect(len(result.Spec.Template.Spec.Containers[0].VolumeMounts)).Should(Equal(len(volumeMountList)))
@@ -337,6 +341,14 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 							},
 							{
 								Name: "systemd-tmp",
+								VolumeSource: corev1.VolumeSource{
+									EmptyDir: &corev1.EmptyDirVolumeSource{
+										Medium: corev1.StorageMedium("Memory"),
+									},
+								},
+							},
+							{
+								Name: "dirsrv-var-lock-dirsrv",
 								VolumeSource: corev1.VolumeSource{
 									EmptyDir: &corev1.EmptyDirVolumeSource{
 										Medium: corev1.StorageMedium("Memory"),

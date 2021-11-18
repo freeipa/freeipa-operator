@@ -202,6 +202,11 @@ func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, workload string, defaultS
 							Name:      "systemd-var-dirsrv",
 							MountPath: "/var/run/dirsrv",
 						},
+						// This fix 'Error - Problem accessing the lockfile /var/lock/dirsrv/slapd-*/lock'
+						{
+							Name:      "dirsrv-var-lock-dirsrv",
+							MountPath: "/var/lock/dirsrv",
+						},
 					},
 				},
 			},
@@ -233,6 +238,14 @@ func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, workload string, defaultS
 				},
 				{
 					Name: "systemd-tmp",
+					VolumeSource: corev1.VolumeSource{
+						EmptyDir: &corev1.EmptyDirVolumeSource{
+							Medium: corev1.StorageMedium("Memory"),
+						},
+					},
+				},
+				{
+					Name: "dirsrv-var-lock-dirsrv",
 					VolumeSource: corev1.VolumeSource{
 						EmptyDir: &corev1.EmptyDirVolumeSource{
 							Medium: corev1.StorageMedium("Memory"),
