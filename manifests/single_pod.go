@@ -130,6 +130,20 @@ func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, workload string, defaultS
 								"SETFCAP",
 								"SYS_ADMIN",
 								"SYS_RESOURCE",
+								// Without FSETID the ccache files created has the permissions below:
+								//   -rw-rw----. 1 apache apache 3464 Nov 23 21:00 host~freeipa.apps.crc.testing@APPS.CRC.TESTING-z0WzhM
+								// With FSETID the ccache files created has the permissions below:
+								//   -rw-------. 1 ipaapi ipaapi 5068 Nov 23 21:12 host~freeipa.apps.crc.testing@APPS.CRC.TESTING-YQgWH4
+								// In both cases the /run/ipa/ccaches directory has the permissions: drwsrws---+
+								//
+								// The running process has effective uid:gid=ipaapi:ipaapi so FSETID makes the files
+								// to inherit the owner and group from the directory because the set-user-id and set-group-id
+								// are set for the directory that contain them.
+								//
+								// Without FSETID capability the ccache files created are not accessible by the wsgi process
+								// evoking the kerberos authentication to fail. It evoked sssd client installation step to
+								// fail too as in the step is invoked a RPC method on the wsgi service that has to be
+								// authenticated.
 								"FSETID",
 							},
 						},
