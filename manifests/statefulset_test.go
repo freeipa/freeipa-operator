@@ -259,6 +259,18 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 						ContainerPort: 443,
 					},
 				}
+				It("has container lifecycle", func(done Done) {
+					go func() {
+						defer GinkgoRecover()
+						Expect(result.Spec.Template.Spec.Containers[0].Lifecycle).ShouldNot(BeNil())
+						Expect(result.Spec.Template.Spec.Containers[0].Lifecycle.PreStop).ShouldNot(BeNil())
+						Expect(result.Spec.Template.Spec.Containers[0].Lifecycle.PreStop.Exec).ShouldNot(BeNil())
+						Expect(result.Spec.Template.Spec.Containers[0].Lifecycle.PreStop.Exec.Command).Should(Equal(
+							manifests.ExecStopSystemd,
+						))
+						close(done)
+					}()
+				})
 				Expect(len(result.Spec.Template.Spec.Containers[0].Ports)).Should(Equal(len(portList)))
 				for index, item := range result.Spec.Template.Spec.Containers[0].Ports {
 					By("Checking result.Spec.Template.Spec.Containers[0].Ports[].Name: " + item.Name)

@@ -187,6 +187,15 @@ func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, workload string, defaultS
 							Value: "network",
 						},
 					},
+					// https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
+					// https://www.freedesktop.org/software/systemd/man/systemd.html#SIGRTMIN+3
+					Lifecycle: &corev1.Lifecycle{
+						PreStop: &corev1.Handler{
+							Exec: &corev1.ExecAction{
+								Command: ExecStopSystemd,
+							},
+						},
+					},
 					Ports: []corev1.ContainerPort{
 						{
 							Name:          "http-tcp",

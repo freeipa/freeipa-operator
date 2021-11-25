@@ -19,6 +19,8 @@ func GetEphimeralVolumeForMainStatefulset(m *v1alpha1.IDM) corev1.Volume {
 	}
 }
 
+var ExecStopSystemd []string = []string{"kill", "-s", "SIGRTMIN+3", "1"}
+
 // GetVolumeListForMainStatefulset Return the VolumeList for the Pod Spec embeded into
 // the Statefulset definition, giveng an IDM object.
 func GetVolumeListForMainStatefulset(m *v1alpha1.IDM) []corev1.Volume {
@@ -203,6 +205,15 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, workload string, 
 								{
 									Name:  "SYSTEMD_NSPAWN_API_VFS_WRITABLE",
 									Value: "network",
+								},
+							},
+							// https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
+							// https://www.freedesktop.org/software/systemd/man/systemd.html#SIGRTMIN+3
+							Lifecycle: &corev1.Lifecycle{
+								PreStop: &corev1.Handler{
+									Exec: &corev1.ExecAction{
+										Command: ExecStopSystemd,
+									},
 								},
 							},
 							Ports: []corev1.ContainerPort{
