@@ -19,7 +19,7 @@ func GetEphimeralVolumeForMainStatefulset(m *v1alpha1.IDM) corev1.Volume {
 	}
 }
 
-var ExecStopSystemd []string = []string{"kill", "-s", "SIGRTMIN+3", "1"}
+var ExecStopSystemd []string = []string{"kill", "-RTMIN+3", "1"}
 
 // GetVolumeListForMainStatefulset Return the VolumeList for the Pod Spec embeded into
 // the Statefulset definition, giveng an IDM object.
