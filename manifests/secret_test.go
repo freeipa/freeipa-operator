@@ -104,8 +104,8 @@ var _ = Describe("UNIT:SecretForIDM", func() {
 
 		When("we generate a manifest by SecretForIDM and using a generated password", func() {
 			var adminPassword = manifests.GenerateRandomPassword()
-			var dsPassword = manifests.GenerateRandomPassword()
-			var manifest = manifests.SecretForIDM(&cr, adminPassword, dsPassword)
+			var dmPassword = manifests.GenerateRandomPassword()
+			var manifest = manifests.SecretForIDM(&cr, adminPassword, dmPassword)
 			It("is not nil", func() {
 				Expect(manifest).ShouldNot(BeNil())
 			})
@@ -123,26 +123,26 @@ var _ = Describe("UNIT:SecretForIDM", func() {
 				Expect(manifest.Type).Should(Equal(corev1.SecretTypeOpaque))
 			})
 			It("has a ADMIN_PASSWORD entry", func() {
-				_, ok := manifest.StringData["ADMIN_PASSWORD"]
+				_, ok := manifest.StringData["IPA_ADMIN_PASSWORD"]
 				Expect(ok).Should(BeTrue())
 			})
 			It("has a DS_PASSWORD entry", func() {
-				_, ok := manifest.StringData["DS_PASSWORD"]
+				_, ok := manifest.StringData["IPA_DM_PASSWORD"]
 				Expect(ok).Should(BeTrue())
 			})
 			It("has the ADMIN_PASSWORD entry coded in base64", func() {
-				val := manifest.StringData["ADMIN_PASSWORD"]
+				val := manifest.StringData["IPA_ADMIN_PASSWORD"]
 				decodedVal, err := b64.StdEncoding.DecodeString(string(val))
 				decodedValString := string(decodedVal)
 				Expect(err).Should(BeNil())
 				Expect(adminPassword).Should(Equal(decodedValString))
 			})
 			It("has the DS_PASSWORD entry coded in base64", func() {
-				val := manifest.StringData["DS_PASSWORD"]
+				val := manifest.StringData["IPA_DM_PASSWORD"]
 				decodedVal, err := b64.StdEncoding.DecodeString(string(val))
 				decodedValString := string(decodedVal)
 				Expect(err).Should(BeNil())
-				Expect(dsPassword).Should(Equal(decodedValString))
+				Expect(dmPassword).Should(Equal(decodedValString))
 			})
 		})
 
@@ -164,23 +164,23 @@ var _ = Describe("UNIT:SecretForIDM", func() {
 			It("has type 'SecretTypeOpaque'", func() {
 				Expect(manifest.Type).Should(Equal(corev1.SecretTypeOpaque))
 			})
-			It("has a ADMIN_PASSWORD entry", func() {
-				_, ok := manifest.StringData["ADMIN_PASSWORD"]
+			It("has a IPA_ADMIN_PASSWORD entry", func() {
+				_, ok := manifest.StringData["IPA_ADMIN_PASSWORD"]
 				Expect(ok).Should(BeTrue())
 			})
-			It("has a DS_PASSWORD entry", func() {
-				_, ok := manifest.StringData["DS_PASSWORD"]
+			It("has a IPA_DM_PASSWORD entry", func() {
+				_, ok := manifest.StringData["IPA_DM_PASSWORD"]
 				Expect(ok).Should(BeTrue())
 			})
 			It("has a password entry coded in base64 that match the pattern 'xxxxx-xxxxx-xxxxx-xxxxx', where x are aphanumerics characters.", func() {
-				val := manifest.StringData["ADMIN_PASSWORD"]
+				val := manifest.StringData["IPA_ADMIN_PASSWORD"]
 				decodedVal, err := b64.StdEncoding.DecodeString(string(val))
 				decodedValString := string(decodedVal)
 				Expect(err).Should(BeNil())
 				Expect(decodedValString).Should(MatchRegexp(regexpForGeneratedPassword))
 			})
 			It("has a password entry coded in base64 that match the pattern 'xxxxx-xxxxx-xxxxx-xxxxx', where x are aphanumerics characters.", func() {
-				val := manifest.StringData["DS_PASSWORD"]
+				val := manifest.StringData["IPA_DM_PASSWORD"]
 				decodedVal, err := b64.StdEncoding.DecodeString(string(val))
 				decodedValString := string(decodedVal)
 				Expect(err).Should(BeNil())
