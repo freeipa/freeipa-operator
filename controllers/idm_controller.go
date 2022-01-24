@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	generalerr "errors"
+	"fmt"
 
 	"github.com/go-logr/logr"
 	configv1 "github.com/openshift/api/config/v1"
@@ -159,6 +160,7 @@ func (r *IDMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 }
 
 // CreateRoleBinding Create the role
+// TODO Remove this method when the RoleBinding is decoupled
 func (r *IDMReconciler) CreateRoleBinding(ctx context.Context, item *v1alpha1.IDM) error {
 	namespacedName := types.NamespacedName{
 		Namespace: item.Namespace,
@@ -186,6 +188,7 @@ func (r *IDMReconciler) CreateRoleBinding(ctx context.Context, item *v1alpha1.ID
 }
 
 // CreateRole Create the role
+// TODO Remove this method when the Role is decoupled
 func (r *IDMReconciler) CreateRole(ctx context.Context, item *v1alpha1.IDM) error {
 	namespacedName := types.NamespacedName{
 		Namespace: item.Namespace,
@@ -213,6 +216,7 @@ func (r *IDMReconciler) CreateRole(ctx context.Context, item *v1alpha1.IDM) erro
 }
 
 // CreateServiceAccount Create the service account
+// TODO Remove this method when the ServiceAccount is decoupled
 func (r *IDMReconciler) CreateServiceAccount(ctx context.Context, item *v1alpha1.IDM) error {
 	namespacedName := types.NamespacedName{
 		Namespace: item.Namespace,
@@ -246,6 +250,15 @@ func (r *IDMReconciler) CheckStatusSecret(ctx context.Context, item *v1alpha1.ID
 		Name:      item.Status.SecretName,
 	}
 	found := &corev1.Secret{}
+	if err := r.Get(ctx, namespacedName, found); err != nil {
+		return err
+	}
+	if _, ok := found.Data["IPA_ADMIN_PASSWORD"]; !ok {
+		return fmt.Errorf("IPA_ADMIN_PASSWORD does not exist in '%s' secret", item.Status.SecretName)
+	}
+	if _, ok := found.Data["IPA_DM_PASSWORD"]; !ok {
+		return fmt.Errorf("IPA_DM_PASSWORD does not exist in '%s' secret", item.Status.SecretName)
+	}
 	return r.Get(ctx, namespacedName, found)
 }
 
