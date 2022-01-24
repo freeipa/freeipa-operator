@@ -122,22 +122,22 @@ var _ = Describe("UNIT:SecretForIDM", func() {
 			It("has type 'SecretTypeOpaque'", func() {
 				Expect(manifest.Type).Should(Equal(corev1.SecretTypeOpaque))
 			})
-			It("has a ADMIN_PASSWORD entry", func() {
+			It("has a IPA_ADMIN_PASSWORD entry", func() {
 				_, ok := manifest.StringData["IPA_ADMIN_PASSWORD"]
 				Expect(ok).Should(BeTrue())
 			})
-			It("has a DS_PASSWORD entry", func() {
+			It("has a IPA_DM_PASSWORD entry", func() {
 				_, ok := manifest.StringData["IPA_DM_PASSWORD"]
 				Expect(ok).Should(BeTrue())
 			})
-			It("has the ADMIN_PASSWORD entry coded in base64", func() {
+			It("has the IPA_ADMIN_PASSWORD entry coded in base64", func() {
 				val := manifest.StringData["IPA_ADMIN_PASSWORD"]
 				decodedVal, err := b64.StdEncoding.DecodeString(string(val))
 				decodedValString := string(decodedVal)
 				Expect(err).Should(BeNil())
 				Expect(adminPassword).Should(Equal(decodedValString))
 			})
-			It("has the DS_PASSWORD entry coded in base64", func() {
+			It("has the IPA_DM_PASSWORD entry coded in base64", func() {
 				val := manifest.StringData["IPA_DM_PASSWORD"]
 				decodedVal, err := b64.StdEncoding.DecodeString(string(val))
 				decodedValString := string(decodedVal)

@@ -1,4 +1,4 @@
-ifneq (,$(shell ls -1 private.mk 2>/dev/null))
+ifeq (private.mk,$(shell ls -1 private.mk 2>/dev/null))
 include private.mk
 endif
 WATCH_NAMESPACE ?= $(shell kubectl config view --minify --output 'jsonpath={..namespace}')
@@ -112,8 +112,12 @@ manager: generate fmt vet
 run: generate fmt vet manifests
 ifneq (,$(DEFAULT_STORAGE))
 	DEFAULT_STORAGE=$(DEFAULT_STORAGE) \
+	WATCH_NAMESPACE=$(WATCH_NAMESPACE) \
+	RELATED_IMAGE_FREEIPA=$(RELATED_IMAGE_FREEIPA) \
 	go run ./main.go $(CONTROLLER_ARGS)
 else
+	WATCH_NAMESPACE=$(WATCH_NAMESPACE) \
+	RELATED_IMAGE_FREEIPA=$(RELATED_IMAGE_FREEIPA) \
 	go run ./main.go $(CONTROLLER_ARGS)
 endif
 
@@ -316,17 +320,13 @@ kind-long-tests:
 
 .PHONY: check-password-is-provided
 check-password-is-provided:
-ifeq (,$(PASSWORD))
-	@echo "PASSWORD must be provided; PASSWORD=MySecretPassword make ..."
-	@exit 1
+ifeq (,$(IPA_ADMIN_PASSWORD))
+	@echo "IPA_ADMIN_PASSWORD must be provided; IPA_ADMIN_PASSWORD=MySecretPassword make ..."; exit 1
+endif
+ifeq (,$(IPA_DM_PASSWORD))
+	@echo "IPA_DM_PASSWORD must be provided; IPA_DM_PASSWORD=MySecretPassword make ..."; exit 1
 endif
 
-.PHONY: check-password
-check-password:
-ifeq (,$(PASSWORD))
-	@echo "PASSWORD must be provided; PASSWORD=MySecretPassword make ..."
-	@exit 1
-endif
 
 .PHONY: sample-build
 sample-build:
@@ -337,10 +337,11 @@ sample-delete:
 	-@kubectl delete secrets/idm-sample
 	-kustomize build $(SAMPLES_PATH)/$(SAMPLE)/ | kubectl delete -f -
 
-.PHONY: check-password-is-provided sample-create
-sample-create: check-password
+.PHONY: sample-create
+sample-create: check-password-is-provided
 	@-kubectl create secret generic idm-sample \
-	          --from-literal=PASSWORD=$(PASSWORD)
+	          --from-literal=IPA_ADMIN_PASSWORD=$(IPA_ADMIN_PASSWORD) \
+	          --from-literal=IPA_DM_PASSWORD=$(IPA_DM_PASSWORD)
 	kustomize build $(SAMPLES_PATH)/$(SAMPLE)/ | kubectl create -f -
 
 .PHONY: sample-recreate
