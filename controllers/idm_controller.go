@@ -288,16 +288,6 @@ func (r *IDMReconciler) CreateSecret(ctx context.Context, item *v1alpha1.IDM) er
 		if !errors.IsNotFound(err) {
 			return err
 		}
-		log.Info("Creating Secret")
-		manifest := manifests.SecretForIDM(item, manifests.GenerateRandomPassword(), manifests.GenerateRandomPassword())
-		ctrl.SetControllerReference(item, manifest, r.Scheme)
-		if err = r.Create(ctx, manifest); err != nil {
-			return err
-		}
-		if err = r.UpdateStatusSecretNameWith(ctx, manifests.GetSecretName(item), item); err != nil {
-			return err
-		}
-		return nil
 	}
 
 	// If a password was not specified, it creates a secret with a random password
