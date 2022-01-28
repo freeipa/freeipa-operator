@@ -6,7 +6,7 @@ resources:
 
 images:
 - name: controller
-  newName: quay.io/freeipa/freeipa-operator
-  newTag: nightly
+  newName: quay.io/avisied0/freeipa-operator
+  newTag: dev-bcfa2528e28cd04e14cd245211f4fd709f8a83ef
 
 namespace: freeipa

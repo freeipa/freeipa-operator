@@ -122,13 +122,13 @@ func main() {
 	}
 	if err = (&idmv1alpha1.IDM{}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "IDM")
-		os.Exit(1)
+		os.Exit(4)
 	}
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
-		os.Exit(4)
+		os.Exit(5)
 	}
 }
