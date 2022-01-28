@@ -120,7 +120,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "IDM")
 		os.Exit(3)
 	}
-	if err = (&idmocpredhatcomv1alpha1.IDM{}).SetupWebhookWithManager(mgr); err != nil {
+	if err = (&idmv1alpha1.IDM{}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "IDM")
 		os.Exit(1)
 	}
