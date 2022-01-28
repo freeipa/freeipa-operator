@@ -131,7 +131,7 @@ endif
 # Install CRDs into a cluster
 .PHONY: install-crds
 install-crds: kustomize manifests
-	$(KUSTOMIZE) build config/crd | kubectl apply -f -
+	$(KUSTOMIZE) build config/crd | kubectl create -f -
 
 # Uninstall CRDs from a cluster
 .PHONY: uninstall-crds
@@ -147,8 +147,9 @@ redeploy-cluster: undeploy-cluster container-build container-push deploy-cluster
 deploy-cluster: kustomize manifests install-crds
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	cd config/manager && $(KUSTOMIZE) edit set namespace $(WATCH_NAMESPACE)
-	-oc create new-project $(WATCH_NAMESPACE)
-	$(KUSTOMIZE) build config/$(CONFIG) | kubectl apply -f -
+	@-oc new-project $(WATCH_NAMESPACE)
+	oc project $(WATCH_NAMESPACE)
+	$(KUSTOMIZE) build config/$(CONFIG) | kubectl create -f -
 
 # Undeploy controller in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: deploy-cluster
