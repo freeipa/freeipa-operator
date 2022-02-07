@@ -46,6 +46,8 @@ Experimental freeipa-operator for Freeipa.
    make container-build IMG=quay.io/freeipa/freeipa-operator:dev-test
    podman login quay.io
    make container-push IMG=quay.io/freeipa/freeipa-operator:dev-test
+   # We need cert-manager for generating the certificates for the webhooks
+   make cert-manager-install
    make deploy-cluster IMG=quay.io/freeipa/freeipa-operator:dev-test
    ```
 

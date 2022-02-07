@@ -72,6 +72,8 @@ else
 GOBIN := $(shell go env GOBIN)
 endif
 
+export RELATED_IMAGE_FREEIPA
+
 all: manager
 
 # Empty rule to allow force other rules. The name of the rule should not
@@ -147,7 +149,7 @@ redeploy-cluster: undeploy-cluster container-build container-push deploy-cluster
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: deploy-cluster
-deploy-cluster: kustomize manifests install-crds
+deploy-cluster: kustomize manifests
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	cd config/manager && $(KUSTOMIZE) edit set namespace $(WATCH_NAMESPACE)
 	@-oc new-project $(WATCH_NAMESPACE)
@@ -156,7 +158,7 @@ deploy-cluster: kustomize manifests install-crds
 
 # Undeploy controller in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: deploy-cluster
-undeploy-cluster: kustomize manifests uninstall-crds
+undeploy-cluster: kustomize manifests
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	-$(KUSTOMIZE) build config/$(CONFIG) | kubectl delete -f -
 
@@ -340,13 +342,15 @@ kind-long-tests:
 .PHONY: check-password-is-provided
 check-password-is-provided:
 ifeq (,$(PASSWORD))
-	@echo "PASSWORD must be provided; PASSWORD=MySecretPassword make ..."; exit 1
+	@echo "PASSWORD must be provided; PASSWORD=MySecretPassword make ..."
+	@exit 1
 endif
 
 .PHONY: check-password
 check-password:
 ifeq (,$(PASSWORD))
-	@echo "ERROR:PASSWORD can not be empty"; exit 1
+	@echo "PASSWORD must be provided; PASSWORD=MySecretPassword make ..."
+	@exit 1
 endif
 
 .PHONY: sample-build
@@ -360,8 +364,17 @@ sample-delete:
 
 .PHONY: check-password-is-provided sample-create
 sample-create: check-password
-	@-kubectl create secret generic idm-sample --from-literal=PASSWORD=$(PASSWORD)
+	@-kubectl create secret generic idm-sample \
+	          --from-literal=PASSWORD=$(PASSWORD)
 	kustomize build $(SAMPLES_PATH)/$(SAMPLE)/ | kubectl create -f -
 
 .PHONY: sample-recreate
 sample-recreate: sample-delete sample-create
+
+.PHONY: cert-manager-install
+cert-manager-install:
+	@$(MAKE) -f mk/cert-manager.mk $@
+
+.PHONY: cert-manager-uninstall
+cert-manager-uninstall:
+	@$(MAKE) -f mk/cert-manager.mk $@
