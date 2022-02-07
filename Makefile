@@ -1,3 +1,6 @@
+ifneq (,$(shell ls -1 private.mk 2>/dev/null))
+include private.mk
+endif
 WATCH_NAMESPACE ?= $(shell kubectl config view --minify --output 'jsonpath={..namespace}')
 
 IMG_NAME := freeipa-operator
@@ -131,7 +134,7 @@ endif
 # Install CRDs into a cluster
 .PHONY: install-crds
 install-crds: kustomize manifests
-	$(KUSTOMIZE) build config/crd | kubectl create -f -
+	$(KUSTOMIZE) build config/crd | kubectl apply -f -
 
 # Uninstall CRDs from a cluster
 .PHONY: uninstall-crds
