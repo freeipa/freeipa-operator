@@ -45,7 +45,7 @@ func (r *IDM) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 
-//+kubebuilder:webhook:path=/mutate-idmocp-redhat-com-redhat-com-v1alpha1-idm,mutating=true,failurePolicy=fail,groups=idmocp.redhat.com.redhat.com,resources=idms,verbs=create;update,versions=v1alpha1,sideEffects=None,admissionReviewVersions=v1alpha1,name=midm.kb.io
+//+kubebuilder:webhook:path=/mutate-idmocp-redhat-com-v1alpha1-idm,mutating=true,failurePolicy=fail,groups=idmocp.redhat.com,resources=idms,verbs=create;update,versions=v1alpha1,sideEffects=None,admissionReviewVersions=v1,name=midm.kb.io
 
 var _ webhook.Defaulter = &IDM{}
 
@@ -57,7 +57,7 @@ func (r *IDM) Default() {
 }
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
-//+kubebuilder:webhook:verbs=create;update,path=/validate-idmocp-redhat-com-redhat-com-v1alpha1-idm,mutating=false,failurePolicy=fail,groups=idmocp.redhat.com.redhat.com,resources=idms,versions=v1alpha1,sideEffects=None,admissionReviewVersions=v1alpha1,name=vidm.kb.io
+//+kubebuilder:webhook:verbs=create;update,path=/validate-idmocp-redhat-com-v1alpha1-idm,mutating=false,failurePolicy=fail,groups=idmocp.redhat.com,resources=idms,versions=v1alpha1,sideEffects=None,admissionReviewVersions=v1,name=vidm.kb.io
 
 var _ webhook.Validator = &IDM{}
 

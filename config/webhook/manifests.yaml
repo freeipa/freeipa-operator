@@ -7,17 +7,17 @@ metadata:
   name: mutating-webhook-configuration
 webhooks:
 - admissionReviewVersions:
-  - v1alpha1
+  - v1
   clientConfig:
     service:
       name: webhook-service
       namespace: system
-      path: /mutate-idmocp-redhat-com-redhat-com-v1alpha1-idm
+      path: /mutate-idmocp-redhat-com-v1alpha1-idm
   failurePolicy: Fail
   name: midm.kb.io
   rules:
   - apiGroups:
-    - idmocp.redhat.com.redhat.com
+    - idmocp.redhat.com
     apiVersions:
     - v1alpha1
     operations:
@@ -35,17 +35,17 @@ metadata:
   name: validating-webhook-configuration
 webhooks:
 - admissionReviewVersions:
-  - v1alpha1
+  - v1
   clientConfig:
     service:
       name: webhook-service
       namespace: system
-      path: /validate-idmocp-redhat-com-redhat-com-v1alpha1-idm
+      path: /validate-idmocp-redhat-com-v1alpha1-idm
   failurePolicy: Fail
   name: vidm.kb.io
   rules:
   - apiGroups:
-    - idmocp.redhat.com.redhat.com
+    - idmocp.redhat.com
     apiVersions:
     - v1alpha1
     operations:
