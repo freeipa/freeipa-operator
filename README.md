@@ -39,6 +39,8 @@ Experimental freeipa-operator for Freeipa.
    make run
    ```
 
+1. Now create a new namespace by: `kubectl create namespace my-freeipa`
+
 1. Or run inside the cluster by (first build and push the image):
 
    ```shell
@@ -48,16 +50,11 @@ Experimental freeipa-operator for Freeipa.
    make container-push IMG=quay.io/freeipa/freeipa-operator:dev-test
    # We need cert-manager for generating the certificates for the webhooks
    make cert-manager-install
+   # When the cert-manager operator is installed, run this:
+   make -f mk/cert-manager.mk cert-manager-self-signed-issuer-create
+   # Finally deploy the operator in the cluster with:
    make deploy-cluster IMG=quay.io/freeipa/freeipa-operator:dev-test
    ```
-
-   Now it support deploy in kind bu just typing:
-
-   ```shell
-   make deploy-kind IMG=quay.io/freeipa/freeipa-operator:dev-test
-   ```
-
-1. Now create a new namespace by: `kubectl create namespace my-freeipa`
 
 1. And create a new idm resource by:
    `PASSWORD=myPassword124 SAMPLE=ephemeral-storage make sample-create`
