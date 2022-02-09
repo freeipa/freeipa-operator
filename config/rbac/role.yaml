@@ -49,6 +49,7 @@ rules:
       - ""
     resources:
       - "pods"
+      - "configmaps"
     verbs:
       - "get"
       - "create"
