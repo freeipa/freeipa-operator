@@ -19,6 +19,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	configv1 "github.com/openshift/api/config/v1"
 	routev1 "github.com/openshift/api/route/v1"
@@ -53,13 +54,28 @@ func getWatchNamespace() (string, error) {
 	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
 	// which specifies the Namespace to watch.
 	// An empty value means the operator is running with cluster scope.
-	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
+	const watchNamespaceEnvVar = "WATCH_NAMESPACE"
 
 	ns, found := os.LookupEnv(watchNamespaceEnvVar)
 	if !found {
 		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
 	}
 	return ns, nil
+}
+
+// getEnableWebhooks returns the value for ENABLE_WEBHOOKS env var or
+// true by default.
+func getEnableWebhooks() (bool, error) {
+	const enableWebhooksEnvVar = "ENABLE_WEBHOOKS"
+
+	enableWebhooks, found := os.LookupEnv(enableWebhooksEnvVar)
+	if !found {
+		return true, nil
+	}
+	if strings.ToLower(enableWebhooks) != "false" {
+		return true, nil
+	}
+	return false, nil
 }
 
 // getWorkloadImage return t
@@ -120,9 +136,13 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "IDM")
 		os.Exit(3)
 	}
-	if err = (&idmv1alpha1.IDM{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "IDM")
-		os.Exit(4)
+
+	// Conditionally disable webhooks, this is useful when debugging locally
+	if enable, _ := getEnableWebhooks(); enable {
+		if err = (&idmv1alpha1.IDM{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "IDM")
+			os.Exit(4)
+		}
 	}
 	// +kubebuilder:scaffold:builder
 
