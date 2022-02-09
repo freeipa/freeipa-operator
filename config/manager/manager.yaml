@@ -3,7 +3,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: controller-manager
-  # namespace: system
   labels:
     control-plane: controller-manager
 spec:
@@ -42,3 +41,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            # TODO Set RELATED_IMAGE_FREEIPA from a configmap and
+            #      inject here the value so the container image
+            #      is managed from the configmap
+            - name: RELATED_IMAGE_FREEIPA
+              value: quay.io/freeipa/freeipa-openshift-container:latest
