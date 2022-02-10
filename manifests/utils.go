@@ -46,19 +46,19 @@ func RandStringBytes(n int) string {
 }
 
 // GetRealm Get the REALM for the POD
-func GetRealm(m *v1alpha1.IDM, baseDomain string) string {
-	return "APPS." + strings.ToUpper(baseDomain)
+func GetRealm(m *v1alpha1.IDM, ingressDomain string) string {
+	return strings.ToUpper(ingressDomain)
 }
 
 // GetIpaServerHostname Get the hostname passed to ipa installation
-func GetIpaServerHostname(m *v1alpha1.IDM, baseDomain string) string {
-	return m.Namespace + ".apps." + baseDomain
+func GetIpaServerHostname(m *v1alpha1.IDM, ingressDomain string) string {
+	return m.Namespace + "." + ingressDomain
 }
 
 // GetCaSubject Get the CA Subject for the POD
-func GetCaSubject(m *v1alpha1.IDM, baseDomain string) string {
+func GetCaSubject(m *v1alpha1.IDM, ingressDomain string) string {
 	cn := m.Namespace + "-" + RandStringBytes(7)
-	o := GetRealm(m, baseDomain)
+	o := GetRealm(m, ingressDomain)
 	return "CN=" + cn + ", O=" + o
 }
 
