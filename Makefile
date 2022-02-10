@@ -117,21 +117,10 @@ else
 	go run ./main.go $(CONTROLLER_ARGS)
 endif
 
+KUSTOMIZE = $(shell pwd)/bin/kustomize
 .PHONY: kustomize
-kustomize:
-ifeq (, $(shell which kustomize))
-	@{ \
-	set -e ;\
-	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/kustomize/kustomize/v3@v3.10.0 ;\
-	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
-	}
-KUSTOMIZE=$(GOBIN)/kustomize
-else
-KUSTOMIZE=$(shell which kustomize)
-endif
+kustomize: ## Download kustomize locally if necessary.
+	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
 
 # Install CRDs into a cluster
 .PHONY: install-crds
@@ -238,23 +227,10 @@ container-load-gz: check-container-runtime
 container-push: check-container-runtime
 	$(DOCKER) push $(IMG)
 
-# find or download controller-gen
-# download controller-gen if necessary
+CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
 .PHONY: controller-gen
-controller-gen:
-ifeq (, $(shell which controller-gen))
-	@{ \
-	set -e ;\
-	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$CONTROLLER_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
-	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
-	}
-CONTROLLER_GEN=$(GOBIN)/controller-gen
-else
-CONTROLLER_GEN=$(shell which controller-gen)
-endif
+controller-gen: ## Download controller-gen locally if necessary.
+	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.2)
 
 # https://itnext.io/testing-kubernetes-operators-with-ginkgo-gomega-and-the-operator-runtime-6ad4c2492379
 .PHONY: deploy-kind
@@ -378,3 +354,18 @@ cert-manager-install:
 .PHONY: cert-manager-uninstall
 cert-manager-uninstall:
 	@$(MAKE) -f mk/cert-manager.mk $@
+
+
+# go-get-tool will 'go get' any package $2 and install it to $1.
+PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+define go-get-tool
+@[ -f $(1) ] || { \
+set -e ;\
+TMP_DIR=$$(mktemp -d) ;\
+cd $$TMP_DIR ;\
+go mod init tmp ;\
+echo "Downloading $(2)" ;\
+GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
+rm -rf $$TMP_DIR ;\
+}
+endef
