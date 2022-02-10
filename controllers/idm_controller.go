@@ -45,7 +45,7 @@ type IDMReconciler struct {
 
 	Log           logr.Logger
 	Scheme        *runtime.Scheme
-	BaseDomain    string
+	IngressDomain string
 	Arguments     *arguments.Arguments
 	WorkloadImage string
 }
@@ -54,7 +54,7 @@ var (
 	metricsAddr string
 )
 
-// ReadBaseDomainFromOpenshiftConfig This method encapsulate the operation below:
+// ReadIngressDomainFromOpenshiftConfig This method encapsulate the operation below:
 //
 // ```raw
 // oc get dnses.config.openshift.io/cluster -o json | jq -r ".spec.baseDomain"
@@ -65,29 +65,29 @@ var (
 // ctx A memory context used for the operation.
 // Return If the operation is executed successfully, the baseDomain and nil for
 // error, else return empty string for baseDomain and the error object.
-func (r *IDMReconciler) ReadBaseDomainFromOpenshiftConfig(ctx context.Context) (string, error) {
+func (r *IDMReconciler) ReadIngressDomainFromOpenshiftConfig(ctx context.Context) (string, error) {
 	namespacedName := types.NamespacedName{
 		Namespace: "",
 		Name:      "cluster",
 	}
-	dnsConfig := &configv1.DNS{}
-	if err := r.Get(ctx, namespacedName, dnsConfig); err != nil {
+	ingressConfig := &configv1.Ingress{}
+	if err := r.Get(ctx, namespacedName, ingressConfig); err != nil {
 		return "", err
 	}
-	return dnsConfig.Spec.BaseDomain, nil
+	return ingressConfig.Spec.Domain, nil
 }
 
-// InitBaseDomain Initialize the cache for the BaseDomain that is
+// InitBaseDomain Initialize the cache for the IngressDomain that is
 // used by the cluster.
 // ctx The memory context to be used for the operation.
 // Return nil if it was initialized, else an error object.
-func (r *IDMReconciler) InitBaseDomain(ctx context.Context) error {
+func (r *IDMReconciler) InitIngressDomain(ctx context.Context) error {
 	var err error
-	if r.BaseDomain == "" {
-		log := r.Log.WithValues("idm_controller", "GetClusterDomain")
-		log.Info("BaseDomain is empty, retrieving")
+	if r.IngressDomain == "" {
+		log := r.Log.WithValues("idm_controller", "InitBaseDomain")
+		log.Info("IngressDomain is empty, retrieving")
 
-		if r.BaseDomain, err = r.ReadBaseDomainFromOpenshiftConfig(ctx); err != nil {
+		if r.IngressDomain, err = r.ReadIngressDomainFromOpenshiftConfig(ctx); err != nil {
 			return err
 		}
 	}
@@ -120,8 +120,8 @@ func (r *IDMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, err
 	}
 
-	if err := r.InitBaseDomain(ctx); err != nil {
-		log.Error(err, "Failed initializing the BaseDomain attribute")
+	if err := r.InitIngressDomain(ctx); err != nil {
+		log.Error(err, "Failed initializing the IngressDomain attribute")
 		return ctrl.Result{}, err
 	}
 
@@ -379,7 +379,7 @@ func (r *IDMReconciler) CreateMainPod(ctx context.Context, item *v1alpha1.IDM) e
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating Master Pod")
-			manifest := manifests.MainPodForIDM(item, r.BaseDomain, r.WorkloadImage, defaultStorage)
+			manifest := manifests.MainPodForIDM(item, r.IngressDomain, r.WorkloadImage, defaultStorage)
 			ctrl.SetControllerReference(item, manifest, r.Scheme)
 			if err = r.Create(ctx, manifest); err != nil {
 				return err
@@ -420,7 +420,7 @@ func (r *IDMReconciler) CreateStatefulsetMain(ctx context.Context, item *v1alpha
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating Main Statefulset")
-			manifest := manifests.MainStatefulsetForIDM(item, r.BaseDomain, r.WorkloadImage, defaultStorage)
+			manifest := manifests.MainStatefulsetForIDM(item, r.IngressDomain, r.WorkloadImage, defaultStorage)
 			ctrl.SetControllerReference(item, manifest, r.Scheme)
 			if err = r.Create(ctx, manifest); err != nil {
 				return err
@@ -478,7 +478,7 @@ func (r *IDMReconciler) CreateRoute(ctx context.Context, item *v1alpha1.IDM) err
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating Route to web service")
-			manifest := manifests.RouteForIDM(item, r.BaseDomain)
+			manifest := manifests.RouteForIDM(item, manifests.GenerateDefaultRoute(item.Namespace, r.IngressDomain))
 			ctrl.SetControllerReference(item, manifest, r.Scheme)
 			if err = r.Create(ctx, manifest); err != nil {
 				return err

@@ -8,10 +8,17 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
+// GenerateDefaultRoute Given a namespace and ingressDomain
+// it generate the default hostname value for the route.
+// Return a string
+func GenerateDefaultRoute(namespace string, ingressDomain string) string {
+	return namespace + "." + ingressDomain
+}
+
 // RouteForIDM Create the Route manifest for this IDM resource
-// clusterDomain It is the subdomain associated to the cluster
-//
-func RouteForIDM(m *v1alpha1.IDM, clusterDomain string) *routev1.Route {
+// ingressDomain It is the ingress domain associated to the cluster
+// Return a configure Route object
+func RouteForIDM(m *v1alpha1.IDM, host string) *routev1.Route {
 	route := &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      m.Name,
@@ -25,7 +32,7 @@ func RouteForIDM(m *v1alpha1.IDM, clusterDomain string) *routev1.Route {
 			Labels: LabelsForIDM(m),
 		},
 		Spec: routev1.RouteSpec{
-			Host: m.Namespace + ".apps." + clusterDomain,
+			Host: host,
 			Port: &routev1.RoutePort{
 				TargetPort: intstr.IntOrString{
 					Type:   intstr.String,

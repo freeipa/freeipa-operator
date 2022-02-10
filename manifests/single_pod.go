@@ -65,7 +65,7 @@ func GetDataVolumeForMainPod(m *v1alpha1.IDM, defaultStorage string) corev1.Volu
 }
 
 // MainPodForIDM return a master pod for an IDM CRD
-func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, workload string, defaultStorage string) *corev1.Pod {
+func MainPodForIDM(m *v1alpha1.IDM, ingressDomain string, workload string, defaultStorage string) *corev1.Pod {
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetMainPodName(m),
@@ -154,8 +154,8 @@ func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, workload string, defaultS
 						"ipa-server-install",
 						"-U",
 						"--realm",
-						GetRealm(m, baseDomain),
-						"--ca-subject=" + GetCaSubject(m, baseDomain),
+						GetRealm(m, ingressDomain),
+						"--ca-subject=" + GetCaSubject(m, ingressDomain),
 						"--no-ntp",
 						"--no-sshd",
 						"--no-ssh",
@@ -172,7 +172,7 @@ func MainPodForIDM(m *v1alpha1.IDM, baseDomain string, workload string, defaultS
 						},
 						{
 							Name:  "IPA_SERVER_HOSTNAME",
-							Value: GetIpaServerHostname(m, baseDomain),
+							Value: GetIpaServerHostname(m, ingressDomain),
 						},
 						{
 							Name:  "container_uuid",

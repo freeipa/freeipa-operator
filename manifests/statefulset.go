@@ -178,8 +178,13 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, workload string, 
 								"ipa-server-install",
 								"-U",
 								"--realm",
+<<<<<<< HEAD
 								m.Spec.Realm,
 								"--ca-subject=" + GetCaSubject(m, baseDomain),
+=======
+								GetRealm(m, ingressDomain),
+								"--ca-subject=" + GetCaSubject(m, ingressDomain),
+>>>>>>> 2e1bfab (Use ingress domain instead of cluster basedomain)
 								"--no-ntp",
 								"--no-sshd",
 								"--no-ssh",
@@ -196,7 +201,7 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, workload string, 
 								},
 								{
 									Name:  "IPA_SERVER_HOSTNAME",
-									Value: GetIpaServerHostname(m, baseDomain),
+									Value: GetIpaServerHostname(m, ingressDomain),
 								},
 								{
 									Name:  "container_uuid",
