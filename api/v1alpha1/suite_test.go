@@ -17,9 +17,6 @@ limitations under the License.
 package v1alpha1_test
 
 import (
-
-	// . "github.com/freeipa/freeipa-operator/api/v1alpha1"
-
 	"fmt"
 	"testing"
 
@@ -56,12 +53,9 @@ func TestWebhooks(t *testing.T) {
 
 var _ = BeforeSuite(func(done Done) {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter)))
-	// SetUpK8s()
 	close(done)
 }, 60)
 
 var _ = AfterSuite(func() {
 	By("tearing down the test environment")
-	// err := testEnv.Stop()
-	// Expect(err).ToNot(HaveOccurred())
 })
