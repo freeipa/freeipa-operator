@@ -48,10 +48,12 @@ Experimental freeipa-operator for Freeipa.
    make container-build IMG=quay.io/freeipa/freeipa-operator:dev-test
    podman login quay.io
    make container-push IMG=quay.io/freeipa/freeipa-operator:dev-test
+
    # We need cert-manager for generating the certificates for the webhooks
-   make cert-manager-install
+   make -f mk/cert-manager cert-manager-install
    # When the cert-manager operator is installed, run this:
    make -f mk/cert-manager.mk cert-manager-self-signed-issuer-create
+
    # Finally deploy the operator in the cluster with:
    make deploy-cluster IMG=quay.io/freeipa/freeipa-operator:dev-test
    ```
@@ -71,13 +73,11 @@ Experimental freeipa-operator for Freeipa.
    ```
 
 > When using CodeReadyContainers, you will need to add the entry
-> `VM_IP   NAMESPACE.apps.crc.testing` to your `/etc/hosts` file
+> `192.168.130.11   NAMESPACE.apps.crc.testing` to your `/etc/hosts` file
 > or it will not work as expected; in a real cluster it works
-> properly.
-> CodeReadyContainers create '*.apps-crc.testing' for the dnsmasq
-> service instead of the '*.apps.crc.testing' as in a normal cluster.
+> properly because the ingressDomain use to match `*.apps.<basedomain>`.
 >
-> The configuration for dnsmasq is auto-generated when crc start and
-> it is stored at `/var/lib/libvirt/dnsmasq/crc.conf`.
+> Now it is known that the ingressDomain information can be retrieved more
+> accurate from a cluster resource and it will be corrected in a future PR.
 
 See also: [Operator SDK 1.0.0 - Quick Start](https://sdk.operatorframework.io/docs/building-operators/golang/quickstart/).
