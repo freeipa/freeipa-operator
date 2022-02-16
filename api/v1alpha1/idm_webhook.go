@@ -43,8 +43,6 @@ func (r *IDM) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-
 //+kubebuilder:webhook:path=/mutate-idmocp-redhat-com-v1alpha1-idm,mutating=true,failurePolicy=fail,groups=idmocp.redhat.com,resources=idms,verbs=create;update,versions=v1alpha1,sideEffects=None,admissionReviewVersions=v1,name=midm.kb.io
 
 var _ webhook.Defaulter = &IDM{}
@@ -53,10 +51,13 @@ var _ webhook.Defaulter = &IDM{}
 func (r *IDM) Default() {
 	idmlog.Info("default", "name", r.Name)
 
-	// TODO(user): fill in your defaulting logic.
+	// TODO(user): set here the default values for not specified fields or
+	//             empty fields, such as, use a REALM that match the cluster
+	//             base domain if empty, or a hostname that match the namespace
+	//    		   and the ingressDomain by default or the minimal resource
+	//             limits for running the workload.
 }
 
-// TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
 //+kubebuilder:webhook:verbs=create;update,path=/validate-idmocp-redhat-com-v1alpha1-idm,mutating=false,failurePolicy=fail,groups=idmocp.redhat.com,resources=idms,versions=v1alpha1,sideEffects=None,admissionReviewVersions=v1,name=vidm.kb.io
 
 var _ webhook.Validator = &IDM{}
@@ -66,6 +67,12 @@ var _ webhook.Validator = &IDM{}
 // - The referenced secret exists and is immutable.
 func (r *IDM) ValidateCreate() error {
 	idmlog.Info("validate create", "name", r.Name)
+
+	// TODO(user): add here validation when creating the custom resource
+	//             such as values for attributes belong to their domains,
+	//             or checking that referenced resources exists or
+	//             any other check to warranty the values for the custom
+	//             resource are valids.
 
 	return nil
 }
@@ -108,6 +115,9 @@ func (r *IDM) ValidateUpdate(oldRaw runtime.Object) error {
 func (r *IDM) ValidateDelete() error {
 	idmlog.Info("validate delete", "name", r.Name)
 
-	// TODO(user): fill in your validation logic upon object deletion.
+	// TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
+
+	// TODO(user): add here any validation to be made before to proceed to
+	//             delete the custom resource
 	return nil
 }
