@@ -58,7 +58,7 @@ Experimental freeipa-operator for Freeipa.
    make deploy-cluster IMG=quay.io/USER_ORG/freeipa-operator:dev-test
    ```
 
-2. And create a new idm resource by:
+1. And create a new idm resource by:
 
    ```sh
    IDM_ADMIN_PASSWORD=myPassword124 \
@@ -69,9 +69,9 @@ Experimental freeipa-operator for Freeipa.
 
    > You can check more samples at `config/samples` directory.
 
-3. Look at your objects by: `kubectl get all,idm,pvc,secrets`
+1. Look at your objects by: `kubectl get all,idm,pvc,secrets`
 
-4. And clean-up the cluster by:
+1. And clean-up the cluster by:
 
    ```sh
    SAMPLE=ephemeral-storage make sample-delete
