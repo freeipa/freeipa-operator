@@ -144,7 +144,7 @@ redeploy-cluster: undeploy-cluster container-build container-push deploy-cluster
 .PHONY: deploy-cluster
 deploy-cluster: kustomize manifests
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	cd config/manager && $(KUSTOMIZE) edit set namespace $(WATCH_NAMESPACE)
+	cd config/default && $(KUSTOMIZE) edit set namespace $(WATCH_NAMESPACE)
 	oc project $(WATCH_NAMESPACE) 2>/dev/null || oc new-project $(WATCH_NAMESPACE)
 	$(KUSTOMIZE) build config/$(CONFIG) | kubectl create -f -
 

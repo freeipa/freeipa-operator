@@ -8,5 +8,3 @@ images:
 - name: controller
   newName: quay.io/freeipa/freeipa-operator
   newTag: nightly
-
-namespace: freeipa
