@@ -346,15 +346,6 @@ sample-create: check-password
 .PHONY: sample-recreate
 sample-recreate: sample-delete sample-create
 
-.PHONY: cert-manager-install
-cert-manager-install:
-	@$(MAKE) -f mk/cert-manager.mk $@
-
-.PHONY: cert-manager-uninstall
-cert-manager-uninstall:
-	@$(MAKE) -f mk/cert-manager.mk $@
-
-
 # go-get-tool will 'go get' any package $2 and install it to $1.
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 define go-get-tool
