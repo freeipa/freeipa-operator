@@ -6,11 +6,18 @@ metadata:
   name: dnses-role
 rules:
   # Allow to retrieve the baseDomain
-  - apiGroups:
-      - "config.openshift.io"
+  - apiGroups: ["config.openshift.io"]
     resources:
-      - "dnses"
+      - dnses
     verbs:
       - list
       - get
       - watch
+
+  - apiGroups: ["config.openshift.io"]
+    resources:
+      - ingresses
+    verbs:
+      - watch
+      - list
+      - get
