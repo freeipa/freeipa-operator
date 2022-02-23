@@ -5,15 +5,15 @@ metadata:
   name: idm-sample
 spec:
   # Add fields here
-  realm: bar
+  realm: APPS-CRC.TESTING
   passwordSecret: idm-sample
   resources:
     requests:
-      cpu: "1500m"
-      memory: "2Gi"
-    limits:
       cpu: "2000m"
-      memory: "2Gi"
+      memory: "3Gi"
+    limits:
+      cpu: "3000m"
+      memory: "4Gi"
   volumeClaimTemplate:
     accessModes:
       - ReadWriteOnce
