@@ -19,6 +19,7 @@ func GetEphimeralVolumeForMainStatefulset(m *v1alpha1.IDM) corev1.Volume {
 	}
 }
 
+// ExecStopSystemd Command that stop systemd
 var ExecStopSystemd []string = []string{"kill", "-RTMIN+3", "1"}
 
 // GetVolumeListForMainStatefulset Return the VolumeList for the Pod Spec embeded into
@@ -67,6 +68,9 @@ func GetVolumeListForMainStatefulset(m *v1alpha1.IDM) []corev1.Volume {
 
 // MainStatefulsetForIDM return a master pod for an IDM CRD
 func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, workload string, defaultStorage string) *appsv1.StatefulSet {
+	if m.Spec.Realm == "" {
+		m.Spec.Realm = GetRealm(m, baseDomain)
+	}
 
 	statefulset := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -174,7 +178,7 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, workload string, 
 								"ipa-server-install",
 								"-U",
 								"--realm",
-								GetRealm(m, baseDomain),
+								m.Spec.Realm,
 								"--ca-subject=" + GetCaSubject(m, baseDomain),
 								"--no-ntp",
 								"--no-sshd",
