@@ -77,7 +77,7 @@ func (r *IDMReconciler) ReadIngressDomainFromOpenshiftConfig(ctx context.Context
 	return ingressConfig.Spec.Domain, nil
 }
 
-// InitBaseDomain Initialize the cache for the IngressDomain that is
+// InitIngressDomain Initialize the cache for the IngressDomain that is
 // used by the cluster.
 // ctx The memory context to be used for the operation.
 // Return nil if it was initialized, else an error object.
