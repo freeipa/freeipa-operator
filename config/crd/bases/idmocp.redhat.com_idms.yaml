@@ -36,6 +36,8 @@ spec:
           spec:
             description: IDMSpec defines the desired state of Freeipa
             properties:
+              host:
+                type: string
               passwordSecret:
                 type: string
               realm:

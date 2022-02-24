@@ -26,6 +26,7 @@ import (
 
 // IDMSpec defines the desired state of Freeipa
 type IDMSpec struct {
+	Host           string                      `json:"host,omitempty"`
 	Realm          string                      `json:"realm,omitempty"`
 	PasswordSecret *string                     `json:"passwordSecret"`
 	Resources      corev1.ResourceRequirements `json:"resources"`
