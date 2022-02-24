@@ -17,11 +17,18 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"context"
 	"fmt"
 	"reflect"
+	"strings"
 
+	ocpconfigv1 "github.com/openshift/api/config/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	kvalidation "k8s.io/apimachinery/pkg/util/validation"
+	"k8s.io/apimachinery/pkg/util/validation/field"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -38,6 +45,8 @@ var (
 // indicated controller manager.
 // mgr The controller manager where to add the webhook.
 func (r *IDM) SetupWebhookWithManager(mgr ctrl.Manager) error {
+	clientInst = mgr.GetClient()
+
 	return ctrl.NewWebhookManagedBy(mgr).
 		For(r).
 		Complete()
@@ -50,6 +59,10 @@ var _ webhook.Defaulter = &IDM{}
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (r *IDM) Default() {
 	idmlog.Info("default", "name", r.Name)
+
+	if r.Spec.Host == "" {
+		r.Spec.Host = GenerateDefaultHost(r.Name)
+	}
 
 	// TODO(user): set here the default values for not specified fields or
 	//             empty fields, such as, use a REALM that match the cluster
@@ -67,6 +80,20 @@ var _ webhook.Validator = &IDM{}
 // - The referenced secret exists and is immutable.
 func (r *IDM) ValidateCreate() error {
 	idmlog.Info("validate create", "name", r.Name)
+
+	// Validate Host field
+	if len(r.Spec.Host) > 64 {
+		return fmt.Errorf("spec.host: %s; it is longer than 64 chars", r.Spec.Host)
+	}
+	if errs := kvalidation.IsFullyQualifiedDomainName(field.NewPath("spec", "host"), r.Spec.Host); len(errs) != 0 {
+		return fmt.Errorf("spec.host: %s; %s", r.Spec.Host, errs[0].Detail)
+	}
+	segments := strings.Split(r.Spec.Host, ".")
+	for _, s := range segments {
+		if errs := kvalidation.IsDNS1123Label(s); len(errs) > 0 {
+			return fmt.Errorf("Host field '%s' does not conform RFC1123; label '%s' is not a DNS1123 label", r.Spec.Host, s)
+		}
+	}
 
 	// TODO(user): add here validation when creating the custom resource
 	//             such as values for attributes belong to their domains,
@@ -90,6 +117,10 @@ func (r *IDM) ValidateUpdate(oldRaw runtime.Object) error {
 	old, ok := oldRaw.(*IDM)
 	if !ok {
 		return apierrors.NewBadRequest(fmt.Sprintf("expected an IDM but got a %T", oldRaw))
+	}
+
+	if old.Spec.Host != r.Spec.Host {
+		return apierrors.NewBadRequest("IDM.Spec.Host is immutable")
 	}
 
 	if old.Spec.Realm != r.Spec.Realm {
@@ -120,4 +151,24 @@ func (r *IDM) ValidateDelete() error {
 	// TODO(user): add here any validation to be made before to proceed to
 	//             delete the custom resource
 	return nil
+}
+
+// GenerateDefaultHost Generate a default host based on the IDM name
+// Return
+func GenerateDefaultHost(suffix string) string {
+	ingress := &ocpconfigv1.Ingress{}
+	namespaced := types.NamespacedName{
+		Namespace: "",
+		Name:      "cluster",
+	}
+	if err := clientInst.Get(context.TODO(), namespaced, ingress); err != nil {
+		if errors.IsNotFound(err) {
+			idmlog.Info("ingressConfig not found")
+			return ""
+		}
+		idmlog.Info("ingressConfig unexpected error: " + err.Error())
+		return ""
+	}
+
+	return strings.Join([]string{suffix, ingress.Spec.Domain}, ".")
 }
