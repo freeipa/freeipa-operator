@@ -6,7 +6,10 @@ metadata:
 spec:
   # Add fields here
   # Update this value for your cluster ingress
-  realm: APPS-CRC.TESTING
+  # host: this-is.64-char-length-12345678-freeipa-invalid.apps-crc.testing
+  # host: this-is.65-char-length-123456789-freeipa-invalid.apps-crc.testing
+  # host: ipa.apps-crc.testing
+  realm: EXAMPLE.TESTING
   passwordSecret: idm-sample
   resources:
     requests:
