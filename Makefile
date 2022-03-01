@@ -51,8 +51,6 @@ IMG ?= $(IMG_BASE)/$(IMG_NAME):$(IMG_TAG)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:crdVersions=v1"
 TEMPLATES_PATH ?= $(PWD)/config/templates
-SAMPLES_PATH ?= $(PWD)/config/samples
-SAMPLE ?= ephemeral-storage
 DEFAULT_STORAGE ?= ephemeral
 CONFIG ?= default
 
@@ -327,25 +325,7 @@ ifeq (,$(IPA_DM_PASSWORD))
 	@echo "IPA_DM_PASSWORD must be provided; IPA_DM_PASSWORD=MySecretPassword make ..."; exit 1
 endif
 
-
-.PHONY: sample-build
-sample-build:
-	-kustomize build $(SAMPLES_PATH)/$(SAMPLE)/
-
-.PHONY: sample-delete
-sample-delete:
-	-@kubectl delete secrets/idm-sample
-	-kustomize build $(SAMPLES_PATH)/$(SAMPLE)/ | kubectl delete -f -
-
-.PHONY: sample-create
-sample-create: check-password-is-provided
-	@-kubectl create secret generic idm-sample \
-	          --from-literal=IPA_ADMIN_PASSWORD=$(IPA_ADMIN_PASSWORD) \
-	          --from-literal=IPA_DM_PASSWORD=$(IPA_DM_PASSWORD)
-	kustomize build $(SAMPLES_PATH)/$(SAMPLE)/ | kubectl create -f -
-
-.PHONY: sample-recreate
-sample-recreate: sample-delete sample-create
+include mk/samples.mk
 
 # go-get-tool will 'go get' any package $2 and install it to $1.
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
