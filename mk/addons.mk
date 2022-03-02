@@ -22,3 +22,5 @@ export WATCH_NAMESPACE
 include mk/checks.mk
 include mk/samples.mk
 include mk/cert-manager.mk
+include mk/scorecard.mk
+include mk/miscelanea.mk
