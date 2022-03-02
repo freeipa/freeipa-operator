@@ -28,12 +28,13 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	idmv1alpha1 "github.com/freeipa/freeipa-operator/api/v1alpha1"
 	"github.com/freeipa/freeipa-operator/controllers"
 	arguments "github.com/freeipa/freeipa-operator/internal/arguments"
-	// +kubebuilder:scaffold:imports
+	//+kubebuilder:scaffold:imports
 )
 
 var (
@@ -46,7 +47,7 @@ func init() {
 	utilruntime.Must(idmv1alpha1.AddToScheme(scheme))
 	utilruntime.Must(routev1.AddToScheme(scheme))
 	utilruntime.Must(configv1.AddToScheme(scheme))
-	// +kubebuilder:scaffold:scheme
+	//+kubebuilder:scaffold:scheme
 }
 
 // getWatchNamespace returns the Namespace the operator should be watching for changes
@@ -115,12 +116,13 @@ func main() {
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:             scheme,
-		MetricsBindAddress: ctrlArguments.GetMetricsAddr(),
-		Port:               9443,
-		LeaderElection:     ctrlArguments.GetEnableLeaderElection(),
-		LeaderElectionID:   "42b6c26c.redhat.com",
-		Namespace:          watchNamespace, // namespaced-scope when the value is not an empty string
+		Scheme:                 scheme,
+		MetricsBindAddress:     ctrlArguments.GetMetricsAddr(),
+		Port:                   9443,
+		HealthProbeBindAddress: ctrlArguments.GetProbeAddr(),
+		LeaderElection:         ctrlArguments.GetEnableLeaderElection(),
+		LeaderElectionID:       "42b6c26c.redhat.com",
+		Namespace:              watchNamespace, // namespaced-scope when the value is not an empty string
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -136,7 +138,6 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "IDM")
 		os.Exit(3)
 	}
-
 	// Conditionally disable webhooks, this is useful when debugging locally
 	if enable, _ := getEnableWebhooks(); enable {
 		if err = (&idmv1alpha1.IDM{}).SetupWebhookWithManager(mgr); err != nil {
@@ -144,7 +145,16 @@ func main() {
 			os.Exit(4)
 		}
 	}
-	// +kubebuilder:scaffold:builder
+	//+kubebuilder:scaffold:builder
+
+	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up health check")
+		os.Exit(1)
+	}
+	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up ready check")
+		os.Exit(1)
+	}
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {

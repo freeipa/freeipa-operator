@@ -24,7 +24,7 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// IDMSpec defines the desired state of Freeipa
+// IDMSpec defines the desired state of IDM
 type IDMSpec struct {
 	// +kubebuilder:validation:MaxLength:=64
 	Host           string                      `json:"host,omitempty"`
@@ -36,7 +36,7 @@ type IDMSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Freeipa. Edit Freeipa_types.go to remove/update
+	// Foo is an example field of IDM. Edit idm_types.go to remove/update
 }
 
 // IDMStatus defines the observed state of IDM
@@ -48,9 +48,9 @@ type IDMStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 }
 
-// +kubebuilder:object:root=true
-// +kubebuilder:subresource:status
-// +kubebuilder:resource:path=idms,scope=Namespaced
+//+kubebuilder:object:root=true
+//+kubebuilder:subresource:status
+//+kubebuilder:resource:path=idms,scope=Namespaced
 
 // IDM is the Schema for the idms API
 type IDM struct {
@@ -61,9 +61,9 @@ type IDM struct {
 	Status IDMStatus `json:"status,omitempty"`
 }
 
-// +kubebuilder:object:root=true
+//+kubebuilder:object:root=true
 
-// IDMList contains a list of Freeipa
+// IDMList contains a list of IDM
 type IDMList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
