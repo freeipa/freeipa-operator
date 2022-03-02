@@ -125,20 +125,20 @@ func (r *IDMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, err
 	}
 
-	// FIXME Remove this after creating the specific ServiceAccount for the workload
-	if err := r.CreateServiceAccount(ctx, &idm); err != nil {
-		return ctrl.Result{}, err
-	}
+	// // FIXME Remove this after creating the specific ServiceAccount for the workload
+	// if err := r.CreateServiceAccount(ctx, &idm); err != nil {
+	// 	return ctrl.Result{}, err
+	// }
 
-	// FIXME Remove this after creating the specific ServiceAccount for the workload
-	if err := r.CreateRole(ctx, &idm); err != nil {
-		return ctrl.Result{}, err
-	}
+	// // FIXME Remove this after creating the specific ServiceAccount for the workload
+	// if err := r.CreateRole(ctx, &idm); err != nil {
+	// 	return ctrl.Result{}, err
+	// }
 
-	// FIXME Remove this after creating the specific ServiceAccount for the workload
-	if err := r.CreateRoleBinding(ctx, &idm); err != nil {
-		return ctrl.Result{}, err
-	}
+	// // FIXME Remove this after creating the specific ServiceAccount for the workload
+	// if err := r.CreateRoleBinding(ctx, &idm); err != nil {
+	// 	return ctrl.Result{}, err
+	// }
 
 	if err := r.CreateSecret(ctx, &idm); err != nil {
 		return ctrl.Result{}, err
