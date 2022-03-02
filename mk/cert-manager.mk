@@ -1,5 +1,5 @@
 
-CERT_MANAGER_CVS_NAME=$(shell kubectl get Subscription/cert-manager -n openshift-operators -o jsonpath='{.status.installedCSV}')
+CERT_MANAGER_CVS_NAME=$(shell kubectl get Subscription/cert-manager -n openshift-operators -o jsonpath='{.status.installedCSV}' 2>/dev/null)
 
 ##@ Cert Manager
 
