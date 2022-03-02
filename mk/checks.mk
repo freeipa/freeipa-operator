@@ -1,6 +1,6 @@
 
 
-PHONY: check-password-is-provided
+.PHONY: check-password-is-provided
 check-password-is-provided:
 ifeq (,$(IPA_ADMIN_PASSWORD))
 	@echo IPA_ADMIN_PASSWORD was not provided; exit 1
