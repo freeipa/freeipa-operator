@@ -13,10 +13,12 @@ export ENABLE_WEBHOOKS
 RELATED_IMAGE_FREEIPA ?= quay.io/freeipa/freeipa-openshift-container:latest
 export RELATED_IMAGE_FREEIPA
 
-
+# The namespace to be watched by the controller; by default it is set to
+# the current namespace
 WATCH_NAMESPACE ?= $(shell oc project -q 2>/dev/null)
 export WATCH_NAMESPACE
 
 # Include sample rules
 include mk/checks.mk
 include mk/samples.mk
+include mk/cert-manager.mk
