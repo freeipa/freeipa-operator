@@ -36,3 +36,6 @@ docker-image-freeipa-operator.tar.gz
 
 # Ignore private.mk
 /private.mk
+
+# Ignore bundle_tmp* directories
+/bundle_tmp*
