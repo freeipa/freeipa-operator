@@ -12,15 +12,40 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        # https://kubernetes.io/docs/reference/labels-annotations-taints/#kubectl-kubernetes-io-default-container
+        kubectl.kubernetes.io/default-container: manager
       labels:
         control-plane: controller-manager
     spec:
-      terminationGracePeriodSeconds: 10
+      securityContext:
+        runAsNonRoot: true
       containers:
         - name: manager
           image: controller:latest
-          # FIXME Remove imagaPullPolicy for releases
           imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+
+          command:
+            - /manager
+          args:
+            - --leader-elect
+            # FIXME Remove -debug for releases
+            - -debug
+
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
 
           resources:
             limits:
@@ -30,12 +55,6 @@ spec:
               cpu: 100m
               memory: 60Mi
 
-          command:
-            - /manager
-          args:
-            - --enable-leader-election
-            # FIXME Remove -debug for releases
-            - -debug
           env:
             - name: WATCH_NAMESPACE
               valueFrom:
@@ -46,3 +65,5 @@ spec:
             #      is managed from the configmap
             - name: RELATED_IMAGE_FREEIPA
               value: quay.io/freeipa/freeipa-openshift-container:latest
+      serviceAccountName: controller-manager
+      terminationGracePeriodSeconds: 10
