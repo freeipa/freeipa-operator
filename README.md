@@ -24,46 +24,50 @@ Experimental freeipa-operator for Freeipa.
 1. Build by:
 
    ```sh
-   make
+   make build
    ```
 
 1. Launch tests by:
 
    ```sh
    make test
+   operator-sdk scorecard bundle
    ```
 
-1. Run locally outside the cluster by:
+1. Now create a new namespace by: `kubectl create namespace my-freeipa`
+
+1. Run locally outside the cluster by (webhooks are disabled):
 
    ```sh
    make run
    ```
 
-1. Now create a new namespace by: `kubectl create namespace my-freeipa`
-
 1. Or run inside the cluster by (first build and push the image):
 
    ```sh
    kubectl login https://my-cluster:6443
-   make container-build IMG=quay.io/USER_ORG/freeipa-operator:dev-test
+   export IMAGE_TAG_BASE=quay.io/USER_ORG/freeipa-operator
    podman login quay.io
-   make container-push IMG=quay.io/USER_ORG/freeipa-operator:dev-test
+   make container-build
+   make container-push
 
    # We need cert-manager for generating the certificates for the webhooks
-   make -f mk/cert-manager cert-manager-install
+   make cert-manager-install
    # When the cert-manager operator is installed, run this:
-   make -f mk/cert-manager.mk cert-manager-self-signed-issuer-create
+   make cert-manager-self-signed-issuer-create
 
    # Finally deploy the operator in the cluster with:
-   make deploy-cluster IMG=quay.io/USER_ORG/freeipa-operator:dev-test
+   make deploy
    ```
 
 1. And create a new idm resource by:
 
    ```sh
-   IDM_ADMIN_PASSWORD=myPassword124 \
-   IDM_DM_PASSWORD=myPassword125 \
-   SAMPLE=ephemeral-storage \
+   cat > private.mk <<EOF
+   IDM_ADMIN_PASSWORD=myPassword124
+   IDM_DM_PASSWORD=DMmyPassword124
+   SAMPLE=config/samples/ephemeral-storage
+   EOF
    make sample-create
    ```
 
@@ -74,9 +78,22 @@ Experimental freeipa-operator for Freeipa.
 1. And clean-up the cluster by:
 
    ```sh
-   SAMPLE=ephemeral-storage make sample-delete
-   make undeploy-cluster
+   make undeploy
    ```
+
+## Executing tests
+
+- For the unit tests run:
+
+  ```sh
+  make test
+  ```
+
+- For the integration tests with scorecard run:
+
+  ```sh
+  operator-sdk scorecard bundle --kubeconfig "${KUBECONFIG}"
+  ```
 
 <!-- TODO When the read of ingresDomain is implemented, remove the
           block below. -->
