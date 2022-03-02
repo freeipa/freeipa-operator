@@ -1,3 +1,6 @@
+# Default goal
+.DEFAULT_GOAL := build
+
 # This allow to run locally the controller without webhooks by default
 # which let you debug the code directly. A more complex configuration
 # is needed to debug with webhooks.
