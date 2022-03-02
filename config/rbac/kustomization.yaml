@@ -1,5 +1,6 @@
 ---
 resources:
+  - service_account.yaml
   - scc.yaml
   - role.yaml
   - role_binding.yaml
@@ -16,3 +17,7 @@ resources:
   # Allow to retrieve basedomain
   - dnses_clusterrole.yaml
   - dnses_clusterrole_binding.yaml
+
+  # Customize workload permissions
+  - freeipa_role.yaml
+  - freeipa_role_binding.yaml

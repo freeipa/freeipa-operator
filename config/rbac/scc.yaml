@@ -4,7 +4,7 @@
 apiVersion: security.openshift.io/v1
 kind: SecurityContextConstraints
 metadata:
-  name: idm
+  name: freeipa
   annotations:
     kubernetes.io/description: Provides a Freeipa Pod deployed all in one
       just for investigation prupose.
@@ -36,7 +36,7 @@ allowedCapabilities:
   - "SYS_ADMIN"
   - "SYS_RESOURCE"
   - "MKNOD"
-allowedUnsafeSysctls:
+allowedUnsafeSysctls: []
 defaultAddCapabilities:
   # Default capabilities anyuid
   - "CHOWN"
@@ -59,7 +59,7 @@ fsGroup:
   type: RunAsAny
 priority: 20
 readOnlyRootFilesystem: false
-requiredDropCapabilities: null
+requiredDropCapabilities: []
 runAsUser:
   type: RunAsAny
 seLinuxContext:
