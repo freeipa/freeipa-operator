@@ -1,7 +1,24 @@
 domain: redhat.com
+layout:
+- go.kubebuilder.io/v3
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
+projectName: freeipa-operator
 repo: github.com/freeipa/freeipa-operator
 resources:
-- group: idmocp.redhat.com
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: redhat.com
+  group: idmocp
   kind: IDM
+  path: github.com/freeipa/freeipa-operator/api/v1alpha1
   version: v1alpha1
-version: "2"
+  webhooks:
+    conversion: false
+    defaulting: true
+    validation: true
+    webhookVersion: v1
+version: "3"
