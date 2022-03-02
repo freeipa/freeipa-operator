@@ -1,0 +1,52 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+  name: freeipa-operator.v0.0.0
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: IDM is the Schema for the idms API
+      displayName: IDM
+      kind: IDM
+      name: idms.idmocp.redhat.com
+      version: v1alpha1
+  description: Deploy Freeipa in OpenShift
+  displayName: Identity Management as a Service
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - freeipa
+  - kerberos
+  - pki
+  - sso
+  - idm
+  links:
+  - name: Freeipa Operator
+    url: https://freeipa-operator.domain
+  maintainers:
+  - email: freeipa-users@lists.fedorahosted.org
+    name: freeipa-users
+  maturity: alpha
+  provider:
+    name: Red Hat
+    url: https://www.redhat.com
+  version: 0.0.0
