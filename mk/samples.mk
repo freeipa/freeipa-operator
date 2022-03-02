@@ -1,6 +1,6 @@
 SAMPLE ?= ./config/samples/ephemeral-storage
 
-##@ Sample idm custom resources management
+##@ Samples
 
 .PHONY: sample-build
 sample-build: ## Print out the resulting IDM resource
@@ -19,4 +19,5 @@ sample-create: check-password-is-provided  ## Create the IDM sample resource
 	$(KUSTOMIZE) build $(SAMPLE) | kubectl create -f -
 
 .PHONY: sample-recreate
-sample-recreate: sample-delete sample-create #
+.NOTPARALLEL: sample-recreate
+sample-recreate: sample-delete sample-create ## Alias for 'make sample-delete sample-create'
