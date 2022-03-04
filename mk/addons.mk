@@ -1,5 +1,5 @@
 # Default goal
-.DEFAULT_GOAL := build
+.DEFAULT_GOAL := help
 
 # This allow to run locally the controller without webhooks by default
 # which let you debug the code directly. A more complex configuration
@@ -19,8 +19,8 @@ WATCH_NAMESPACE ?= $(shell oc project -q 2>/dev/null)
 export WATCH_NAMESPACE
 
 # Include sample rules
+include mk/scorecard.mk
 include mk/checks.mk
 include mk/samples.mk
 include mk/cert-manager.mk
-include mk/scorecard.mk
 include mk/miscelanea.mk
