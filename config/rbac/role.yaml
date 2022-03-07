@@ -1,139 +1,101 @@
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  creationTimestamp: null
   name: manager-role
 rules:
-  - apiGroups:
-      - idmocp.redhat.com
-    resources:
-      - idms
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-
-  # https://github.com/operator-framework/operator-sdk/blob/e399ce1dadf4545ac12abf2f61d68fb334cc0bd4/doc/user/metrics/README.md#garbage-collection
-  - apiGroups: ["idmocp.redhat.com"]
-    resources:
-      - "idms/finalizers"
-    verbs:
-      - "update"
-
-  - apiGroups:
-      - idmocp.redhat.com
-    resources:
-      - idms/status
-    verbs:
-      - get
-      - patch
-      - update
-
-  # The below let leader election works properly
-  - apiGroups:
-      - "coordination.k8s.io"
-    resources:
-      - leases
-    verbs:
-      - get
-      - create
-      - list
-      - update
-
-  # Normal permissions for using the general resources.
-  - apiGroups:
-      - ""
-    resources:
-      - "pods"
-      - "configmaps"
-    verbs:
-      - "get"
-      - "create"
-      - "update"
-      - "watch"
-      - "list"
-
-  # Normal permissions for using the general resources.
-  - apiGroups:
-      - "apps"
-    resources:
-      - "statefulsets"
-    verbs:
-      - "get"
-      - "create"
-      - "update"
-      - "watch"
-      - "list"
-
-  - apiGroups:
-      - ""
-    resources:
-      - "serviceaccount"
-    verbs:
-      - "use"
-    resourceNames:
-      - "idm-operator-controller-manager"
-  - apiGroups: [""]
-    resources:
-      - "nodes"
-    verbs:
-      - "get"
-      - "watch"
-      - "list"
-  - apiGroups: [""]
-    resources:
-      - "services"
-    verbs:
-      - "list"
-      - "create"
-      - "watch"
-  - apiGroups:
-      - "route.openshift.io"
-    resources:
-      - "routes"
-    verbs:
-      - "list"
-      - "create"
-      - "watch"
-  # Fix 'spec.host: Forbidden: you do not have permission to set the host field
-  # of the route'
-  # https://github.com/openshift/origin/issues/14904#issuecomment-341757280
-  - apiGroups:
-      - "route.openshift.io"
-    resources:
-      - "routes/custom-host"
-    verbs:
-      - "create"
-
-  # Grant permissions for managing secrets
-  - apiGroups: [""]
-    resources:
-      - secrets
-    verbs:
-      - "list"
-      - "create"
-      - "watch"
-
-  - apiGroups: [""]
-    resources:
-      - "persistentvolumeclaims"
-    verbs:
-      - "list"
-      - "create"
-      - "watch"
-
-  - apiGroups: ["security.openshift.io"]
-    resources:
-      - "securitycontextconstraints"
-    verbs:
-      - "use"
-    resourceNames:
-      - "restricted"
-
-  - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["create"]
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - create
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - get
+  - list
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - get
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - events
+  verbs:
+  - create
+- apiGroups:
+  - ''
+  resources:
+  - secrets
+  verbs:
+  - create
+  - list
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - idmocp.redhat.com
+  resources:
+  - idms
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - idmocp.redhat.com
+  resources:
+  - idms/finalizers
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - idmocp.redhat.com
+  resources:
+  - idms/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - routes
+  verbs:
+  - create
+  - list
+  - watch
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - routes/custom-host
+  verbs:
+  - create
