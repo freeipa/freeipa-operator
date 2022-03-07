@@ -26,7 +26,6 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -98,8 +97,19 @@ func (r *IDMReconciler) InitIngressDomain(ctx context.Context) error {
 // necessary changes to bring the system to the requested state.
 //+kubebuilder:rbac:groups=idmocp.redhat.com,resources=idms,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=idmocp.redhat.com,resources=idms/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=idmocp.redhat.com,resources=idms/finalizers,verbs=get;update;patch
 //+kubebuilder:rbac:groups=coordination.k8s.io,resources=leases,verbs=get;list;create;update
+//+kubebuilder:rbac:groups=core,resources=events,verbs=create
+
+//+kubebuilder:rbac:groups=core,resources=secrets,verbs=list;create;watch
+//+kubebuilder:rbac:groups=core,resources=configmaps,verbs=create;get;update
+//+kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;delete;update;patch
+
 //+kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;create;update;watch
+//+kubebuilder:rbac:groups=route.openshift.io,resources=routes,verbs=list;create;watch
+//+kubebuilder:rbac:groups=route.openshift.io,resources=routes/custom-host,verbs=create
+
+//+kubebuilder:rbac:groups=security.openshift.io,resources=securitycontextconstraints,verbs=use,resourceNames=restricted
 func (r *IDMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var err error
 	var idm v1alpha1.IDM = v1alpha1.IDM{}
@@ -125,21 +135,6 @@ func (r *IDMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, err
 	}
 
-	// // FIXME Remove this after creating the specific ServiceAccount for the workload
-	// if err := r.CreateServiceAccount(ctx, &idm); err != nil {
-	// 	return ctrl.Result{}, err
-	// }
-
-	// // FIXME Remove this after creating the specific ServiceAccount for the workload
-	// if err := r.CreateRole(ctx, &idm); err != nil {
-	// 	return ctrl.Result{}, err
-	// }
-
-	// // FIXME Remove this after creating the specific ServiceAccount for the workload
-	// if err := r.CreateRoleBinding(ctx, &idm); err != nil {
-	// 	return ctrl.Result{}, err
-	// }
-
 	if err := r.CreateSecret(ctx, &idm); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -157,90 +152,6 @@ func (r *IDMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	}
 
 	return ctrl.Result{}, nil
-}
-
-// CreateRoleBinding Create the role
-// TODO Remove this method when the RoleBinding is decoupled
-func (r *IDMReconciler) CreateRoleBinding(ctx context.Context, item *v1alpha1.IDM) error {
-	namespacedName := types.NamespacedName{
-		Namespace: item.Namespace,
-		Name:      manifests.GetRoleBindingName(item),
-	}
-	log := r.Log.WithValues("idm", namespacedName)
-	found := &rbacv1.RoleBinding{}
-	err := r.Get(ctx, namespacedName, found)
-
-	if err != nil {
-		if errors.IsNotFound(err) {
-			log.Info("Creating RoleBinding")
-			manifest := manifests.RoleBindingForIDM(item)
-			if err := r.Create(ctx, manifest); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
-	} else {
-		log.Info("Currently the RoleBinding exists")
-	}
-
-	return nil
-}
-
-// CreateRole Create the role
-// TODO Remove this method when the Role is decoupled
-func (r *IDMReconciler) CreateRole(ctx context.Context, item *v1alpha1.IDM) error {
-	namespacedName := types.NamespacedName{
-		Namespace: item.Namespace,
-		Name:      manifests.GetRoleName(item),
-	}
-	log := r.Log.WithValues("idm", namespacedName)
-	found := &rbacv1.Role{}
-	err := r.Get(ctx, namespacedName, found)
-
-	if err != nil {
-		if errors.IsNotFound(err) {
-			log.Info("Creating Role")
-			manifest := manifests.RoleForIDM(item)
-			if err := r.Create(ctx, manifest); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
-	} else {
-		log.Info("Currently the Role exists")
-	}
-
-	return nil
-}
-
-// CreateServiceAccount Create the service account
-// TODO Remove this method when the ServiceAccount is decoupled
-func (r *IDMReconciler) CreateServiceAccount(ctx context.Context, item *v1alpha1.IDM) error {
-	namespacedName := types.NamespacedName{
-		Namespace: item.Namespace,
-		Name:      manifests.GetServiceAccountName(item),
-	}
-	log := r.Log.WithValues("idm", namespacedName)
-	found := &corev1.ServiceAccount{}
-	err := r.Get(ctx, namespacedName, found)
-
-	if err != nil {
-		if errors.IsNotFound(err) {
-			log.Info("Creating Service Account")
-			manifest := manifests.ServiceAccountForIDM(item)
-			if err := r.Create(ctx, manifest); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
-	} else {
-		log.Info("Currently the ServiceAccount exists")
-	}
-
-	return nil
 }
 
 // CheckStatusSecret Check the status indicated into the secret exists or not.
@@ -429,8 +340,8 @@ func (r *IDMReconciler) CreateStatefulsetMain(ctx context.Context, item *v1alpha
 			return err
 		}
 	} else {
-		// TODO Update changes if any that affect to the Pod
-		log.Info("Currently the Main Pod exists")
+		// TODO Update changes if any that affect to the Statefulset
+		log.Info("Currently the Main Statefulset exists")
 	}
 	return nil
 }
@@ -457,7 +368,7 @@ func (r *IDMReconciler) CreateWebService(ctx context.Context, item *v1alpha1.IDM
 			return err
 		}
 	} else {
-		// TODO Update changes if any that affect to the Pod
+		// TODO Update changes if any that affect to the Service
 		log.Info("Currently the Service for Web Interface exists")
 	}
 
@@ -487,7 +398,7 @@ func (r *IDMReconciler) CreateRoute(ctx context.Context, item *v1alpha1.IDM) err
 			return err
 		}
 	} else {
-		// TODO Update changes if any that affect to the Pod
+		// TODO Update changes if any that affect to the Route
 		log.Info("Currently the Route exists")
 	}
 
