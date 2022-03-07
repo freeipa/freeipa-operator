@@ -74,10 +74,9 @@ rules:
     resources:
       - "serviceaccount"
     verbs:
-      - "get"
-      - "create"
-      - "list"
       - "use"
+    resourceNames:
+      - "idm-operator-controller-manager"
   - apiGroups: [""]
     resources:
       - "nodes"
@@ -109,46 +108,6 @@ rules:
       - "routes/custom-host"
     verbs:
       - "create"
-  - apiGroups: ["rbac.authorization.k8s.io"]
-    resources:
-      - "roles"
-    verbs:
-      - "list"
-      - "create"
-      - "watch"
-      - "use"
-  - apiGroups: ["rbac.authorization.k8s.io"]
-    resources:
-      - "rolebindings"
-    verbs:
-      - "list"
-      - "create"
-      - "watch"
-      - "use"
-  - apiGroups: ["authorization.openshift.io"]
-    resources:
-      - "roles"
-    verbs:
-      - "list"
-      - "create"
-      - "watch"
-      - "use"
-  - apiGroups: ["authorization.openshift.io"]
-    resources:
-      - "rolebindings"
-    verbs:
-      - "list"
-      - "create"
-      - "watch"
-      - "use"
-  - apiGroups: [""]
-    resources:
-      - "serviceaccounts"
-    verbs:
-      - "list"
-      - "create"
-      - "watch"
-      - "use"
 
   # Grant permissions for managing secrets
   - apiGroups: [""]
@@ -172,3 +131,9 @@ rules:
       - "securitycontextconstraints"
     verbs:
       - "use"
+    resourceNames:
+      - "restricted"
+
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create"]
