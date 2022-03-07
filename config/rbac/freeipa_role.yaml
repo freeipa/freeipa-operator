@@ -11,7 +11,7 @@ rules:
     verbs:
       - "use"
     resourceNames:
-      - "freeipa"
+      - "idm-operator-freeipa"
 
   - apiGroups: ["security.openshift.io"]
     resources:
@@ -19,4 +19,4 @@ rules:
     verbs:
       - "use"
     resourceNames:
-      - "freeipa"
+      - "idm-operator-freeipa"
