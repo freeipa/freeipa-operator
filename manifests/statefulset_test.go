@@ -190,7 +190,7 @@ var _ = Describe("LOCAL:Statefulset tests", func() {
 						close(done)
 					}()
 				})
-				Expect(result.Spec.Template.Spec.ServiceAccountName).Should(Equal("freeipa"))
+				Expect(result.Spec.Template.Spec.ServiceAccountName).Should(Equal("idm-operator-freeipa"))
 				Expect(len(result.Spec.Template.Spec.Containers)).Should(Equal(1))
 				Expect(result.Spec.Template.Spec.Containers[0].Name).Should(Equal("main"))
 				Expect(result.Spec.Template.Spec.Containers[0].Image).Should(Equal(workload))
