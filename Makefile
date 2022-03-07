@@ -1,4 +1,5 @@
 -include private.mk
+-include mk/macros.mk
 
 # VERSION defines the project version for the bundle.
 # Update this value when you upgrade the version of your project.
@@ -83,6 +84,7 @@ help: ## Display this help.
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(call post-manifests)
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
