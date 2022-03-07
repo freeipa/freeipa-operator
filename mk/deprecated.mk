@@ -26,7 +26,7 @@ container-build: docker-build
 	$(call deprecated-rule,$@,$<)
 
 .PHONY: container-push
-container-push: docker-push  ## Push the controller image to the image registry
+container-push: docker-push
 	$(call deprecated-rule,$@,$<)
 
 ## >>NOTE<< Obsolete rules, they will fails
