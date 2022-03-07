@@ -70,7 +70,7 @@ func GetWebServiceName(m *v1alpha1.IDM) string {
 // GetServiceAccountName Return the ServiceAccount name for the
 // requested IDM resource.
 func GetServiceAccountName(m *v1alpha1.IDM) string {
-	return "freeipa"
+	return "idm-operator-freeipa"
 }
 
 // GetRoleName Return the Role name for the requested IDM resource.
