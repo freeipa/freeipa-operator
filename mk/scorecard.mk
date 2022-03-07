@@ -1,8 +1,8 @@
 
 ##@ Scorecard
 
-scorecard-bundle: ## Execute scorecard 
-	operator-sdk scorecard bundle
+scorecard-bundle: operator-sdk ## Execute scorecard from bundle/ directory
+	$(OPERATOR_SDK) scorecard bundle
 
-scorecard-image: ## Execure scorecard from the image
-	operator-sdk scorecard $(BUNDLE_IMG)
+scorecard-image: operator-sdk ## Execute scorecard from the generated image (BUNDLE_IMG)
+	$(OPERATOR_SDK) scorecard $(BUNDLE_IMG)
