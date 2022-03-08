@@ -15,3 +15,12 @@ define post-manifests
 && rm -f config/rbac/role_binding.json
 endef
 endif
+
+# $1 expected value
+# $2 resource-reference
+# $3 path to the value
+ifndef kubectl-wait-for-value
+define kubectl-wait-for-value
+@while test "$1" != "$(shell kubectl get "$2" -o jsonpath='{$3}' 2>/dev/null)"; do sleep 1; done
+endef
+endif
