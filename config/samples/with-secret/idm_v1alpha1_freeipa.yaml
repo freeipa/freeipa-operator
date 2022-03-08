@@ -5,5 +5,6 @@ metadata:
   name: idm-sample
 spec:
   # Add fields here
+  # Update this value for your cluster ingress
   realm: APPS-CRC.TESTING
   passwordSecret: "$(IDM_SECRET)"
