@@ -5,15 +5,7 @@ metadata:
   creationTimestamp: null
   name: dnses-role
 rules:
-  # Allow to retrieve the baseDomain
-  - apiGroups: ["config.openshift.io"]
-    resources:
-      - dnses
-    verbs:
-      - list
-      - get
-      - watch
-
+  # Allow to retrieve the ingress domain
   - apiGroups: ["config.openshift.io"]
     resources:
       - ingresses
