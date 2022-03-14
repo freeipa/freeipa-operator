@@ -25,3 +25,4 @@ include mk/samples.mk
 include mk/cert-manager.mk
 include mk/miscelanea.mk
 include mk/deprecated.mk
+include mk/bundle.mk
