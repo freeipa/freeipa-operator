@@ -1,7 +1,3 @@
--include mk/go-get-tool.mk
-
-export PATH:=$(shell pwd)/bin:$(PATH)
-
 ##@ Miscelanea
 
 # https://www.cmcrossroads.com/article/dumping-every-makefile-variable
