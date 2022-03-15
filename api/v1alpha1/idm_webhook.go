@@ -82,8 +82,8 @@ func (r *IDM) ValidateCreate() error {
 	idmlog.Info("validate create", "name", r.Name)
 
 	// Validate Host field
-	if len(r.Spec.Host) > 64 {
-		return fmt.Errorf("spec.host: %s; it is longer than 64 chars", r.Spec.Host)
+	if r.Spec.Host == "" {
+		return fmt.Errorf("spec.host: %s; %s", r.Spec.Host, "Cannot be empty")
 	}
 	if errs := kvalidation.IsFullyQualifiedDomainName(field.NewPath("spec", "host"), r.Spec.Host); len(errs) != 0 {
 		return fmt.Errorf("spec.host: %s; %s", r.Spec.Host, errs[0].Detail)
@@ -154,7 +154,8 @@ func (r *IDM) ValidateDelete() error {
 }
 
 // GenerateDefaultHost Generate a default host based on the IDM name
-// Return
+// Return A string with the default host based on the ingress domain
+// of the cluster.
 func GenerateDefaultHost(suffix string) string {
 	ingress := &ocpconfigv1.Ingress{}
 	namespaced := types.NamespacedName{
