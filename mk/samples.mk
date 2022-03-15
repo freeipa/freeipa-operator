@@ -16,7 +16,7 @@ sample-create: check-password-is-provided  ## Create the IDM sample resource
 
 .PHONY: sample-delete
 sample-delete:  ## Delete the IDM sample resource
-	@kubectl get secret/idm-sample 2>/dev/null \
+	@kubectl get secret/idm-sample &>/dev/null \
 	 || kubectl delete secrets/idm-sample
 	-$(KUSTOMIZE) build $(SAMPLE) | kubectl delete --wait=true -f -
 
