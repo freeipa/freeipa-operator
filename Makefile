@@ -49,7 +49,7 @@ IMG_BASE ?= quay.io/freeipa
 # Image URL to use all building/pushing image targets
 IMG ?= $(IMG_BASE)/$(IMG_NAME):$(IMG_TAG)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true, crdVersions=v1"
+CRD_OPTIONS ?= "crd:crdVersions=v1"
 TEMPLATES_PATH ?= $(PWD)/config/templates
 SAMPLES_PATH ?= $(PWD)/config/samples
 SAMPLE ?= ephemeral-storage
