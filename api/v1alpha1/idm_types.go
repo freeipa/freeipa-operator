@@ -26,6 +26,7 @@ import (
 
 // IDMSpec defines the desired state of Freeipa
 type IDMSpec struct {
+	// +kubebuilder:validation:MaxLength:=64
 	Host           string                      `json:"host,omitempty"`
 	Realm          string                      `json:"realm,omitempty"`
 	PasswordSecret *string                     `json:"passwordSecret"`
