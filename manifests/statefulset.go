@@ -67,9 +67,9 @@ func GetVolumeListForMainStatefulset(m *v1alpha1.IDM) []corev1.Volume {
 }
 
 // MainStatefulsetForIDM return a master pod for an IDM CRD
-func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, workload string, defaultStorage string) *appsv1.StatefulSet {
+func MainStatefulsetForIDM(m *v1alpha1.IDM, ingressDomain string, workload string, defaultStorage string) *appsv1.StatefulSet {
 	if m.Spec.Realm == "" {
-		m.Spec.Realm = GetRealm(m, baseDomain)
+		m.Spec.Realm = GetRealm(m, ingressDomain)
 	}
 
 	statefulset := &appsv1.StatefulSet{
@@ -178,13 +178,8 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, baseDomain string, workload string, 
 								"ipa-server-install",
 								"-U",
 								"--realm",
-<<<<<<< HEAD
-								m.Spec.Realm,
-								"--ca-subject=" + GetCaSubject(m, baseDomain),
-=======
 								GetRealm(m, ingressDomain),
 								"--ca-subject=" + GetCaSubject(m, ingressDomain),
->>>>>>> 2e1bfab (Use ingress domain instead of cluster basedomain)
 								"--no-ntp",
 								"--no-sshd",
 								"--no-ssh",
