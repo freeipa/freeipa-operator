@@ -1,7 +1,9 @@
+# https://github.com/operator-framework/operator-lifecycle-manager/blob/master/doc/design/building-your-csv.md
 apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   annotations:
+    # TODO Sync and inject alm-examples from external files
     alm-examples: |-
       [
         {
@@ -40,7 +42,7 @@ metadata:
     capabilities: Basic Install
     operators.operatorframework.io/builder: operator-sdk-v1.17.0+git
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
-  name: freeipa-operator.v0.0.1-705c5f2
+  name: freeipa-operator.v0.0.1
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -52,6 +54,7 @@ spec:
       name: idms.idmocp.redhat.com
       version: v1alpha1
       # The below is required by olm-crds-have-resources-test
+      # TODO Sync and inject resources field from an external file
       resources:
       - kind: Service
         version: v1
@@ -63,6 +66,7 @@ spec:
         version: v1
         name: idm-operator-controller-manager
       # The below is required by olm-spec-descriptors-test
+      # TODO Sync and inject specDescriptors field from an external file
       specDescriptors:
       - displayName: "Realm"
         description: "The Realm to manage by Freeipa"
@@ -77,29 +81,17 @@ spec:
         description: "Template for the persistence information to be used"
         path: "volumeClaimTemplate"
       # The below is required by olm-status-descriptors-test
+      # TODO Sync and inject statusDescriptors field from an external file
       statusDescriptors:
       - displayName: "Secret Name"
-        description: "The name for the Secret resource"
+        description: "The name for the Secret to retrieve from the admin and dm passwords"
         path: "secretName"
-  description: Deploy Freeipa in OpenShift
-  displayName: Identity Management as a Service
-  icon:
-  # TODO Add icon and mediatype
-  - base64data: ""
-    mediatype: ""
+  # TODO Inject and sync displayName and description from an external file
+  displayName: freeipa
+  description: |
+    Deploy Freeipa single instance in an OpenShift cluster.
   install:
     spec:
-      clusterPermissions:
-      - rules:
-        - apiGroups:
-          - config.openshift.io
-          resources:
-          - dnses
-          verbs:
-          - list
-          - get
-          - watch
-        serviceAccountName: idm-operator-controller-manager
       deployments:
       - name: idm-operator-controller-manager
         spec:
@@ -182,6 +174,54 @@ spec:
                 secret:
                   defaultMode: 420
                   secretName: webhook-server-cert
+      # TODO The clusterPermissions field should be synced and injected
+      #      automatically from config/rbac files
+      clusterPermissions:
+      - serviceAccountName: idm-operator-freeipa
+        rules:
+        - apiGroups: ["security.openshift.io"]
+          resources:
+            - "securitycontextconstraints"
+          verbs:
+            - "use"
+          resourceNames:
+            - "freeipa"
+      - rules:
+        - apiGroups:
+          - config.openshift.io
+          resources:
+          - dnses
+          verbs:
+          - list
+          - get
+          - watch
+        - apiGroups:
+          - config.openshift.io
+          resources:
+          - ingresses
+          verbs:
+          - list
+          - get
+          - watch
+        - nonResourceURLs:
+          - /metrics
+          verbs:
+          - get
+        - apiGroups:
+          - authentication.k8s.io
+          resources:
+          - tokenreviews
+          verbs:
+          - create
+        - apiGroups:
+          - authorization.k8s.io
+          resources:
+          - subjectaccessreviews
+          verbs:
+          - create
+        serviceAccountName: idm-operator-controller-manager
+      # TODO This field should be synced and injected automatically
+      #      from config/rbac files
       permissions:
       - rules:
         - apiGroups:
@@ -281,6 +321,7 @@ spec:
           - create
         serviceAccountName: idm-operator-controller-manager
     strategy: deployment
+  # TODO Sync installModes field from an external file
   installModes:
   - supported: true
     type: OwnNamespace
@@ -290,26 +331,40 @@ spec:
     type: MultiNamespace
   - supported: false
     type: AllNamespaces
+  # TODO Sync keywords field from an external file
   keywords:
   - freeipa
   - kerberos
   - pki
   - sso
   - idm
+  # TODO Update links to github repository
+  # TODO Sync the links field from an external file
   links:
   - name: Freeipa Operator
     url: https://freeipa-operator.domain
+  # TODO Review that maintainers is the right information
+  # TODO Sync the maintainers field from an external file
   maintainers:
   - email: freeipa-users@lists.fedorahosted.org
     name: freeipa-users
+  # TODO Sync the maturity field from an external file
   maturity: alpha
+  # TODO Sync the provider field from an external file
   provider:
     name: Red Hat
     url: https://www.redhat.com
+  # TODO This should be injected with the information
+  #      from RELATED_IMAGE_FREEIPA variable
+  #      Keeping the pattern 'RELATED_IMAGE_IMAGENAME'
+  #      it could be filtered, retrieved the image name
+  #      and the value, and inject them here
   relatedImages:
   - image: quay.io/freeipa/freeipa-openshift-container:latest
     name: freeipa
-  version: 0.0.1-705c5f2
+  # TODO This should be synced with the VERSION that is used
+  #      into the Makefile
+  version: "0.0.1"
   webhookdefinitions:
   - admissionReviewVersions:
     - v1
@@ -351,3 +406,7 @@ spec:
     targetPort: 9443
     type: ValidatingAdmissionWebhook
     webhookPath: /validate-idmocp-redhat-com-v1alpha1-idm
+  # TODO Inject this field from an external file
+  icon:
+  - mediatype: ""
+    base64data: ""
