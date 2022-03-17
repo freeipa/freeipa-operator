@@ -5,9 +5,12 @@
 printvars: ## Print variable name and values
 	@$(foreach V, $(sort $(.VARIABLES)),$(if $(filter-out environment% default automatic,$(origin $V)),$(info $V=$($V))))
 
+$(PROJECT_DIR)/bin:
+	[ -e bin ] || mkdir bin
+
 OPERATOR_SDK := $(PWD)/bin/operator-sdk
 .PHONY: operator-sdk
-operator-sdk: ## Donwload operator-sdk
+operator-sdk: $(PROJECT_DIR)/bin ## Donwload operator-sdk
 ifeq (,$(wildcard $(OPERATOR_SDK)))
 	set -e ; \
 	export ARCH=$$(case $$(uname -m) in x86_64) echo -n amd64 ;; aarch64) echo -n arm64 ;; *) echo -n $$(uname -m) ;; esac) ; \
