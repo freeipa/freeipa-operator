@@ -37,9 +37,10 @@ docker-image-freeipa-operator.tar.gz
 # Ignore private.mk
 /private.mk
 
-# Ignore bundle_tmp* and bundle-* directories
+# Ignore bundle, bundle_tmp* and bundle-* directories
 /bundle_tmp*
 /bundle-*
+/bundle
 
 # Ignore Visual Studio code files
 /.vscode
