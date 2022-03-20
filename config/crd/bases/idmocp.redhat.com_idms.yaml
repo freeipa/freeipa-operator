@@ -34,17 +34,19 @@ spec:
           metadata:
             type: object
           spec:
-            description: IDMSpec defines the desired state of IDM
+            description: IDMSpec defines the desired state of IDM.
             properties:
               host:
                 maxLength: 64
                 type: string
               passwordSecret:
+                description: The password secret which store the admin and dm passwords
                 type: string
               realm:
+                description: The Realm to be managed by the freeipa instance
                 type: string
               resources:
-                description: ResourceRequirements describes the compute resource requirements.
+                description: Resource requirements for the deployment
                 properties:
                   limits:
                     additionalProperties:
@@ -70,8 +72,7 @@ spec:
                     type: object
                 type: object
               volumeClaimTemplate:
-                description: PersistentVolumeClaimSpec describes the common attributes
-                  of storage devices and allows a Source for provider-specific attributes
+                description: Volume template for the persistent storage to use
                 properties:
                   accessModes:
                     description: 'AccessModes contains the desired access modes the
@@ -240,6 +241,7 @@ spec:
                   type: string
                 type: array
               secretName:
+                description: The secret name that was used or generated
                 type: string
             required:
             - master
