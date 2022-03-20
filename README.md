@@ -92,8 +92,36 @@ Experimental freeipa-operator for Freeipa.
 - For the integration tests with scorecard run:
 
   ```sh
-  operator-sdk scorecard bundle --kubeconfig "${KUBECONFIG}"
+  make scorecard-bundle
+  # or
+  make scorecard-image
   ```
+
+## Deploying with OLM
+
+**Requirements**:
+
+- A proper `private.mk` file setup.
+
+**Steps**:
+
+1. Build and publish container images:
+
+   ```sh
+   $ make docker-build docker-push bundle-build bundle-push catalog-build catalog-push
+   ```
+
+1. Install operator with OLM in the current namespace by:
+
+   ```sh
+   $ make bundle-install
+   ```
+
+1. Create a sample idm resource:
+
+   ```sh
+   $ oc create -f config/samples/persistent-storage.yaml
+   ```
 
 <!-- TODO When the read of ingresDomain is implemented, remove the
           block below. -->
