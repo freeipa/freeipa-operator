@@ -111,19 +111,21 @@ Experimental freeipa-operator for Freeipa.
 1. Build and publish container images:
 
    ```sh
-   $ make docker-build docker-push bundle bundle-build bundle-push catalog-build catalog-push
+   make docker-build docker-push \
+        bundle bundle-build bundle-push \
+        catalog-build catalog-push
    ```
 
 1. Install operator with OLM in the current namespace by:
 
    ```sh
-   $ make bundle-install
+   make bundle-install
    ```
 
 1. Create a sample idm resource:
 
    ```sh
-   $ oc create -f config/samples/persistent-storage.yaml
+   oc create -f config/samples/persistent-storage.yaml
    ```
 
 ----
