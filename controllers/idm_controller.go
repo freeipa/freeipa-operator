@@ -93,8 +93,6 @@ func (r *IDMReconciler) InitIngressDomain(ctx context.Context) error {
 	return nil
 }
 
-// Reconcile Read the current of the cluster for IDM object and makes the
-// necessary changes to bring the system to the requested state.
 //+kubebuilder:rbac:groups=idmocp.redhat.com,resources=idms,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=idmocp.redhat.com,resources=idms/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=idmocp.redhat.com,resources=idms/finalizers,verbs=get;update;patch
@@ -110,6 +108,9 @@ func (r *IDMReconciler) InitIngressDomain(ctx context.Context) error {
 //+kubebuilder:rbac:groups=route.openshift.io,resources=routes/custom-host,verbs=create
 
 //+kubebuilder:rbac:groups=security.openshift.io,resources=securitycontextconstraints,verbs=use,resourceNames=restricted
+
+// Reconcile Read the current of the cluster for IDM object and makes the
+// necessary changes to bring the system to the requested state.
 func (r *IDMReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var err error
 	var idm v1alpha1.IDM = v1alpha1.IDM{}

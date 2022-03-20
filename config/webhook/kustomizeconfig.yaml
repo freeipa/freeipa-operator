@@ -1,5 +1,6 @@
 ---
-# the following config is for teaching kustomize where to look at when substituting vars.
+# the following config is for teaching kustomize where to look at when
+# substituting vars.
 # It requires kustomize v2.1.0 or newer to work properly.
 nameReference:
   - kind: Service
@@ -23,4 +24,4 @@ namespace:
     create: true
 
 varReference:
-- path: metadata/annotations
+  - path: metadata/annotations

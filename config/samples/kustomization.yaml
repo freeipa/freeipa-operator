@@ -1,4 +1,5 @@
+---
 # Add here all the example resources
 resources:
-- persistent-storage.yaml
+  - persistent-storage.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

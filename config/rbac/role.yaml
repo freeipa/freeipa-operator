@@ -99,3 +99,11 @@ rules:
   - routes/custom-host
   verbs:
   - create
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - restricted
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
