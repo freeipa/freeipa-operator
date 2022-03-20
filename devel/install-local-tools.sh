@@ -453,6 +453,14 @@ EOF
 }
 
 
+command -v "yml2json" &>/dev/null || {
+	pip3 install yml2json
+}
+
+command -v "json2yaml" &>/dev/null || {
+	pip3 install json2yaml
+}
+
 echo ">> Installing git-hooks"
 if [ "${GITHUB_WORKSPACE}" == "" ]; then
     echo ">> Installing git-hooks"
