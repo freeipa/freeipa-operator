@@ -27,10 +27,16 @@ jobs:
         with:
           go-version: '1.16'
         id: go
+      - uses: actions/setup-python@v3
+        with:
+          cache: pip
+          cache-dependency-path: 'requirements-dev.txt'
+
 
       - name: Gather environment information
         env:
           IMG_BASE: "${{ secrets.IMG_BASE }}"
+          IMAGE_TAG_BASE: "${{ secrets.IMAGE_TAG_BASE }}"
         run: |
           env
           go env
@@ -39,12 +45,20 @@ jobs:
       - name: Available disk space
         run: df -H
 
+      - name: Install python dependencies and tools
+        run: |
+          pip install -r requirements-dev.txt
+
   lint-golang:
     name: Lint golang code
     needs: [environment]
 
     # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
     runs-on: ubuntu-20.04
+
+    env:
+      IMG_BASE: "${{ secrets.IMG_BASE }}"
+      IMAGE_TAG_BASE: "${{ secrets.IMAGE_TAG_BASE }}"
 
     # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#jobsjob_idsteps
     steps:
@@ -53,11 +67,16 @@ jobs:
         with:
           go-version: '1.16'
         id: go
+      - uses: actions/setup-python@v3
+        with:
+          cache: pip
+          cache-dependency-path: 'requirements-dev.txt'
 
       - name: Lint go files
         run: |
           [ "$GOPATH" != "" ] || export GOPATH="$( go env GOPATH )"
           go get -u golang.org/x/lint/golint
+          pip install -r requirements-dev.txt
           make lint
 
   lint-extra-files:
@@ -67,6 +86,10 @@ jobs:
     # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
     runs-on: ubuntu-20.04
 
+    env:
+      IMG_BASE: "${{ secrets.IMG_BASE }}"
+      IMAGE_TAG_BASE: "${{ secrets.IMAGE_TAG_BASE }}"
+
     # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#jobsjob_idsteps
     steps:
       - uses: actions/checkout@v2
@@ -74,6 +97,10 @@ jobs:
         with:
           go-version: '1.16'
         id: go
+      - uses: actions/setup-python@v3
+        with:
+          cache: pip
+          cache-dependency-path: 'requirements-dev.txt'
 
       - name: Lint Shell Script files
         run: ./devel/lint.sh  $( find . -name '*.sh' )
@@ -92,12 +119,20 @@ jobs:
 
     runs-on: ubuntu-20.04
 
+    env:
+      IMG_BASE: "${{ secrets.IMG_BASE }}"
+      IMAGE_TAG_BASE: "${{ secrets.IMAGE_TAG_BASE }}"
+
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
           go-version: '1.16'
         id: go
+      - uses: actions/setup-python@v3
+        with:
+          cache: pip
+          cache-dependency-path: 'requirements-dev.txt'
 
       - name: Lint Kustomize files
         continue-on-error: true
@@ -117,12 +152,20 @@ jobs:
 
     runs-on: ubuntu-20.04
 
+    env:
+      IMG_BASE: "${{ secrets.IMG_BASE }}"
+      IMAGE_TAG_BASE: "${{ secrets.IMAGE_TAG_BASE }}"
+
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
           go-version: '1.16'
         id: go
+      - uses: actions/setup-python@v3
+        with:
+          cache: pip
+          cache-dependency-path: 'requirements-dev.txt'
 
       - name: Clean docker infrastructure
         run: |
@@ -153,28 +196,28 @@ jobs:
         run: |-
           export PATH=$PATH:$(go env GOPATH)/bin
           export TAG="${GITHUB_SHA}"
-          export CONTAINER_IMAGE_FILE="${IMG_BASE##*/}.tar"
+          export CONTAINER_IMAGE_FILE="${IMAGE_TAG_BASE##*/}.tar"
           if [ "$GITHUB_EVENT_NAME" == "pull_request" ]
           then
-            export IMG_BASE="local/freeipa-operator"
+            export IMAGE_TAG_BASE="local/freeipa-operator"
           elif [ "${GITHUB_EVENT_NAME}" == "schedule" ]
           then
             export TAG="nightly"
           fi
-          export IMG="${IMG_BASE}:${TAG}"
+          export IMG="${IMAGE_TAG_BASE}:${TAG}"
 
           echo ">>> Building operator binary"
           make generate
           go build -o bin/manager main.go
 
           echo ">>> Building container image"
-          make container-build
+          make docker-build
 
           echo ">>> Saving docker-archive"
-          make container-save
+          docker image save "${IMG}" > "${CONTAINER_IMAGE_FILE}"
 
           echo ">>> Checking image layer sizes"
-          make dive
+          dive "docker-archive://${CONTAINER_IMAGE_FILE}"
 
           # The container image will not be pushed when building on a PR,
           # because the secrets are not accessible from the PR (for
@@ -183,15 +226,15 @@ jobs:
           if [ "$GITHUB_EVENT_NAME" != "pull_request" ]
           then
             echo ">>> Pushing container image"
-            DOCKER_REGISTRY="${IMG_BASE%%/*}"
+            DOCKER_REGISTRY="${IMAGE_TAG_BASE%%/*}"
             [ -e "${HOME}/.docker" ] || mkdir -p "${HOME}/.docker"
             cat > "$HOME/.docker/config.json" <<< "${DOCKER_AUTH}"
             docker login "${DOCKER_REGISTRY}"
             # rm is not accidental here; it is removed if the push
             # was successful, to avoid it is stored as an artefact
             # in github.
-            make container-push \
-            && rm -vf ${CONTAINER_IMAGE_FILE}.gz
+            make docker-push \
+            && rm -vf "${CONTAINER_IMAGE_FILE}"
           fi
 
       - uses: actions/upload-artifact@v2
