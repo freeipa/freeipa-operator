@@ -1,4 +1,5 @@
 ---
+# yamllint disable rule:line-length
 resources:
   - service_account.yaml
   # TODO SecurityContextConstraint is not included into the bundle and

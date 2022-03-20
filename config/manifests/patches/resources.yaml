@@ -1,3 +1,4 @@
+---
 - op: add
   path: /spec/customresourcedefinitions/owned/0/resources
   value:
