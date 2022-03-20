@@ -1,0 +1,6 @@
+- op: add
+  path: /spec/customresourcedefinitions/owned/0/statusDescriptors
+  value:
+  - path: "secretName"
+    displayName: "Secret Name"
+    description: "The name for the Secret to retrieve from the admin and dm passwords"

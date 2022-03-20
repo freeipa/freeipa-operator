@@ -1,0 +1,15 @@
+- op: add
+  path: /spec/customresourcedefinitions/owned/0/specDescriptors
+  value:
+  - displayName: "Realm"
+    description: "The Realm to manage by Freeipa"
+    path: "realm"
+  - displayName: "Secret"
+    description: "Opaque secret name that store IPA_ADMIN_PASSWORD and IPA_DM_PASSWORD values"
+    path: "passwordSecret"
+  - displayName: "Resources"
+    description: "Resource limit and request"
+    path: "resources"
+  - displayName: "volumeClaimTemplate"
+    description: "Template for the persistence information to be used"
+    path: "volumeClaimTemplate"

@@ -1,0 +1,12 @@
+- op: add
+  path: /spec/customresourcedefinitions/owned/0/resources
+  value:
+  - kind: Service
+    version: v1
+    name: idm-operator-webhook-service
+  - kind: Service
+    version: v1
+    name: idm-operator-controller-manager-metrics-service
+  - kind: Deployment
+    version: v1
+    name: idm-operator-controller-manager

@@ -1,0 +1,23 @@
+---
+apiVersion: idmocp.redhat.com/v1alpha1
+kind: IDM
+metadata:
+  name: idm-sample
+spec:
+  # Add fields here
+  realm: EXAMPLE.TESTING
+  passwordSecret: idm-sample
+  resources:
+    requests:
+      cpu: "2000m"
+      memory: "3Gi"
+    limits:
+      cpu: "3000m"
+      memory: "4Gi"
+  volumeClaimTemplate:
+    resources:
+      requests:
+        storage: 10Gi
+    volumeMode: Filesystem
+    accessModes:
+      - ReadWriteOnce
