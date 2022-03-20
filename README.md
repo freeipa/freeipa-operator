@@ -92,23 +92,26 @@ Experimental freeipa-operator for Freeipa.
 - For the integration tests with scorecard run:
 
   ```sh
+  # Generate bundle directory
+  make bundle
+  # Running scorecard tests generated in the bundle directory by
   make scorecard-bundle
-  # or
-  make scorecard-image
   ```
 
 ## Deploying with OLM
 
-**Requirements**:
+**Pre-requisites**:
 
-- A proper `private.mk` file setup.
+- A proper `private.mk` file setup. (see `private.mk.example`).
+- A namespace selected (eg. `oc new-project ipa`).
+- The freeipa SecurityContextConstraint created (`oc create -f config/rbac/scc.yaml`).
 
 **Steps**:
 
 1. Build and publish container images:
 
    ```sh
-   $ make docker-build docker-push bundle-build bundle-push catalog-build catalog-push
+   $ make docker-build docker-push bundle bundle-build bundle-push catalog-build catalog-push
    ```
 
 1. Install operator with OLM in the current namespace by:
@@ -122,6 +125,8 @@ Experimental freeipa-operator for Freeipa.
    ```sh
    $ oc create -f config/samples/persistent-storage.yaml
    ```
+
+----
 
 <!-- TODO When the read of ingresDomain is implemented, remove the
           block below. -->
