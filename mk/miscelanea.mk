@@ -19,3 +19,15 @@ ifeq (,$(wildcard $(OPERATOR_SDK)))
 	curl -sSLo "$(OPERATOR_SDK)" "$$OPERATOR_SDK_DL_URL/operator-sdk_$${OS}_$${ARCH}" && \
 	[ -x "$(OPERATOR_SDK)" ] || chmod a+x "$(OPERATOR_SDK)"
 endif
+
+.PHONY: lint
+lint:  ## Run linters
+	./devel/lint.sh *.go $(shell find controllers -name '*.go') $(shell find api -name '*.go')
+
+.PHONY: tidy
+tidy:  ## Update golang dependencies
+	go mod tidy
+
+.PHONY: vendor
+vendor:  ## Update vendor directory
+	go mod vendor
