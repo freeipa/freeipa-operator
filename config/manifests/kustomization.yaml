@@ -4,6 +4,37 @@ resources:
 - bases/freeipa-operator.clusterserviceversion.yaml
 - ../default
 - ../scorecard
+- ../samples
+
+patchesJson6902:
+- target:
+    group: operators.coreos.com
+    version: v1alpha1
+    kind: ClusterServiceVersion
+    name: freeipa-operator.v0.0.0
+    namespace: placeholder
+  path: patches/icon.yaml
+- target:
+    group: operators.coreos.com
+    version: v1alpha1
+    kind: ClusterServiceVersion
+    name: freeipa-operator.v0.0.0
+    namespace: placeholder
+  path: patches/spec-descriptors.yaml
+- target:
+    group: operators.coreos.com
+    version: v1alpha1
+    kind: ClusterServiceVersion
+    name: freeipa-operator.v0.0.0
+    namespace: placeholder
+  path: patches/status-descriptors.yaml
+- target:
+    group: operators.coreos.com
+    version: v1alpha1
+    kind: ClusterServiceVersion
+    name: freeipa-operator.v0.0.0
+    namespace: placeholder
+  path: patches/resources.yaml
 
 # [WEBHOOK] To enable webhooks, uncomment all the sections with [WEBHOOK] prefix.
 # Do NOT uncomment sections with prefix [CERTMANAGER], as OLM does not support cert-manager.

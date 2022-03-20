@@ -2,7 +2,6 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   annotations:
-    alm-examples: '[]'
     capabilities: Basic Install
   name: freeipa-operator.v0.0.0
   namespace: placeholder
@@ -17,21 +16,127 @@ spec:
       version: v1alpha1
   description: Deploy Freeipa in OpenShift
   displayName: Identity Management as a Service
-  icon:
-  - base64data: ""
-    mediatype: ""
   install:
     spec:
-      deployments: null
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - config.openshift.io
+          resources:
+          - dnses
+          verbs:
+          - list
+          - get
+          - watch
+        serviceAccountName: idm-operator-controller-manager
+      deployments: []
+      permissions:
+      - rules:
+        - apiGroups:
+          - apps
+          resources:
+          - statefulsets
+          verbs:
+          - create
+          - get
+          - list
+          - update
+          - watch
+        - apiGroups:
+          - coordination.k8s.io
+          resources:
+          - leases
+          verbs:
+          - create
+          - get
+          - list
+          - update
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          verbs:
+          - create
+          - get
+          - update
+        - apiGroups:
+          - ""
+          resources:
+          - events
+          verbs:
+          - create
+        - apiGroups:
+          - ""
+          resources:
+          - secrets
+          verbs:
+          - create
+          - list
+          - watch
+        - apiGroups:
+          - ""
+          resources:
+          - services
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - idmocp.redhat.com
+          resources:
+          - idms
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - idmocp.redhat.com
+          resources:
+          - idms/finalizers
+          verbs:
+          - get
+          - patch
+          - update
+        - apiGroups:
+          - idmocp.redhat.com
+          resources:
+          - idms/status
+          verbs:
+          - get
+          - patch
+          - update
+        - apiGroups:
+          - route.openshift.io
+          resources:
+          - routes
+          verbs:
+          - create
+          - list
+          - watch
+        - apiGroups:
+          - route.openshift.io
+          resources:
+          - routes/custom-host
+          verbs:
+          - create
+        serviceAccountName: idm-operator-controller-manager
     strategy: ""
   installModes:
-  - supported: false
+  - supported: true
     type: OwnNamespace
-  - supported: false
+  - supported: true
     type: SingleNamespace
   - supported: false
     type: MultiNamespace
-  - supported: true
+  - supported: false
     type: AllNamespaces
   keywords:
   - freeipa
