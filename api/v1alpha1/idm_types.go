@@ -21,31 +21,29 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
-// IDMSpec defines the desired state of IDM
+// IDMSpec defines the desired state of IDM.
 type IDMSpec struct {
 	// +kubebuilder:validation:MaxLength:=64
-	Host           string                      `json:"host,omitempty"`
-	Realm          string                      `json:"realm,omitempty"`
-	PasswordSecret *string                     `json:"passwordSecret"`
-	Resources      corev1.ResourceRequirements `json:"resources"`
+	// The hostname to be used when installing ipa-server; The default value
+	// is composed by <namespace>.<ingressDomain>
+	Host string `json:"host,omitempty"`
+	// The Realm to be managed by the freeipa instance
+	Realm string `json:"realm,omitempty"`
+	// The password secret which store the admin and dm passwords
+	PasswordSecret *string `json:"passwordSecret"`
+	// Resource requirements for the deployment
+	Resources corev1.ResourceRequirements `json:"resources"`
 	// +optional
+	// Volume template for the persistent storage to use
 	VolumeClaimTemplate *corev1.PersistentVolumeClaimSpec `json:"volumeClaimTemplate,omitempty"`
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of IDM. Edit idm_types.go to remove/update
 }
 
 // IDMStatus defines the observed state of IDM
 type IDMStatus struct {
+	// The secret name that was used or generated
 	SecretName string   `json:"secretName,omitempty"`
 	MasterPod  string   `json:"master"`
 	ReplicaPod []string `json:"replicas,omitempty"`
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 }
 
 //+kubebuilder:object:root=true
