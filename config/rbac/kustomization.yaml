@@ -1,7 +1,15 @@
 ---
 resources:
   - service_account.yaml
-  - scc.yaml
+  # TODO SecurityContextConstraint is not included into the bundle and
+  # it fails when it is included; to align when operator is installed
+  # by 'make deploy' and 'make bundle-install', the line below is
+  # commented, so that it is needed to create the SecurityContextConstraint
+  # before use the custom resources.
+  # Pending to update this when an automatic solution is found, or
+  # the need of using a SecurityContextConstraint
+  # see: https://access.redhat.com/documentation/en-us/openshift_container_platform/4.10/html/operators/administrator-tasks#olm-policy-fine-grained-permissions_olm-creating-policy
+  # - scc.yaml
   - role.yaml
   - role_binding.yaml
   - leader_election_role.yaml
