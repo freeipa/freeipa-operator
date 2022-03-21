@@ -25,6 +25,7 @@ var _ = Describe("LOCAL:WebHook test create", func() {
 			{
 				// Success case
 				Spec: v1alpha1.IDMSpec{
+					Host:           "freeipa.example.testing",
 					Realm:          "EXAMPLE.TESTING",
 					PasswordSecret: nil,
 					Resources: corev1.ResourceRequirements{
@@ -70,6 +71,7 @@ var _ = Describe("LOCAL:WebHook test create", func() {
 			Error   error
 		}
 		var _oldSpec = v1alpha1.IDMSpec{
+			Host:           "freeipa.example.testing",
 			Realm:          "EXAMPLE.TESTING",
 			PasswordSecret: pointy.String("password-secret"),
 			Resources: corev1.ResourceRequirements{
@@ -90,9 +92,29 @@ var _ = Describe("LOCAL:WebHook test create", func() {
 				Error:   nil,
 			},
 			{
+				// Change Host
+				SpecOld: _oldSpec,
+				SpecNew: v1alpha1.IDMSpec{
+					Host:           "changed.example.testing",
+					Realm:          "EXAMPLE.TESTING",
+					PasswordSecret: pointy.String("password-secret"),
+					Resources: corev1.ResourceRequirements{
+						Limits: corev1.ResourceList{
+							"cpu":    *cpus3,
+							"memory": *memory4Gi,
+						},
+					},
+					VolumeClaimTemplate: &corev1.PersistentVolumeClaimSpec{
+						VolumeName: "test",
+					},
+				},
+				Error: fmt.Errorf("IDM.Spec.Host is immutable"),
+			},
+			{
 				// Change Realm
 				SpecOld: _oldSpec,
 				SpecNew: v1alpha1.IDMSpec{
+					Host:           "freeipa.example.testing",
 					Realm:          "OTHER.TESTING",
 					PasswordSecret: pointy.String("password-secret"),
 					Resources: corev1.ResourceRequirements{
@@ -111,6 +133,7 @@ var _ = Describe("LOCAL:WebHook test create", func() {
 				// PasswordSecret
 				SpecOld: _oldSpec,
 				SpecNew: v1alpha1.IDMSpec{
+					Host:           "freeipa.example.testing",
 					Realm:          "EXAMPLE.TESTING",
 					PasswordSecret: pointy.String("other-password-secret"),
 					Resources: corev1.ResourceRequirements{
@@ -129,6 +152,7 @@ var _ = Describe("LOCAL:WebHook test create", func() {
 				// Resources
 				SpecOld: _oldSpec,
 				SpecNew: v1alpha1.IDMSpec{
+					Host:           "freeipa.example.testing",
 					Realm:          "EXAMPLE.TESTING",
 					PasswordSecret: pointy.String("password-secret"),
 					Resources: corev1.ResourceRequirements{
@@ -147,6 +171,7 @@ var _ = Describe("LOCAL:WebHook test create", func() {
 				// VolumeClaimTemplate
 				SpecOld: _oldSpec,
 				SpecNew: v1alpha1.IDMSpec{
+					Host:           "freeipa.example.testing",
 					Realm:          "EXAMPLE.TESTING",
 					PasswordSecret: pointy.String("password-secret"),
 					Resources: corev1.ResourceRequirements{

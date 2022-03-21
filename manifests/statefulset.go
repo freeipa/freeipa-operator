@@ -196,7 +196,7 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, ingressDomain string, workload strin
 								},
 								{
 									Name:  "IPA_SERVER_HOSTNAME",
-									Value: GetIpaServerHostname(m, ingressDomain),
+									Value: m.Spec.Host,
 								},
 								{
 									Name:  "container_uuid",

@@ -4,8 +4,8 @@ kind: IDM
 metadata:
   name: idm-sample
 spec:
-  # Add fields here
-  realm: APPS-CRC.TESTING
+  # host: api.apps-crc.testing
+  realm: EXAMPLE.TESTING
   passwordSecret: idm-sample
   resources:
     requests:

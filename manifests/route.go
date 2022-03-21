@@ -32,7 +32,7 @@ func RouteForIDM(m *v1alpha1.IDM, host string) *routev1.Route {
 			Labels: LabelsForIDM(m),
 		},
 		Spec: routev1.RouteSpec{
-			Host: host,
+			Host: m.Spec.Host,
 			Port: &routev1.RoutePort{
 				TargetPort: intstr.IntOrString{
 					Type:   intstr.String,
