@@ -1,10 +1,3 @@
-ifeq (,$(shell command -v yaml2json 2>/dev/null))
-$(error 'yaml2json is required; you could install it by 'pip install json2yaml')
-endif
-ifeq (,$(shell command -v json2yaml 2>/dev/null))
-$(error 'json2yaml is required; you could install it by 'pip install json2yaml')
-endif
-
 ifndef post-manifests
 define post-manifests
 @[ -e .venv ] || $(MAKE) .venv
