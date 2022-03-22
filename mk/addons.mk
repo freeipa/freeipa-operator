@@ -14,9 +14,11 @@ RELATED_IMAGE_FREEIPA ?= quay.io/freeipa/freeipa-openshift-container:latest
 export RELATED_IMAGE_FREEIPA
 
 # The namespace to be watched by the controller; by default it is set to
-# the current namespace
+# the current namespace; it is set only if KUBECONFIG is defined
+ifneq (,$(KUBECONFIG))
 WATCH_NAMESPACE ?= $(shell oc project -q 2>/dev/null)
 export WATCH_NAMESPACE
+endif
 
 # Include sample rules
 include mk/scorecard.mk
