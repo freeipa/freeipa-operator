@@ -32,10 +32,7 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
 # redhat.com/freeipa-operator-bundle:$VERSION and redhat.com/freeipa-operator-catalog:$VERSION.
-#IMAGE_TAG_BASE ?= quay.io/freeipa/freeipa-operator
-ifeq (,$(IMAGE_TAG_BASE))
-$(error IMAGE_TAG_BASE can not be empty (eg. IMAGE_TAG_BASE := quay.io/MYUSER/freeipa-operator))
-endif
+IMAGE_TAG_BASE ?= quay.io/freeipa/freeipa-operator
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
