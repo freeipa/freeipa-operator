@@ -37,6 +37,8 @@ spec:
             description: IDMSpec defines the desired state of IDM.
             properties:
               host:
+                description: The hostname to be used when installing ipa-server; The
+                  default value is composed by <namespace>.<ingressDomain>
                 maxLength: 64
                 type: string
               passwordSecret:
