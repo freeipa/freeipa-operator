@@ -1,0 +1,5 @@
+# This file contains all the information about
+# environment variable that are not related with
+# credentials
+
+IMAGE_TAG_BASE="quay.io/freeipa/freeipa-operator"

@@ -44,3 +44,6 @@ docker-image-freeipa-operator.tar.gz
 
 # Ignore Visual Studio code files
 /.vscode
+
+# Ignore temporary dive files
+dive.*.tar

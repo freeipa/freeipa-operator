@@ -28,3 +28,4 @@ include mk/cert-manager.mk
 include mk/miscelanea.mk
 include mk/deprecated.mk
 include mk/bundle.mk
+include mk/tools.mk

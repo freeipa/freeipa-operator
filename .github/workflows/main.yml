@@ -23,31 +23,63 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+
+      - name: Prepare environment variables
+        run: |
+          if [ "${{ github.repository }}" != "freeipa/freeipa-operator" ]; then
+            if [ "${{ secrets.ENV }}" == "" ]; then
+              echo "ERROR:You need to define ENV secret with your environment."
+              echo "INFO:See DEVOPS.md file for further information"
+              cat DEVOPS.md
+              exit 1
+            else
+              [ -e "bin" ] || mkdir bin
+              cat > env.ci <<EOF
+          ${{ secrets.ENV }}
+          EOF
+            fi
+          else
+            cp -vf build/ci/env env.ci
+          fi
+          [ -e "bin" ] || mkdir bin
+          [ -e "testbin" ] || mkdir testbin
+          [ -e "~/.cache/go-build" ] || mkdir -p ~/.cache/go-build
+          [ -e "~/go/pkg/mod" ] || mkdir -p ~/go/pkg/mod
+
+      # yamllint disable-line rule:line-length
+      - run: env -i bash -c 'set -a; source env.ci; env --unset=PWD --unset=SHLVL --unset=_' >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@v3
+        with:
+          name: env
+          path: env.ci
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            bin
+            testbin
+            .venv
+          # yamllint disable-line rule:line-length
+          key: ${{ runner.os }}-bin-${{ hashFiles('Makefile', 'requirements-dev.txt', 'mk/tools.mk') }}
+      - run: make .venv
+
       - uses: actions/setup-go@v2
         with:
           go-version: '1.16'
         id: go
-      - uses: actions/setup-python@v3
-        with:
-          cache: pip
-          cache-dependency-path: 'requirements-dev.txt'
 
+      - run: make controller-gen envtest kustomize "${PWD}/bin/dive"
 
       - name: Gather environment information
-        env:
-          IMG_BASE: "${{ secrets.IMG_BASE }}"
-          IMAGE_TAG_BASE: "${{ secrets.IMAGE_TAG_BASE }}"
         run: |
           env
           go env
           go version
+          python --version
+          ./bin/controller-gen --version
 
       - name: Available disk space
         run: df -H
-
-      - name: Install python dependencies and tools
-        run: |
-          pip install -r requirements-dev.txt
 
   lint-golang:
     name: Lint golang code
@@ -56,21 +88,29 @@ jobs:
     # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
     runs-on: ubuntu-20.04
 
-    env:
-      IMG_BASE: "${{ secrets.IMG_BASE }}"
-      IMAGE_TAG_BASE: "${{ secrets.IMAGE_TAG_BASE }}"
-
     # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#jobsjob_idsteps
     steps:
       - uses: actions/checkout@v2
+
       - uses: actions/setup-go@v2
         with:
           go-version: '1.16'
         id: go
       - uses: actions/setup-python@v3
+      - uses: actions/cache@v3
         with:
-          cache: pip
-          cache-dependency-path: 'requirements-dev.txt'
+          path: |
+            bin
+            testbin
+            .venv
+          # yamllint disable-line rule:line-length
+          key: ${{ runner.os }}-bin-${{ hashFiles('Makefile', 'requirements-dev.txt', 'mk/tools.mk') }}
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: env
+      # yamllint disable-line rule:line-length
+      - run: env -i bash -c 'set -a; source env.ci; env --unset=PWD --unset=SHLVL --unset=_' >> "$GITHUB_ENV"
 
       - name: Lint go files
         run: |
@@ -86,10 +126,6 @@ jobs:
     # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
     runs-on: ubuntu-20.04
 
-    env:
-      IMG_BASE: "${{ secrets.IMG_BASE }}"
-      IMAGE_TAG_BASE: "${{ secrets.IMAGE_TAG_BASE }}"
-
     # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#jobsjob_idsteps
     steps:
       - uses: actions/checkout@v2
@@ -98,9 +134,20 @@ jobs:
           go-version: '1.16'
         id: go
       - uses: actions/setup-python@v3
+      - uses: actions/cache@v3
         with:
-          cache: pip
-          cache-dependency-path: 'requirements-dev.txt'
+          path: |
+            bin
+            testbin
+            .venv
+          # yamllint disable-line rule:line-length
+          key: ${{ runner.os }}-bin-${{ hashFiles('Makefile', 'requirements-dev.txt', 'mk/tools.mk') }}
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: env
+      # yamllint disable-line rule:line-length
+      - run: env -i bash -c 'set -a; source env.ci; env --unset=PWD --unset=SHLVL --unset=_' >> "$GITHUB_ENV"
 
       - name: Lint Shell Script files
         run: ./devel/lint.sh  $( find . -name '*.sh' )
@@ -119,10 +166,6 @@ jobs:
 
     runs-on: ubuntu-20.04
 
-    env:
-      IMG_BASE: "${{ secrets.IMG_BASE }}"
-      IMAGE_TAG_BASE: "${{ secrets.IMAGE_TAG_BASE }}"
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
@@ -130,9 +173,20 @@ jobs:
           go-version: '1.16'
         id: go
       - uses: actions/setup-python@v3
+      - uses: actions/cache@v3
         with:
-          cache: pip
-          cache-dependency-path: 'requirements-dev.txt'
+          path: |
+            bin
+            testbin
+            .venv
+          # yamllint disable-line rule:line-length
+          key: ${{ runner.os }}-bin-${{ hashFiles('Makefile', 'requirements-dev.txt', 'mk/tools.mk') }}
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: env
+      # yamllint disable-line rule:line-length
+      - run: source env.ci; grep -v -e ^\# -e ^\$ env.ci | while read -r LINE; do printf "%s\n" "${LINE}"; done >> "${GITHUB_ENV}"
 
       - name: Lint Kustomize files
         continue-on-error: true
@@ -152,46 +206,37 @@ jobs:
 
     runs-on: ubuntu-20.04
 
-    env:
-      IMG_BASE: "${{ secrets.IMG_BASE }}"
-      IMAGE_TAG_BASE: "${{ secrets.IMAGE_TAG_BASE }}"
-
     steps:
       - uses: actions/checkout@v2
+
       - uses: actions/setup-go@v2
         with:
           go-version: '1.16'
         id: go
       - uses: actions/setup-python@v3
+      - uses: actions/cache@v3
         with:
-          cache: pip
-          cache-dependency-path: 'requirements-dev.txt'
+          path: |
+            bin
+            testbin
+            .venv
+          # yamllint disable-line rule:line-length
+          key: ${{ runner.os }}-bin-${{ hashFiles('Makefile', 'requirements-dev.txt', 'mk/tools.mk') }}
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: env
+      # yamllint disable-line rule:line-length
+      - run: env -i bash -c 'set -a; source env.ci; env --unset=PWD --unset=SHLVL --unset=_' >> "$GITHUB_ENV"
 
       - name: Clean docker infrastructure
         run: |
           docker image prune --force
           docker system prune --force
 
-      - name: Install dependencies
-        env:
-          # yamllint disable-line rule:line-length
-          INSTALL_KUSTOMIZE_URL: "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
-          # yamllint disable-line rule:line-length
-          OPERATOR_SDK_URL: "https://github.com/operator-framework/operator-sdk/releases/download/v1.0.0/operator-sdk-v1.0.0-x86_64-linux-gnu"
-          GO111MODULE: "on"
-        run: |
-          curl -s "${INSTALL_KUSTOMIZE_URL}" | bash
-          FLAG_INSTALL_CRC=NO \
-            FLAG_INSTALL_VSCODE=NO \
-            FLAG_RUN_VSCODE_AFTER_INSTALL=NO \
-            ./devel/install-local-tools.sh
-          go install -i
-
       # https://docs.github.com/en/free-pro-team@latest/actions/reference/encrypted-secrets#using-encrypted-secrets-in-a-workflow
       - name: Build
         env:
-          GO111MODULE: "on"
-          IMG_BASE: "${{ secrets.IMG_BASE }}"
           DOCKER_AUTH: "${{ secrets.DOCKER_AUTH }}"
         run: |-
           export PATH=$PATH:$(go env GOPATH)/bin
@@ -206,18 +251,15 @@ jobs:
           fi
           export IMG="${IMAGE_TAG_BASE}:${TAG}"
 
-          echo ">>> Building operator binary"
-          make generate
-          go build -o bin/manager main.go
+          echo ">>> Launch tests"
+          # Integration tests are disable in github actions
+          make test
 
           echo ">>> Building container image"
           make docker-build
 
-          echo ">>> Saving docker-archive"
-          docker image save "${IMG}" > "${CONTAINER_IMAGE_FILE}"
-
           echo ">>> Checking image layer sizes"
-          dive "docker-archive://${CONTAINER_IMAGE_FILE}"
+          make dive IMG="${IMG}"
 
           # The container image will not be pushed when building on a PR,
           # because the secrets are not accessible from the PR (for
