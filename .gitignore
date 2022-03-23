@@ -47,3 +47,6 @@ docker-image-freeipa-operator.tar.gz
 
 # Ignore temporary dive files
 dive.*.tar
+
+# Ignore .venv directory that is used for python environment
+.venv

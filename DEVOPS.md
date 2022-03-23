@@ -68,3 +68,10 @@ The script return 0 if nothing failed scanning the manifest security, else
 a number greater than 0 indicating how many kustomize directories failed.
 
 The report is printed out in the standard output and error.
+
+## Pipeline sources
+
+- [Github action workflows](https://github.com/freeipa/freeipa-operator/tree/master/.github/workflows).
+- [ci-operator config](https://github.com/openshift/release/tree/master/ci-operator/config/freeipa/freeipa-operator).
+- [ci-operator job](https://github.com/openshift/release/tree/master/ci-operator/jobs/freeipa/freeipa-operator).
+- [ci-operator docs](https://docs.ci.openshift.org/docs/).
