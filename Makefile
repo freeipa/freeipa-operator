@@ -1,5 +1,6 @@
 -include private.mk
--include mk/macros.mk
+include mk/variables.mk
+include mk/macros.mk
 
 # VERSION defines the project version for the bundle.
 # Update this value when you upgrade the version of your project.
@@ -97,17 +98,17 @@ vet: ## Run go vet against code.
 
 .PHONY: test
 test: manifests generate fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test -mod vendor ./... -coverprofile cover.out -test.v
 
 ##@ Build
 
 .PHONY: build
 build: generate fmt vet ## Build manager binary.
-	go build -o bin/manager main.go
+	go build -mod vendor -o bin/manager main.go
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./main.go
+	go run -mod vendor ./main.go
 
 .PHONY: docker-build
 docker-build:  ## Build docker image with the manager.
