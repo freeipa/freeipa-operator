@@ -1,0 +1,3 @@
+vendor/**                      linguist-vendored
+config/rbac/role.yaml          linguist-generated
+config/rbac/role_binding.yaml  linguist-generated
