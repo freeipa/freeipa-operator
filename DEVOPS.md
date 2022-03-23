@@ -5,20 +5,30 @@
 The current github pipeline require some settings to let it run successfully.
 You will need to set up the following secrets:
 
-- DOCKER_AUTH: The file content with the credentials to login into the
+- `DOCKER_AUTH`: The file content with the credentials to login into the
   container image registry. This is used to create the
   `$HOME/.docker/config.json` file.
-- IMAGE_TAG_BASE: The base name for your image. This could be something like:
-  - `quay.io/freeipa/freeipa-operator`.
-  - `docker.io/freeipa/freeipa-operator`.
-  - `quay.io/YOURUSER/my-freeipa-operator`.
-  This provide flexibility, and allow that forked repositories could made
-  deliveries on their own image registries, or different repository.
+- `ENV`: This contains the specific environment variables to be used in
+  your repository from github-actions. Below example of content (update
+  to fit your forked repository).
 
-The deliveries will be stored at:
-[quay.io/freeipa/freeipa-operator](https://quay.io/repository/freeipa/freeipa-operator).
-[quay.io/freeipa/freeipa-operator-bundle](https://quay.io/repository/freeipa/freeipa-operator-bundle).
-[quay.io/freeipa/freeipa-operator-catalog](https://quay.io/repository/freeipa/freeipa-operator-catalog).
+  ```sh
+  # Base name to use for tagging the images which reference
+  # the image registry and the scope name
+  IMAGE_TAG_BASE=quay.io/YOURUSER/freeipa-operator
+  ```
+
+The main repo deliveries will be stored at:
+
+- [quay.io/freeipa/freeipa-operator](https://quay.io/repository/freeipa/freeipa-operator).
+  For the controller image.
+- [quay.io/freeipa/freeipa-operator-scorecard](https://quay.io/repository/freeipa/freeipa-operator-scorecard).
+  For the custom scorecard that implement the functional tests for freeipa-operator
+  and it is referenced by the freeipa-operator-bundle.
+- [quay.io/freeipa/freeipa-operator-bundle](https://quay.io/repository/freeipa/freeipa-operator-bundle).
+  For the bundle that container freeipa-operator.
+- [quay.io/freeipa/freeipa-operator-catalog](https://quay.io/repository/freeipa/freeipa-operator-catalog).
+  For the catalog source that reference freeipa-operator bundle.
 
 - A lint.ignore mechanism is available. Just editing the file
   `devel/lint.ignore`, and adding the files to be ignored. The mechanism

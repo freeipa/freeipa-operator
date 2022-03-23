@@ -61,6 +61,9 @@ func GetReconciler() *IDMReconciler {
 }
 
 func TestAPIs(t *testing.T) {
+	if os.Getenv("GITHUB_ACTIONS") == "true" {
+		t.Skip("Skipping testing in CI environment")
+	}
 	RegisterFailHandler(Fail)
 	junitReporter := reporters.NewJUnitReporter(fmt.Sprintf("../junit/TEST-ginkgo-junit_controllers_%d.xml", config.GinkgoConfig.ParallelNode))
 	RunSpecsWithDefaultAndCustomReporters(t,

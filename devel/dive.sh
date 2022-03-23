@@ -27,7 +27,6 @@ else die "No podman nor docker were found"
 fi
 
 args="--ci"
-[ -e .dive-ci.yml ] && args+=" --ci-config .dive-ci.yml"
 if [ "${CONTAINER_IMAGE_FILE}" != "" ] && [ -e "${CONTAINER_IMAGE_FILE}" ]; then
     args+=" --source docker-archive ${CONTAINER_IMAGE_FILE}"
     # shellcheck disable=SC2086
