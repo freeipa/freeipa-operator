@@ -38,7 +38,7 @@ vendor:  ## Update vendor directory
 	source .venv/bin/activate; pip install --upgrade pip
 	source .venv/bin/activate; pip install -r requirements-dev.txt
 
-ifeq (true,$(OPENSHIFT_CI))
+ifeq (/.cache,$(shell go env GOCACHE))
 GOCACHE=/tmp/.cache
 export GOCACHE
 endif
