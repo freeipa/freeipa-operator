@@ -23,4 +23,6 @@ endif
 ifeq (true,$(OPENSHIFT_CI))
 XDG_CACHE_HOME:=/tmp/.cache
 export XDG_CACHE_HOME
+USE_EXISTING_CLUSTER=1
+export USE_EXISTING_CLUSTER
 endif
