@@ -6,11 +6,11 @@ import (
 )
 
 const (
-	ENV_TESTS_DISABLED = "TESTS_DISABLED"
+	ENV_TEST_DISABLE_LIST = "TEST_DISABLE_LIST"
 )
 
 func IsTestGroupDisabled(groupName string) bool {
-	list := os.Getenv(ENV_TESTS_DISABLED)
+	list := os.Getenv(ENV_TEST_DISABLE_LIST)
 	if list == "" {
 		return false
 	}
