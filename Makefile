@@ -1,5 +1,6 @@
 -include private.mk
--include mk/macros.mk
+include mk/variables.mk
+include mk/macros.mk
 
 # VERSION defines the project version for the bundle.
 # Update this value when you upgrade the version of your project.

@@ -25,7 +25,7 @@ import (
 
 	. "github.com/freeipa/freeipa-operator/controllers"
 	"github.com/freeipa/freeipa-operator/internal/arguments"
-
+	. "github.com/freeipa/freeipa-operator/internal/helpers"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
 	"github.com/onsi/ginkgo/reporters"
@@ -61,8 +61,8 @@ func GetReconciler() *IDMReconciler {
 }
 
 func TestAPIs(t *testing.T) {
-	if os.Getenv("GITHUB_ACTIONS") == "true" {
-		t.Skip("Skipping testing in CI environment")
+	if IsTestGroupDisabled("controller") {
+		t.Skip("'controller' tests are disabled. Check TEST_DISABLED")
 	}
 	RegisterFailHandler(Fail)
 	junitReporter := reporters.NewJUnitReporter(fmt.Sprintf("../junit/TEST-ginkgo-junit_controllers_%d.xml", config.GinkgoConfig.ParallelNode))
