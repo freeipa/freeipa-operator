@@ -14,7 +14,7 @@ func IsTestGroupDisabled(groupName string) bool {
 	if list == "" {
 		return false
 	}
-	items := strings.Split(list, ",")
+	items := strings.Split(list, " ")
 	groupName = strings.TrimSpace(groupName)
 	for _, item := range items {
 		if strings.TrimSpace(item) == groupName {
