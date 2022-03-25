@@ -37,8 +37,3 @@ vendor:  ## Update vendor directory
 	python3 -m venv .venv
 	source .venv/bin/activate; pip install --upgrade pip
 	source .venv/bin/activate; pip install -r requirements-dev.txt
-
-ifeq (/.cache,$(shell go env GOCACHE))
-GOCACHE=/tmp/.cache
-export GOCACHE
-endif

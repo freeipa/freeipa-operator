@@ -18,3 +18,9 @@ define kubectl-wait-for-value
 @while test "$1" != "$(shell kubectl get "$2" -o jsonpath='{$3}' 2>/dev/null)"; do sleep 1; done
 endef
 endif
+
+
+ifeq (true,$(OPENSHIFT_CI))
+XDG_CACHE_HOME:=/tmp/.cache
+export XDG_CACHE_HOME
+endif
