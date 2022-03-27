@@ -50,3 +50,6 @@ dive.*.tar
 
 # Ignore .venv directory that is used for python environment
 .venv
+
+# Ignore generated scorecard property file
+config/scorecard/scorecard.properties
