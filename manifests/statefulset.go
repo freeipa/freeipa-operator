@@ -214,7 +214,7 @@ func MainStatefulsetForIDM(m *v1alpha1.IDM, ingressDomain string, workload strin
 							// https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
 							// https://www.freedesktop.org/software/systemd/man/systemd.html#SIGRTMIN+3
 							Lifecycle: &corev1.Lifecycle{
-								PreStop: &corev1.Handler{
+								PreStop: &corev1.LifecycleHandler{
 									Exec: &corev1.ExecAction{
 										Command: ExecStopSystemd,
 									},
