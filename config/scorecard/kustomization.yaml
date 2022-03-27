@@ -1,4 +1,12 @@
 ---
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: scorecard-properties
+    envs:
+      - scorecard.properties
+
 resources:
   - bases/config.yaml
 patchesJson6902:
@@ -15,3 +23,20 @@ patchesJson6902:
       kind: Configuration
       name: config
 #+kubebuilder:scaffold:patchesJson6902
+  - path: patches/custom.config.yaml
+    target:
+      group: scorecard.operatorframework.io
+      version: v1alpha3
+      kind: Configuration
+      name: config
+
+# TODO The IMG_SCORECARD variable does not expand when
+#      `make bundle` is invoked
+vars:
+  - name: IMG_SCORECARD
+    objref:
+      apiVersion: v1
+      kind: ConfigMap
+      name: scorecard-properties
+    fieldref:
+      fieldpath: data.IMG_SCORECARD
