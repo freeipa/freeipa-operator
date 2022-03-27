@@ -7,6 +7,9 @@ define post-manifests
 && (source .venv/bin/activate; yaml2json config/rbac/role_binding.yaml) | jq '.kind="RoleBinding" | .roleRef.kind="Role"' > config/rbac/role_binding.json \
 && (source .venv/bin/activate; json2yaml config/rbac/role_binding.json) > config/rbac/role_binding.yaml \
 && rm -f config/rbac/role_binding.json
+# TODO IMG_SCORECARD variable is not expanded when calling 'make bundle'
+#      in the generated manifests at bundle/ directory
+@echo "IMG_SCORECARD=$(IMG_SCORECARD)" > config/scorecard/scorecard.properties
 endef
 endif
 
