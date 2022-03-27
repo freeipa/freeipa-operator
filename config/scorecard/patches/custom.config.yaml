@@ -1,0 +1,14 @@
+# yamllint disable rule:document-start
+# https://sdk.operatorframework.io/docs/testing-operators/scorecard/custom-tests/
+- op: add
+  path: /stages/0/tests/-
+  value:
+    # TODO It could be nice if the image is expanded from a variable
+    #      When 'make bundle' is invoked the variable does not expand
+    image: quay.io/avisied0/freeipa-operator-scorecard:v0.0.1
+    entrypoint:
+      - custom-scorecard-tests
+      - simple-test
+    labels:
+      suite: app
+      test: simple
