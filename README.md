@@ -108,6 +108,12 @@ Experimental freeipa-operator for Freeipa.
 
 **Steps**:
 
+1. Create a namespace:
+
+   ```sh
+   oc new-project ipa
+   ```
+
 1. Build and publish container images:
 
    ```sh
@@ -126,6 +132,27 @@ Experimental freeipa-operator for Freeipa.
 
    ```sh
    oc create -f config/samples/persistent-storage.yaml
+   ```
+
+1. Delete the custom resource created:
+
+   ```sh
+   oc delete -f config/samples/persistent-storage.yaml
+   ```
+
+   > TODO You will need to delete the PVC by hand if a new
+   > IDM resource have to be created with different options.
+
+1. Cleanup the operator from the cluster:
+
+   ```sh
+   make bundle-uninstall
+   ```
+
+1. Remove the namespace:
+
+   ```sh
+   oc delete namespace ipa
    ```
 
 ----
