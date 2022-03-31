@@ -130,15 +130,4 @@ Experimental freeipa-operator for Freeipa.
 
 ----
 
-<!-- TODO When the read of ingresDomain is implemented, remove the
-          block below. -->
-
-> When using CodeReadyContainers, you will need to add the entry
-> `192.168.130.11   NAMESPACE.apps.crc.testing` to your `/etc/hosts` file
-> or it will not work as expected; in a real cluster it works
-> properly because the ingressDomain use to match `*.apps.<basedomain>`.
->
-> Now it is known that the ingressDomain information can be retrieved more
-> accurate from a cluster resource and it will be corrected in a future PR.
-
 See also: [Operator SDK 1.0.0 - Quick Start](https://sdk.operatorframework.io/docs/building-operators/golang/quickstart/).
