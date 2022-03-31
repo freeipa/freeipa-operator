@@ -48,8 +48,8 @@ Experimental freeipa-operator for Freeipa.
    kubectl login https://my-cluster:6443
    export IMAGE_TAG_BASE=quay.io/USER_ORG/freeipa-operator
    podman login quay.io
-   make container-build
-   make container-push
+   make docker-build
+   make docker-push
 
    # We need cert-manager for generating the certificates for the webhooks
    make cert-manager-install
