@@ -1,4 +1,4 @@
 # https://github.com/github/linguist/blob/master/docs/overrides.md
-vendor/**                      linguist-vendored
+vendor/**                      linguist-generated
 config/rbac/role.yaml          linguist-generated
 config/rbac/role_binding.yaml  linguist-generated
