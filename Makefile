@@ -171,6 +171,7 @@ rm -rf $$TMP_DIR ;\
 }
 endef
 
+.NOTPARALLEL: bundle
 .PHONY: bundle
 bundle: manifests kustomize operator-sdk ## Generate bundle manifests and metadata, then validate generated files.
 	$(OPERATOR_SDK) generate kustomize manifests -q
