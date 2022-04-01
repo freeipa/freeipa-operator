@@ -2,6 +2,12 @@
 - op: add
   path: /spec/customresourcedefinitions/owned/0/specDescriptors
   value:
+  - displayName: "Host"
+    description: |-
+      If empty, by default it is filled with the fqdn based on the cluster
+      ingressDomain and the namespace is used; be sure the name is routed
+      to your cluster
+    path: host
   - displayName: "Realm"
     description: "The Realm to manage by Freeipa"
     path: "realm"
