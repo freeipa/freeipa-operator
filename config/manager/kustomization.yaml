@@ -13,5 +13,5 @@ configMapGenerator:
   name: manager-config
 images:
 - name: controller
-  newName: quay.io/avisied0/freeipa-operator
-  newTag: latest
+  newName: quay.io/freeipa/freeipa-operator
+  newTag: nightly
