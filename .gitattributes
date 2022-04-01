@@ -2,3 +2,4 @@
 vendor/**                      linguist-generated
 config/rbac/role.yaml          linguist-generated
 config/rbac/role_binding.yaml  linguist-generated
+config/crd/bases/idmocp.redhat.com_idms.yaml  linguist-generated
