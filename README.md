@@ -95,6 +95,7 @@ Experimental freeipa-operator for Freeipa.
   # Generate bundle directory
   # bundle.Dockerfile is generated on this step
   # More information about the LABELS inside here:
+  # https://github.com/operator-framework/operator-registry/blob/master/docs/design/operator-bundle.md#bundle-annotations
   # https://olm.operatorframework.io/docs/tasks/creating-operator-bundle/#contents-of-annotationsyaml-and-the-dockerfile
   make bundle
   # Running scorecard tests generated in the bundle directory by
