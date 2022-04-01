@@ -46,9 +46,9 @@ type IDMStatus struct {
 	ReplicaPod []string `json:"replicas,omitempty"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
-//+kubebuilder:resource:path=idms,scope=Namespaced
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:resource:path=idms,scope=Namespaced
 
 // IDM is the Schema for the idms API
 type IDM struct {
@@ -59,7 +59,7 @@ type IDM struct {
 	Status IDMStatus `json:"status,omitempty"`
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
 
 // IDMList contains a list of IDM
 type IDMList struct {
