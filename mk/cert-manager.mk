@@ -10,3 +10,10 @@ cert-manager-install:  ## Install cert-manager operator
 cert-manager-uninstall:  ## Delete cert-manager operator
 	kubectl delete -f config/certmanager/subscription.yaml --wait=true
 
+.PHONY: cert-manager-self-signed-issuer-create
+cert-manager-self-signed-issuer-create:  ## Create a cluster self signed issuer
+	kubectl create -f config/certmanager/clusterissuer-selfsigned.yaml
+
+.PHONY: cert-manager-self-signed-issuer-delete
+cert-manager-self-signed-issuer-delete:  ## Delete the cluster self signed issuer
+	kubectl delete -f config/certmanager/clusterissuer-selfsigned.yaml
