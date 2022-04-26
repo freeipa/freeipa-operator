@@ -1,0 +1,44 @@
+# The operator is using semantic version, so try to use a proper
+# version for your local builds and to create the proper versioned
+# artifacts
+VERSION ?= 0.0.1-$(shell git rev-list --count HEAD ^master)
+
+# First time you need to create and make public the repositories
+# or after push the images for the first time, go to your
+# container image registry repository and make it public
+# TODO Update IMG_BASE
+$(error Update IMG_BASE with your user account and remove this line)
+IMG_BASE ?= quay.io/YOUR_USER
+IMAGE_TAG_BASE ?= $(IMG_BASE)/freeipa-operator
+
+# Channels to be used in BUNDLE_CHANNELS
+CHANNELS := alpha
+export CHANNELS
+DEFAULT_CHANNEL := alpha
+export DEFAULT_CHANNEL
+
+# This variable specify the image that is related with the
+# workload that is deployed by the controller when running
+# the controller from the workstation.
+# If you want to use a different image, be sure to set this
+# value pointing to the workload you want to use
+RELATED_IMAGE_FREEIPA ?= quay.io/freeipa/freeipa-openshift-container:latest
+export RELATED_IMAGE_FREEIPA
+
+# This is used by the 'make sample-create' and 'make sample-delete' rules
+SAMPLE ?= ./config/samples/persistent-storage.yaml
+
+# When running the controller locally, this indicate the
+# namespace to watch for idm resources when setting up the controller
+WATCH_NAMESPACE ?= $(shell oc project -q)
+export WATCH_NAMESPACE
+
+# This disable the webhooks when we are running the controller locally.
+# It is useful for debugging the controller from the local workstation.
+ENABLE_WEBHOOKS := false
+export ENABLE_WEBHOOKS
+
+# The admin and directory manager passwords that will be used to create
+# the secret. This is used when running the samples by 'make sample-create'
+IPA_ADMIN_PASSWORD ?= Secret124
+IPA_DM_PASSWORD ?= DMSecret124
