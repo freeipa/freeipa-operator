@@ -56,22 +56,68 @@ Experimental freeipa-operator for Freeipa.
    # When the cert-manager operator is installed, run this:
    make cert-manager-self-signed-issuer-create
 
+   # Create the scc object
+   oc create -f config/rbac/scc.yaml
+
    # Finally deploy the operator in the cluster with:
    make deploy
    ```
 
+1. Create `private.mk` file and update IMG_BASE variable value.
+
+   ```sh
+   cp -vf private.mk.example private.mk
+   ```
+
+   > Update `private.mk` where required
+
 1. And create a new idm resource by:
 
    ```sh
-   cat > private.mk <<EOF
-   IDM_ADMIN_PASSWORD=myPassword124
-   IDM_DM_PASSWORD=DMmyPassword124
-   SAMPLE=config/samples/ephemeral-storage
-   EOF
    make sample-create
    ```
 
-   > You can check more samples at `config/samples` directory.
+   > The deployment spend about 5 minutes to finish, after that
+   > you will see something like the below when running:
+   > `oc logs --tail=35 pod/idm-sample-main-0`
+
+   ```raw
+   [  OK  ] Finished Identity, Policy, Audit.
+   ==============================================================================
+   Setup complete
+
+   Next steps:
+   	1. You must make sure these network ports are open:
+   		TCP Ports:
+   		  * 80, 443: HTTP/HTTPS
+   		  * 389, 636: LDAP/LDAPS
+   		  * 88, 464: kerberos
+   		UDP Ports:
+   		  * 88, 464: kerberos
+
+   	2. You can now obtain a kerberos ticket using the command: 'kinit admin'
+   	   This ticket will allow you to use the IPA tools (e.g., ipa user-add)
+   	   and the web user interface.
+   	3. Kerberos requires time synchronization between clients
+   	   and servers for correct operation. You should consider enabling chronyd.
+
+   Be sure to back up the CA certificates stored in /root/cacert.p12
+   These files are required to create replicas. The password for these
+   files is the Directory Manager password
+   The ipa-server-install command was successful
+   FreeIPA server does not run DNS server, skipping update-self-ip-address.
+   Created symlink /etc/systemd/system/container-ipa.target.wants/ipa-server-update-self-ip-address.service → /usr/lib/systemd/system/ipa-server-update-self-ip-address.service.
+   Created symlink /etc/systemd/system/container-ipa.target.wants/ipa-server-upgrade.service → /usr/lib/systemd/system/ipa-server-upgrade.service.
+   Removed /etc/systemd/system/container-ipa.target.wants/ipa-server-configure-first.service.
+   [  OK  ] Finished Configure IPA server upon the first start.
+   FreeIPA server configured.
+   ```
+
+1. Now you should be able to reach out the web interface by:
+
+   ```sh
+   xdg-open "https://$(oc get route idm-sample -o jsonpath='{.spec.host}')"
+   ```
 
 1. Look at your objects by: `kubectl get all,idm,pvc,secrets`
 
@@ -79,6 +125,7 @@ Experimental freeipa-operator for Freeipa.
 
    ```sh
    make undeploy
+   oc delete -f config/rbac/scc.yaml
    ```
 
 ## Executing tests
@@ -107,7 +154,6 @@ Experimental freeipa-operator for Freeipa.
 **Pre-requisites**:
 
 - A proper `private.mk` file setup. (see `private.mk.example`).
-- A namespace selected (eg. `oc new-project ipa`).
 - The freeipa SecurityContextConstraint created (`oc create -f config/rbac/scc.yaml`).
 
 **Steps**:
