@@ -87,28 +87,32 @@ Experimental freeipa-operator for Freeipa.
    Setup complete
 
    Next steps:
-   	1. You must make sure these network ports are open:
-   		TCP Ports:
-   		  * 80, 443: HTTP/HTTPS
-   		  * 389, 636: LDAP/LDAPS
-   		  * 88, 464: kerberos
-   		UDP Ports:
-   		  * 88, 464: kerberos
+      1. You must make sure these network ports are open:
+         TCP Ports:
+           * 80, 443: HTTP/HTTPS
+           * 389, 636: LDAP/LDAPS
+           * 88, 464: kerberos
+         UDP Ports:
+           * 88, 464: kerberos
 
-   	2. You can now obtain a kerberos ticket using the command: 'kinit admin'
-   	   This ticket will allow you to use the IPA tools (e.g., ipa user-add)
-   	   and the web user interface.
-   	3. Kerberos requires time synchronization between clients
-   	   and servers for correct operation. You should consider enabling chronyd.
+      2. You can now obtain a kerberos ticket using the command: 'kinit admin'
+         This ticket will allow you to use the IPA tools (e.g., ipa user-add)
+         and the web user interface.
+      3. Kerberos requires time synchronization between clients
+         and servers for correct operation. You should consider enabling chronyd.
 
    Be sure to back up the CA certificates stored in /root/cacert.p12
    These files are required to create replicas. The password for these
    files is the Directory Manager password
    The ipa-server-install command was successful
    FreeIPA server does not run DNS server, skipping update-self-ip-address.
-   Created symlink /etc/systemd/system/container-ipa.target.wants/ipa-server-update-self-ip-address.service → /usr/lib/systemd/system/ipa-server-update-self-ip-address.service.
-   Created symlink /etc/systemd/system/container-ipa.target.wants/ipa-server-upgrade.service → /usr/lib/systemd/system/ipa-server-upgrade.service.
-   Removed /etc/systemd/system/container-ipa.target.wants/ipa-server-configure-first.service.
+   Created symlink /etc/systemd/system/container-ipa.target.wants/ipa-server-
+   update-self-ip-address.service → /usr/lib/systemd/system/ipa-server-update-
+   self-ip-address.service.
+   Created symlink /etc/systemd/system/container-ipa.target.wants/ipa-server-
+   upgrade.service → /usr/lib/systemd/system/ipa-server-upgrade.service.
+   Removed /etc/systemd/system/container-ipa.target.wants/ipa-server-configure-
+   first.service.
    [  OK  ] Finished Configure IPA server upon the first start.
    FreeIPA server configured.
    ```
