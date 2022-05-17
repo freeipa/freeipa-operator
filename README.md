@@ -172,6 +172,12 @@ Experimental freeipa-operator for Freeipa.
 
 **Steps**:
 
+1. Create the Security Context Constraint profile (if not yet):
+
+   ```sh
+   oc create -f config/rbac/scc.yaml
+   ```
+
 1. Create a namespace:
 
    ```sh
@@ -216,7 +222,13 @@ Experimental freeipa-operator for Freeipa.
 1. Remove the namespace:
 
    ```sh
-   oc delete namespace ipa
+   oc delete project ipa
+   ```
+
+1. Remove the Security Context Constraint profile by:
+
+   ```sh
+   oc delete -f config/rbac/scc.yaml
    ```
 
 ----
