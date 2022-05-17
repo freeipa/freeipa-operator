@@ -36,7 +36,7 @@ Experimental freeipa-operator for Freeipa.
 
 1. Now create a new namespace by: `oc create namespace my-freeipa`
 
-1. As clust-admin user logged in the cluster run:
+1. As cluster-admin user logged in the cluster run:
 
    ```sh
    make install
