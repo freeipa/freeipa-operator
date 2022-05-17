@@ -31,10 +31,20 @@ Experimental freeipa-operator for Freeipa.
 
    ```sh
    make test
-   operator-sdk scorecard bundle
+   ./bin/operator-sdk scorecard bundle
    ```
 
-1. Now create a new namespace by: `kubectl create namespace my-freeipa`
+1. Now create a new namespace by: `oc create namespace my-freeipa`
+
+1. As clust-admin user logged in the cluster run:
+
+   ```sh
+   make install
+   ```
+
+   > This will generate the CRD and install it into the cluster.
+   > The CRD need to be installed into the cluster even if we
+   > run the controller from our local workstation.
 
 1. Run locally outside the cluster by (webhooks are disabled):
 
@@ -45,7 +55,7 @@ Experimental freeipa-operator for Freeipa.
 1. Or run inside the cluster by (first build and push the image):
 
    ```sh
-   kubectl login https://my-cluster:6443
+   oc login https://my-cluster:6443
    export IMAGE_TAG_BASE=quay.io/USER_ORG/freeipa-operator
    podman login quay.io
    make docker-build
