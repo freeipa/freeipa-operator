@@ -6,7 +6,7 @@ IMG_SCORECARD=$(IMAGE_TAG_BASE)-scorecard:v$(VERSION)
 # https://github.com/operator-framework/operator-sdk/blob/09c3aa14625965af9f22f513cd5c891471dbded2/Makefile#L78
 .PHONY: scorecard-build
 scorecard-build:  ## Build the image for the custom scorecard tests
-	docker build -t $(IMG_SCORECARD) -f images/custom-scorecard-tests/Dockerfile .
+	docker build -t $(IMG_SCORECARD) -f images/scorecard-tests/Dockerfile .
 
 .PHONY: scorecard-push
 scorecard-push:  ## Push the image for the custom scorecard tests
