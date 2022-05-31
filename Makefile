@@ -104,11 +104,11 @@ test: manifests generate fmt vet envtest ## Run tests.
 
 .PHONY: build
 build: generate fmt vet ## Build manager binary.
-	go build -mod vendor -o bin/manager main.go
+	go build -mod vendor -o bin/manager cmd/manager/main.go
 
 .PHONY: run
-run: manifests generate fmt vet ## Run a controller from your host.
-	go run -mod vendor ./main.go
+run: manifests generate fmt vet ## Run a controller from your host (it requires 'make install' to get CRDs installed)
+	go run -mod vendor cmd/manager/main.go
 
 .PHONY: docker-build
 docker-build:  ## Build docker image with the manager.
