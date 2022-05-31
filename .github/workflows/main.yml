@@ -16,6 +16,9 @@ on:
     # 22:00 UTC+2 is translated to 20:00 UTC+0
     - cron: '00 20 * * *'
 
+env:
+  GO_VERSION: '1.17'
+
 # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#jobs
 jobs:
   environment:
@@ -65,7 +68,7 @@ jobs:
 
       - uses: actions/setup-go@v2
         with:
-          go-version: '1.16'
+          go-version: '${{ env.GO_VERSION }}'
         id: go
 
       - run: make controller-gen envtest kustomize "${PWD}/bin/dive"
@@ -94,7 +97,7 @@ jobs:
 
       - uses: actions/setup-go@v2
         with:
-          go-version: '1.16'
+          go-version: '${{ env.GO_VERSION }}'
         id: go
       - uses: actions/setup-python@v3
       - uses: actions/cache@v3
@@ -131,7 +134,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
-          go-version: '1.16'
+          go-version: '${{ env.GO_VERSION }}'
         id: go
       - uses: actions/setup-python@v3
       - uses: actions/cache@v3
@@ -170,7 +173,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
-          go-version: '1.16'
+          go-version: '${{ env.GO_VERSION }}'
         id: go
       - uses: actions/setup-python@v3
       - uses: actions/cache@v3
@@ -211,7 +214,7 @@ jobs:
 
       - uses: actions/setup-go@v2
         with:
-          go-version: '1.16'
+          go-version: '${{ env.GO_VERSION }}'
         id: go
       - uses: actions/setup-python@v3
       - uses: actions/cache@v3
